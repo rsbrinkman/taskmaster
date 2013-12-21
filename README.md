@@ -13,6 +13,7 @@ Run the server
 Setup redis
 -----------
 Follow instructions at http://redis.io/topics/quickstart OR
+
     git clone https://github.com/jpmunz/quickstart.git quickstart
     cd quickstart/redis/
     sudo ./start.sh 6379
