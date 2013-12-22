@@ -18,3 +18,12 @@ Follow instructions at http://redis.io/topics/quickstart OR
     cd quickstart/redis/
     sudo ./start.sh 6379
     hit 127.0.0.1:5000/test_db/
+
+Mac OS X Setup
+---
+Download the reddis package from reddis.io
+   
+   unzip the tar.gz
+   Follow instructions here http://jasdeep.ca/2012/05/installing-redis-on-mac-os-x/
+   Profit
+
