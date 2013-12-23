@@ -1,4 +1,46 @@
 {% extends "base.html" %}
 {% block body %}
-  <p>Hiiii</p>
+ <div class="container"> 
+  <table class="table table-striped">
+    <tr>
+        <th>Status</th>
+        <th>Task Name</th>
+        <th>Assignee</th>
+        <th>Date Created</th>
+        <th>Priority</th>
+        <th>Severity</th>
+    </tr>
+    <tr>
+        <td>
+            <select class="form-control">
+                <option name="unassigned">Unassigned</option>
+                <option name="not-started">Not Started</option>
+                <option name="in-progress">In Progress</option>
+            </select>
+        </td>
+        <td>Example Task Name</td>
+        <td>Scott Stinkman</td>
+        <td>12/22/2013</td>
+        <td>0</td>
+        <td>0</td>
+    </tr>
+    <tr>
+        <td>
+            <select class="form-control">
+                <option name="unassigned">Unassigned</option>
+                <option name="not-started">Not Started</option>
+                <option name="in-progress">In Progress</option>
+            </select>
+        </td>
+        <td>{{tasks.task_name}}</td>
+        <td>{{tasks.assignee}}</td>
+        <td>{{tasks.created_date}}</td>
+        <td>{{tasks.priority}}</td>
+        <td>{{tasks.severity}}</td>
+    </tr>
+            
+  </table>
+
+  </div>
+
 {% endblock %}
