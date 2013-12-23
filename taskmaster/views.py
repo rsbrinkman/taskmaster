@@ -6,8 +6,6 @@ from datetime import datetime
 def index():
     tasks  = {}
     tasks = db.get_tasks('example_task')
-    print tasks
-
 
     return render_template('index.html', tasks=tasks)
 
@@ -24,9 +22,7 @@ def create_task():
         task['status'] = request.form['task-status']
         task['assignee'] = request.form['task-assignee']
         task['priority'] = request.form['task-priority']
-    if task:
-       task['created_date'] = str(datetime.now().replace(microsecond=0))
-    print task
-    db.create_task(task['name'], task)
+        task['created_date'] = str(datetime.now().replace(microsecond=0))
+        db.create_task(task['name'], task)
 
     return render_template('create_tasks.html')
