@@ -9,18 +9,26 @@ def test():
     db.delete('test_key')
     return result
 
-def get_tasks(hash_name):
+def get_tasks(task_name):
     """Get all tasks for a given user.
     hash_name: string task object name for now
     """
 
-    results = db.hgetall(hash_name)
+    return db.hgetall(task_name)
 
-    return results
-
-def create_task(name, task):
-
+def create_task(name, task, username):
+    # Create the hashmap task object
     try:
         create_task = db.hmset(name, task)
     except:
         print 'Task creation failed'
+
+    # Try Add the task name to the user's assigned set.
+    try:
+        db.sadd(username, name)
+    except:
+        print 'whoops'
+
+def get_assigned_tasks(username):
+
+    return db.smembers(username)
