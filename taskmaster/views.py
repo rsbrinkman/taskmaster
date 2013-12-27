@@ -11,9 +11,10 @@ def index():
     assigned_tasks = db.get_assigned_tasks(username)
 
     # Iterate over assigned tasks and build tasks object
-    tasks  = []
+    tasks = []
     for task in assigned_tasks:
-        tasks.append(db.get_tasks(task).copy())
+        tasks.append(db.get_tasks(task))
+    print tasks
 
     return render_template('index.html', tasks=tasks)
 
@@ -32,6 +33,6 @@ def create_task():
         task['priority'] = request.form['task-priority']
         task['severity'] = request.form['task-severity']
         task['created_date'] = str(datetime.now().replace(microsecond=0))
-        db.create_task('task>%s' % task['name'], task, username)
+        db.create_task(task['name'], task, username)
 
     return render_template('create_tasks.html')
