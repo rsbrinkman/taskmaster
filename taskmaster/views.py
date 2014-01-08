@@ -9,7 +9,6 @@ username='Scott Brinkman'
 def index():
     # Get set of assigned tasks
     assigned_tasks = db.get_assigned_tasks(username)
-
     # Iterate over assigned tasks and build tasks object
     tasks = []
     for task in assigned_tasks:
