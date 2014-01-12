@@ -2,10 +2,17 @@ from taskmaster import app, db
 from flask import render_template, request
 from datetime import datetime
 
+#TODO: Create login interface.
+username='Scott Brinkman'
+
 @app.route('/')
 def index():
-    tasks  = {}
-    tasks = db.get_tasks('example_task')
+    # Get set of assigned tasks
+    assigned_tasks = db.get_assigned_tasks(username)
+    # Iterate over assigned tasks and build tasks object
+    tasks = []
+    for task in assigned_tasks:
+        tasks.append(db.get_tasks(task))
 
     return render_template('index.html', tasks=tasks)
 
@@ -22,7 +29,8 @@ def create_task():
         task['status'] = request.form['task-status']
         task['assignee'] = request.form['task-assignee']
         task['priority'] = request.form['task-priority']
+        task['severity'] = request.form['task-severity']
         task['created_date'] = str(datetime.now().replace(microsecond=0))
-        db.create_task(task['name'], task)
+        db.create_task(task['name'], task, username)
 
     return render_template('create_tasks.html')
