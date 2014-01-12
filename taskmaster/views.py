@@ -13,7 +13,6 @@ def index():
     tasks = []
     for task in assigned_tasks:
         tasks.append(db.get_tasks(task))
-    print tasks
 
     return render_template('index.html', tasks=tasks)
 
