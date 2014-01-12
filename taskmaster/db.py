@@ -1,3 +1,4 @@
+import uuid
 import redis
 from datetime import datetime
 from taskmaster import settings
@@ -29,7 +30,7 @@ def get_assigned_tasks(username):
     return db.smembers('assigned>%s' % username)
 
 def get_tasks_from_tag(tagname, orgname):
-    return db.smembers('tag-tasks>%s>%s>' % (orgname, tagname))
+    return db.smembers('tag-tasks>%s>' % tagname)
 
 def remove_tag(taskname, tagname):
     pass
@@ -56,7 +57,7 @@ def tag_task(taskname, tagname):
     with db.pipeline() as pipe:
         try:
             pipe.multi()
-            pipe.sadd('tag-tasks>%s>%s>' % (orgname, tagname), task)
+            pipe.sadd('tag-tasks>%s' % tagname, task)
             pipe.hmset('task>%s' % taskname, task)
             pipe.execute()
         except:
@@ -64,16 +65,17 @@ def tag_task(taskname, tagname):
         finally:
             pipe.reset()
 
-def create_task(name, task, orgname, username=None):
+def create_task(task, orgname, username=None):
     # Create the hashmap task object
+    task_id = uuid.uuid4().hex
     with db.pipeline() as pipe:
         try:
             pipe.multi()
             task['org'] = orgname
-            pipe.hmset('task>%s' % name, task)
-            pipe.sadd('org-tasks>%s' % orgname, name)
+            pipe.hmset('task>%s' % task_id, task)
+            pipe.sadd('org-tasks>%s' % orgname, task_id)
             if username:
-                pipe.sadd('assigned>%s' % username, name)
+                pipe.sadd('assigned>%s' % username, task_id)
             pipe.execute()
         except:
             print 'Task creation failed'
