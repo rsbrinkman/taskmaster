@@ -9,18 +9,27 @@ def test():
     db.delete('test_key')
     return result
 
-def get_tasks(hash_name):
+def get_tasks(task):
     """Get all tasks for a given user.
-    hash_name: string task object name for now
+    task: string task object name for now
     """
 
-    results = db.hgetall(hash_name)
+    return db.hgetall(task)
 
-    return results
+def create_task(name, task, username):
+    # Create the hashmap task object
+    with db.pipeline() as pipe:
+        try:
+            pipe.multi()
+            pipe.hmset('task>%s' % name, task)
+            pipe.sadd(username, 'task>%s' % name)
+            pipe.execute()
+        except:
+            print 'Task creation failed'
+        finally:
+            pipe.reset()
 
-def create_task(name, task):
 
-    try:
-        create_task = db.hmset(name, task)
-    except:
-        print 'Task creation failed'
+def get_assigned_tasks(username):
+
+    return db.smembers(username)
