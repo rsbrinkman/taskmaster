@@ -3,6 +3,7 @@ from flask import render_template, request
 from datetime import datetime
 
 #TODO: Create login interface.
+org='Taskmaster'
 username='Scott Brinkman'
 
 @app.route('/')
@@ -31,6 +32,6 @@ def create_task():
         task['priority'] = request.form['task-priority']
         task['severity'] = request.form['task-severity']
         task['created_date'] = str(datetime.now().replace(microsecond=0))
-        db.create_task(task['name'], task, username)
+        db.create_task(task['name'], task, org, username=username)
 
     return render_template('create_tasks.html')
