@@ -29,35 +29,49 @@ def get_org_tasks(orgname):
 def get_assigned_tasks(username):
     return db.smembers('assigned>%s' % username)
 
-def get_tasks_from_tag(tagname, orgname):
+def get_tasks_from_tag(tagname):
     return db.smembers('tag-tasks>%s>' % tagname)
 
-def remove_tag(taskname, tagname):
-    pass
-
-def remove_from_queue(taskname, queuename):
-    pass
-
-def move_task(taskname, from_queuename, to_queuename):
-    pass
-
-def delete_task(taskname):
-    pass
 
 def add_task_to_queue(taskname, queuename):
     db.sadd('queue-tasks>%s' % queuename, taskname)
+
+def remove_from_queue(taskname, queuename):
+    db.srem('queue-tasks>%s' % queuename, taskname)
+
+def move_task(taskname, from_queuename, to_queuename):
+    db.smove('queue-tasks>%s' % from_queuename, 'queue-tasks>%s' % to_queuename, taskname)
 
 def tag_task(taskname, tagname):
     task = get_task(taskname)
     tags = set(task['tags'].split(','))
     tags.add(tagname)
     task['tags'] = ','.join(tags)
-    orgname = task['org']
 
     with db.pipeline() as pipe:
         try:
             pipe.multi()
             pipe.sadd('tag-tasks>%s' % tagname, task)
+            pipe.hmset('task>%s' % taskname, task)
+            pipe.execute()
+        except:
+            print 'Task creation failed'
+        finally:
+            pipe.reset()
+
+def remove_tag(taskname, tagname):
+    task = get_task(taskname)
+    tags = set(task['tags'].split(','))
+    try:
+        tags.remove(tagname)
+    except KeyError:
+        pass
+    task['tags'] = ','.join(tags)
+
+    with db.pipeline() as pipe:
+        try:
+            pipe.multi()
+            pipe.srem('tag-tasks>%s' % tagname, task)
             pipe.hmset('task>%s' % taskname, task)
             pipe.execute()
         except:
@@ -82,6 +96,21 @@ def create_task(task, orgname, username=None):
         finally:
             pipe.reset()
 
+def delete_task(task_id, orgname):
+    task = get_task(task_id)
+    with db.pipeline() as pipe:
+        try:
+            pipe.multi()
+            pipe.delete('task>%s' % task_id)
+            pipe.srem('org-tasks>%s' % orgname, task_id)
+            if task['assignee']:
+                pipe.srem('assigned>%s' % task['assignee'], task_id)
+            pipe.execute()
+        except:
+            print 'Task creation failed'
+        finally:
+            pipe.reset()
+
 def create_queue(name, orgname, filter_expression=None):
     # Create the hashmap queue object
     with db.pipeline() as pipe:
@@ -97,4 +126,3 @@ def create_queue(name, orgname, filter_expression=None):
             print 'Task creation failed'
         finally:
             pipe.reset()
-
