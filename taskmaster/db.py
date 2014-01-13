@@ -32,7 +32,6 @@ def get_assigned_tasks(username):
 def get_tasks_from_tag(tagname):
     return db.smembers('tag-tasks>%s>' % tagname)
 
-
 def add_task_to_queue(taskname, queuename):
     db.sadd('queue-tasks>%s' % queuename, taskname)
 
@@ -42,22 +41,51 @@ def remove_from_queue(taskname, queuename):
 def move_task(taskname, from_queuename, to_queuename):
     db.smove('queue-tasks>%s' % from_queuename, 'queue-tasks>%s' % to_queuename, taskname)
 
-def tag_task(taskname, tagname):
-    task = get_task(taskname)
-    tags = set(task['tags'].split(','))
-    tags.add(tagname)
-    task['tags'] = ','.join(tags)
+def set_tags(task_id, updated_tags):
+    task = get_task(task_id)
+    current_tags = set(task['tags'].split(','))
+    updated_tags = set(updated_tags)
+
+    tags_to_remove = current_tags.difference(updated_tags)
+    tags_to_add = updated_tags.difference(current_tags)
+
+    task['tags'] = ','.join(updated_tags)
 
     with db.pipeline() as pipe:
         try:
             pipe.multi()
-            pipe.sadd('tag-tasks>%s' % tagname, task)
-            pipe.hmset('task>%s' % taskname, task)
+            for tag in tags_to_remove:
+                pipe.srem('tag-tasks>%s' % tag, task_id)
+            for tag in tags_to_add:
+                pipe.sadd('tag-tasks>%s' % tag, task_id)
+                pipe.sadd('used-tags', tag)
+            pipe.hmset('task>%s' % task_id, task)
             pipe.execute()
         except:
-            print 'Task creation failed'
+            print 'Tagging failed'
         finally:
             pipe.reset()
+
+    # Remove any tags that are no longer used
+    with db.pipeline() as pipe:
+        try:
+            pipe.multi()
+            for tag in tags_to_remove:
+                pipe.scard('tag-tasks>%s' % tag)
+            tag_uses = pipe.execute()
+
+            pipe.multi()
+            for tag, uses in zip(tags_to_remove, tag_uses):
+                if not uses:
+                    pipe.srem('used-tags', tag)
+            pipe.execute()
+        except:
+            print 'Tagging failed'
+        finally:
+            pipe.reset()
+
+def get_used_tags():
+    return db.smembers('used-tags')
 
 def remove_tag(taskname, tagname):
     task = get_task(taskname)
@@ -86,6 +114,8 @@ def create_task(task, orgname, username=None):
         try:
             pipe.multi()
             task['org'] = orgname
+            task['id'] = task_id
+            task['tags'] = ''
             pipe.hmset('task>%s' % task_id, task)
             pipe.sadd('org-tasks>%s' % orgname, task_id)
             if username:

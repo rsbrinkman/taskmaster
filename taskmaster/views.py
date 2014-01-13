@@ -1,5 +1,7 @@
+import json
+
 from taskmaster import app, db
-from flask import render_template, request
+from flask import render_template, request, Response
 from datetime import datetime
 
 #TODO: Create login interface.
@@ -13,9 +15,13 @@ def index():
     # Iterate over assigned tasks and build tasks object
     tasks = []
     for task in assigned_tasks:
-        tasks.append(db.get_task(task))
+        retrieved_task = db.get_task(task)
+        tags = ','.join(sorted(retrieved_task['tags'].split(',')))
+        retrieved_task['tags'] = tags
+        tasks.append(retrieved_task)
 
-    return render_template('index.html', tasks=tasks)
+    tags = ','.join(db.get_used_tags())
+    return render_template('index.html', tasks=tasks, tags=tags)
 
 @app.route('/test_db/')
 def test_db():
@@ -35,3 +41,9 @@ def create_task():
         db.create_task(task, org, username=username)
 
     return render_template('create_tasks.html')
+
+
+@app.route('/task/<task_id>/tags/', methods=['POST'])
+def task_tags(task_id):
+    db.set_tags(task_id, json.loads(request.form['tags']))
+    return Response(status=200)
