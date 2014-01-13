@@ -14,14 +14,20 @@ def index():
     tasks = []
     for task in assigned_tasks:
         tasks.append(db.get_task(task))
+    queues = db.get_org_queues(org)
 
-    return render_template('index.html', tasks=tasks)
+    return render_template('index.html', tasks=tasks, queues=queues)
 
 @app.route('/test_db/')
 def test_db():
     return db.test()
 
 @app.route('/create', methods=['POST', 'GET'])
+def show_task_form():
+
+    return render_template('create_tasks.html')
+
+@app.route('/task', methods=['POST', 'GET'])
 def create_task():
     task = {}
     if request.method == 'POST':
@@ -35,3 +41,19 @@ def create_task():
         db.create_task(task, org, username=username)
 
     return render_template('create_tasks.html')
+
+@app.route('/queue_form', methods=['GET'])
+def show_queue_form():
+
+    return render_template('create_queue.html')
+
+
+@app.route('/queue', methods=['POST', 'GET'])
+def create_queue():
+    if request.method == 'POST':
+        name  = request.form['queue-name']
+    db.create_queue(name, org)
+
+    return render_template('create_queue.html')
+
+
