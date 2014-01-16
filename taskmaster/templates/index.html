@@ -19,10 +19,11 @@
         <th>Priority</th>
         <th>Severity</th>
         <th>Tags</th>
+        <th>Delete</th>
     </tr>
     </tr>
     {% for task in tasks %}
-    <tr>
+    <tr class="task-row">
         <!-- TODO: Set the selected value dynamically and possibly build the dropdown dynamically from db. --!>
         <td>
             <select class="form-control" id="task-status">
@@ -37,13 +38,13 @@
         <td>{{task.priority}}</td>
         <td>{{task.severity}}</td>
         <td class="tag-column"><input type="hidden" data-tag-id="{{task.id}}" class="task-tags" value="{{task.tags}}"></input></td>
+        <td><button class="del-task" data-task-id="{{task.id}}">Del</button>
     </tr>
     {% endfor %}
-    {% else %}
-    <h4>No tasks found for you, time to get to <a href="/create">work</a>
-    {% endif %}
   </table>
+  {% endif %}
 
+    <h4 id="no-task-message" {% if tasks %}style="display:none"{% endif %}>No tasks found for you, time to get to <a href="/create">work</a>
   </div>
 
 {% endblock %}

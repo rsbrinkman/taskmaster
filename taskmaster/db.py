@@ -29,6 +29,9 @@ def get_org_tasks(orgname):
 def get_assigned_tasks(username):
     return db.smembers('assigned>%s' % username)
 
+def remove_assigned_task(username, task):
+    db.srem('assigned>%s' % username, task)
+
 def get_tasks_from_tag(tagname):
     return db.smembers('tag-tasks>%s>' % tagname)
 
@@ -87,26 +90,6 @@ def set_tags(task_id, updated_tags):
 def get_used_tags():
     return db.smembers('used-tags')
 
-def remove_tag(taskname, tagname):
-    task = get_task(taskname)
-    tags = set(task['tags'].split(','))
-    try:
-        tags.remove(tagname)
-    except KeyError:
-        pass
-    task['tags'] = ','.join(tags)
-
-    with db.pipeline() as pipe:
-        try:
-            pipe.multi()
-            pipe.srem('tag-tasks>%s' % tagname, task)
-            pipe.hmset('task>%s' % taskname, task)
-            pipe.execute()
-        except:
-            print 'Task creation failed'
-        finally:
-            pipe.reset()
-
 def create_task(task, orgname, username=None):
     # Create the hashmap task object
     task_id = uuid.uuid4().hex
@@ -122,11 +105,14 @@ def create_task(task, orgname, username=None):
                 pipe.sadd('assigned>%s' % username, task_id)
             pipe.execute()
         except:
+            if settings.DEBUG:
+                raise
             print 'Task creation failed'
         finally:
             pipe.reset()
 
 def delete_task(task_id, orgname):
+    set_tags(task_id, [])
     task = get_task(task_id)
     with db.pipeline() as pipe:
         try:
@@ -137,6 +123,8 @@ def delete_task(task_id, orgname):
                 pipe.srem('assigned>%s' % task['assignee'], task_id)
             pipe.execute()
         except:
+            if settings.DEBUG:
+                raise
             print 'Task creation failed'
         finally:
             pipe.reset()
