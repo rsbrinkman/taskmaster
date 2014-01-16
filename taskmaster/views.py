@@ -15,12 +15,6 @@ def index():
     # Iterate over assigned tasks and build tasks object
     tasks = []
     for task in assigned_tasks:
-<<<<<<< HEAD
-        tasks.append(db.get_task(task))
-    queues = db.get_org_queues(org)
-
-    return render_template('index.html', tasks=tasks, queues=queues)
-=======
         retrieved_task = db.get_task(task)
         tags = ','.join(sorted(retrieved_task['tags'].split(',')))
         retrieved_task['tags'] = tags
@@ -28,18 +22,17 @@ def index():
 
     tags = ','.join(db.get_used_tags())
     return render_template('index.html', tasks=tasks, tags=tags)
->>>>>>> 63c6e37ff151f400a7d366adbdfd2a867a5d85cb
 
 @app.route('/test_db/')
 def test_db():
     return db.test()
 
-@app.route('/create', methods=['POST', 'GET'])
+@app.route('/create_task_form', methods=['GET'])
 def show_task_form():
 
     return render_template('create_tasks.html')
 
-@app.route('/task', methods=['POST', 'GET'])
+@app.route('/task', methods=['POST'])
 def create_task():
     task = {}
     if request.method == 'POST':
@@ -54,14 +47,13 @@ def create_task():
 
     return render_template('create_tasks.html')
 
-<<<<<<< HEAD
 @app.route('/queue_form', methods=['GET'])
 def show_queue_form():
 
     return render_template('create_queue.html')
 
 
-@app.route('/queue', methods=['POST', 'GET'])
+@app.route('/queue', methods=['POST'])
 def create_queue():
     if request.method == 'POST':
         name  = request.form['queue-name']
@@ -69,11 +61,7 @@ def create_queue():
 
     return render_template('create_queue.html')
 
-
-=======
-
 @app.route('/task/<task_id>/tags/', methods=['POST'])
 def task_tags(task_id):
     db.set_tags(task_id, json.loads(request.form['tags']))
     return Response(status=200)
->>>>>>> 63c6e37ff151f400a7d366adbdfd2a867a5d85cb
