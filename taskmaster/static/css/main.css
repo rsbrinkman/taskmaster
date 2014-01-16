@@ -4,6 +4,12 @@
     width: 100%;
     margin-bottom: 10px;
 }
+<<<<<<< HEAD
 .border-left {
     border-left: 1px #888888 solid;
+=======
+
+.tag-column {
+    width: 300px;
+>>>>>>> 63c6e37ff151f400a7d366adbdfd2a867a5d85cb
 }
