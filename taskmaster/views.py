@@ -21,7 +21,8 @@ def index():
         tasks.append(retrieved_task)
 
     tags = ','.join(db.get_used_tags())
-    return render_template('index.html', tasks=tasks, tags=tags)
+    queues = db.get_org_queues(org)
+    return render_template('index.html', tasks=tasks, tags=tags, queues=queues)
 
 @app.route('/test_db/')
 def test_db():
@@ -64,4 +65,5 @@ def create_queue():
 @app.route('/task/<task_id>/tags/', methods=['POST'])
 def task_tags(task_id):
     db.set_tags(task_id, json.loads(request.form['tags']))
+
     return Response(status=200)
