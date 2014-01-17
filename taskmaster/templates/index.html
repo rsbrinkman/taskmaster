@@ -29,6 +29,7 @@
                 <th>Date Created</th>
                 <th>Priority</th>
                 <th>Severity</th>
+                <th>Tags</th>
             </tr>
             </tr>
             {% for task in tasks %}
@@ -46,6 +47,7 @@
                 <td>{{task.created_date}}</td>
                 <td>{{task.priority}}</td>
                 <td>{{task.severity}}</td>
+                <td class="tag-column"><input type="hidden" data-tag-id="{{task.id}}" class="task-tags" value="{{task.tags}}"></input></td>i
             </tr>
             {% endfor %}
             {% else %}
