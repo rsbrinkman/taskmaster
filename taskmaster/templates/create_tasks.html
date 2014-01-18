@@ -2,8 +2,8 @@
 {% block body %}
 
 <div class="container">
-<h3>Create a task</h2>
-    <form role="form" name="create" method="POST" action="/create">
+<h3>Create a task</h3>
+    <form role="form" name="create" method="POST" action="/task">
         <div class="form-group">
             <label for="task-name">Task Name</label>
             <input type="text" class="form-control" name="task-name" />
@@ -13,6 +13,7 @@
             <textarea class="form-control" rows="3" cols="5" name="task-description"></textarea>
         </div>
         <div class="form-group">
+            <label for="task-status">Task Status</label>
             <select class="form-control" name="task-status">
                 <option name="unassigned">Unassigned</option>
                 <option name="not-started">Not Started</option>

@@ -24,13 +24,19 @@ def index():
             db.remove_assigned_task(username, task)
 
     tags = ','.join(db.get_used_tags())
-    return render_template('index.html', tasks=tasks, tags=tags)
+    queues = db.get_org_queues(org)
+    return render_template('index.html', tasks=tasks, tags=tags, queues=queues)
 
 @app.route('/test_db/')
 def test_db():
     return db.test()
 
-@app.route('/create', methods=['POST', 'GET'])
+@app.route('/create_task_form', methods=['GET'])
+def show_task_form():
+
+    return render_template('create_tasks.html')
+
+@app.route('/task', methods=['POST'])
 def create_task():
     task = {}
     if request.method == 'POST':
@@ -45,6 +51,19 @@ def create_task():
 
     return render_template('create_tasks.html')
 
+@app.route('/queue_form', methods=['GET'])
+def show_queue_form():
+
+    return render_template('create_queue.html')
+
+
+@app.route('/queue', methods=['POST'])
+def create_queue():
+    if request.method == 'POST':
+        name  = request.form['queue-name']
+    db.create_queue(name, org)
+
+    return render_template('create_queue.html')
 
 @app.route('/task/<task_id>', methods=['DELETE'])
 def task_update(task_id):
@@ -55,4 +74,5 @@ def task_update(task_id):
 @app.route('/task/<task_id>/tags/', methods=['POST'])
 def task_tags(task_id):
     db.set_tags(task_id, json.loads(request.form['tags']))
+
     return Response(status=200)

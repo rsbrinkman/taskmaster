@@ -8,43 +8,52 @@
 
 {% block body %}
  <div class="container"> 
-  
-  {% if tasks %}
-  <table class="table table-striped">
-    <tr>
-        <th>Status</th>
-        <th>Task Name</th>
-        <th>Assignee</th>
-        <th>Date Created</th>
-        <th>Priority</th>
-        <th>Severity</th>
-        <th>Tags</th>
-        <th>Delete</th>
-    </tr>
-    </tr>
-    {% for task in tasks %}
-    <tr class="task-row">
-        <!-- TODO: Set the selected value dynamically and possibly build the dropdown dynamically from db. --!>
-        <td>
-            <select class="form-control" id="task-status">
-                <option name="unassigned" value="unassigned">Unassigned</option>
-                <option name="not-started" value="not-started">Not Started</option>
-                <option name="in-progress" value="in-progress">In Progress</option>
-            </select>
-        </td>
-        <td>{{task.name}}</td>
-        <td>{{task.assignee}}</td>
-        <td>{{task.created_date}}</td>
-        <td>{{task.priority}}</td>
-        <td>{{task.severity}}</td>
-        <td class="tag-column"><input type="hidden" data-tag-id="{{task.id}}" class="task-tags" value="{{task.tags}}"></input></td>
-        <td><button class="del-task" data-task-id="{{task.id}}">Del</button>
-    </tr>
-    {% endfor %}
-  </table>
-  {% endif %}
-
-    <h4 id="no-task-message" {% if tasks %}style="display:none"{% endif %}>No tasks found for you, time to get to <a href="/create">work</a>
+    <div class="row">
+        <div class="col-md-2">
+           <h5><u>Queues</u></h5>
+           <ul class="list-unstyled">
+           {% for queue in queues %}
+             <li>{{queue}}</li>
+           {% endfor %}
+           </ul>
+           <a href="/queue_form" class="btn btn-info btn-sm">Create Queue</a>
+        </div>
+        <div class="col-md-10 border-left">
+          <table class="table table-striped">
+            <tr>
+                <th>Status</th>
+                <th>Task Name</th>
+                <th>Assignee</th>
+                <th>Date Created</th>
+                <th>Priority</th>
+                <th>Severity</th>
+                <th>Tags</th>
+                <th>Delete</th>
+            </tr>
+            </tr>
+            {% for task in tasks %}
+            <tr>
+                <!-- TODO: Set the selected value dynamically and possibly build the dropdown dynamically from db. --!>
+                <td>
+                    <select class="form-control" id="task-status">
+                        <option name="unassigned" value="unassigned">Unassigned</option>
+                        <option name="not-started" value="not-started">Not Started</option>
+                        <option name="in-progress" value="in-progress">In Progress</option>
+                    </select>
+                </td>
+                <td>{{task.name}}</td>
+                <td>{{task.assignee}}</td>
+                <td>{{task.created_date}}</td>
+                <td>{{task.priority}}</td>
+                <td>{{task.severity}}</td>
+                <td class="tag-column"><input type="hidden" data-tag-id="{{task.id}}" class="task-tags" value="{{task.tags}}"></input></td>i
+                <td><button class="del-task" data-task-id="{{task.id}}">Del</button>
+            </tr>
+            {% endfor %}
+          </table>
+          <h4 id="no-task-message" {% if tasks %}style="display:none"{% endif %}>No tasks found for you, time to get to <a href="/create">work</a>
+      </div>
+    </div>
   </div>
 
 {% endblock %}
