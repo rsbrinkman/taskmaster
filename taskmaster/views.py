@@ -33,7 +33,6 @@ def test_db():
 
 @app.route('/create_task_form', methods=['GET'])
 def show_task_form():
-
     return render_template('create_tasks.html')
 
 @app.route('/task', methods=['POST'])
@@ -53,9 +52,7 @@ def create_task():
 
 @app.route('/queue_form', methods=['GET'])
 def show_queue_form():
-
     return render_template('create_queue.html')
-
 
 @app.route('/queue', methods=['POST'])
 def create_queue():
