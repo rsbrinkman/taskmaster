@@ -67,3 +67,15 @@ def task_tags(task_id):
     db.set_tags(task_id, json.loads(request.form['tags']))
 
     return Response(status=200)
+
+@app.route('/queue/delete/<queue_name>', methods=['POST'])
+def delete_queue(queue_name):
+    db.delete_queue(queue_name, org)
+
+    return Response(status=200)
+
+@app.route('/task/<task_id>/update_status/<status>', methods=['POST'])
+def update_task_status(task_id, status):
+    db.update_task_status(task_id, status)
+
+    return Response(status=200)

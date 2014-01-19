@@ -126,6 +126,10 @@ def create_task(task, orgname, username=None):
         finally:
             pipe.reset()
 
+def update_task_status(task_id, status):
+   db.hset('task>%s' % task_id, 'status', status)
+
+
 def delete_task(task_id, orgname):
     task = get_task(task_id)
     with db.pipeline() as pipe:
@@ -156,3 +160,15 @@ def create_queue(name, orgname, filter_expression=None):
             print 'Task creation failed'
         finally:
             pipe.reset()
+
+def delete_queue(name, orgname):
+    with db.pipeline() as pipe:
+        try:
+            pipe.multi()
+            pipe.srem('org-queues>%s' % orgname, name)
+            pipe.execute()
+        except:
+            print 'Task creation failed'
+        finally:
+            pipe.reset()
+
