@@ -11,6 +11,20 @@ $(function() {
       }
     });
   });
+
+  $('.del-task').on('click', function() {
+    var $cell = $(this);
+    $.ajax({
+      url: '/task/' + $cell.data('task-id'),
+      type: 'DELETE',
+      success: function() {
+        $cell.parents('.task-row').remove();
+        if (!$('.task-row').length) {
+          $('#no-task-message').show();
+        }
+      }
+    });
+  });
 });
 
 $(function() {

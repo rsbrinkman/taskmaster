@@ -8,8 +8,6 @@
 
 {% block body %}
  <div class="container"> 
-  
-  {% if tasks %}
     <div class="row">
         <div class="col-md-2">
            <h5><u>Queues</u></h5>
@@ -31,10 +29,11 @@
                 <th>Priority</th>
                 <th>Severity</th>
                 <th>Tags</th>
+                <th>Delete</th>
             </tr>
             </tr>
             {% for task in tasks %}
-            <tr>
+            <tr class="task-row">
                 <td>
                     <select class="form-control" id="task-status" data-task-id={{task.id}}>
                         <option name="unassigned" value="unassigned" {% if task.status=='unassigned' %}selected{% endif %}>Unassigned</option>
@@ -48,12 +47,11 @@
                 <td>{{task.priority}}</td>
                 <td>{{task.severity}}</td>
                 <td class="tag-column"><input type="hidden" data-tag-id="{{task.id}}" class="task-tags" value="{{task.tags}}"></input></td>
+                <td><button class="del-task" data-task-id="{{task.id}}">Del</button>
             </tr>
             {% endfor %}
-            {% else %}
-            <h4>No tasks found for you, time to get to <a href="/create">work</a>
-            {% endif %}
           </table>
+          <h4 id="no-task-message" {% if tasks %}style="display:none"{% endif %}>No tasks found for you, time to get to <a href="/create_task_form">work</a>
       </div>
     </div>
   </div>
