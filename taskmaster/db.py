@@ -126,8 +126,9 @@ def create_task(task, orgname, username=None):
         finally:
             pipe.reset()
 
-def update_task_status(task_id, status):
-   db.hset('task>%s' % task_id, 'status', status)
+def update_task(task_id, update_field, update_value):
+    if update_field == 'status':
+        db.hset('task>%s' % task_id, 'status', update_value)
 
 
 def delete_task(task_id, orgname):
@@ -168,7 +169,7 @@ def delete_queue(name, orgname):
             pipe.srem('org-queues>%s' % orgname, name)
             pipe.execute()
         except:
-            print 'Task creation failed'
+            print 'Queue deletion failed'
         finally:
             pipe.reset()
 
