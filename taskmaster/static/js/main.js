@@ -29,7 +29,7 @@ $(function() {
 
 $(function() {
     $('.delete-queue').click(function() {
-        var id = $('.delete-queue').data('id');
+        var id = $(this).data('id')
         $.ajax({
             url: '/queue/' + id,
             type: 'DELETE',
