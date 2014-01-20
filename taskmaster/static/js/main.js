@@ -26,3 +26,53 @@ $(function() {
     });
   });
 });
+
+$(function() {
+    $('.delete-queue').click(function() {
+        var id = $(this).data('id')
+        $.ajax({
+            url: '/queue/' + id,
+            type: 'DELETE',
+            success: removeQueue
+        });
+    function removeQueue(result) {
+        $('#' + id).remove();
+    }
+    });
+});
+
+$(function () {
+    $('#create-queue').click(function(){
+        createQueue($('#queue-name').val());
+    });
+});
+
+$('#queue-name').keyup(function(ev) {
+    if (ev.which == 13) {
+        createQueue($('#queue-name').val());
+    }   
+});
+
+function createQueue(queue) {
+    $.ajax({
+          url: '/queue/' + queue,
+          type: 'POST',
+          success: addQueue
+        });  
+    function addQueue(result) {
+       $('#queue-list').append('<li id=' + queue + '><a href="#" class="delete-queue" data-id=' + queue + '>x</a> ' + queue +'</li>');
+    }
+};
+
+
+$(function() {
+    $('#task-status').change(function() {
+        var status = $('#task-status').val();
+        var taskId = $('#task-status').data('task-id');
+        $.ajax({
+          url: '/task/' + taskId  + '/update/' + 'status/' + status,
+          type: 'POST'
+        });
+    });
+});
+
