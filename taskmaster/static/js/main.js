@@ -41,27 +41,19 @@ $(function() {
     });
 });
 
-$(function createQueue() {
+$(function () {
     $('#create-queue').click(function(){
-        var queue = $('#queue-name').val();
-        $.ajax({
-          url: '/queue/' + queue,
-          type: 'POST',
-          success: addQueue
-        });  
-    function addQueue(result) {
-       $('#queue-list').append('<li id=' + queue + '><a href="#" class="delete-queue" data-id=' + queue + '>x</a> ' + queue +'</li>');
-    }
+        createQueue($('#queue-name').val());
     });
 });
 
 $('#queue-name').keyup(function(ev) {
     if (ev.which == 13) {
-        createQueueKeyUp($('#queue-name').val());
+        createQueue($('#queue-name').val());
     }   
 });
 
-function createQueueKeyUp(queue) {
+function createQueue(queue) {
     $.ajax({
           url: '/queue/' + queue,
           type: 'POST',
@@ -82,5 +74,9 @@ $(function() {
           type: 'POST'
         });
     });
+});
+
+$('.task-row').click(function() {
+    $(this).draggable();
 });
 
