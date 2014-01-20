@@ -11,12 +11,13 @@
     <div class="row">
         <div class="col-md-2">
            <h5><u>Queues</u></h5>
-           <ul class="list-unstyled">
+           <ul class="list-unstyled" id="queue-list">
            {% for queue in queues %}
-             <li>{{queue}}</li>
+             <li id="{{queue}}"><a id="{{queue}}" href="#" class="delete-queue" data-id="{{queue}}">x</a> {{queue}}</li>
            {% endfor %}
            </ul>
-           <a href="/queue_form" class="btn btn-info btn-sm">Create Queue</a>
+           <input type="text" class="form-control input-sm queue-box" id="queue-name">
+           <button class="btn btn-info btn-sm" id="create-queue">Create Queue</a>
         </div>
         <div class="col-md-10 border-left">
           <table class="table table-striped">
@@ -33,12 +34,11 @@
             </tr>
             {% for task in tasks %}
             <tr class="task-row">
-                <!-- TODO: Set the selected value dynamically and possibly build the dropdown dynamically from db. --!>
                 <td>
-                    <select class="form-control" id="task-status">
-                        <option name="unassigned" value="unassigned">Unassigned</option>
-                        <option name="not-started" value="not-started">Not Started</option>
-                        <option name="in-progress" value="in-progress">In Progress</option>
+                    <select class="form-control" id="task-status" data-task-id={{task.id}}>
+                        <option name="unassigned" value="unassigned" {% if task.status=='unassigned' %}selected{% endif %}>Unassigned</option>
+                        <option name="not-started" value="not-started" {% if task.status=='not-started' %}selected{% endif %}>Not Started</option>
+                        <option name="in-progress" value="in-progress" {% if task.status=='in-progress' %}selected{% endif %}>In Progress</option>
                     </select>
                 </td>
                 <td>{{task.name}}</td>
