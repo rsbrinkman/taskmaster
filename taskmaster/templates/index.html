@@ -9,7 +9,7 @@
 {% block body %}
  <div class="container"> 
     <div class="row">
-        <div class="col-md-2">
+        <div class="col-xs-2">
            <h5><u>Queues</u></h5>
            <ul class="list-unstyled" id="queue-list">
            {% for queue in queues %}
@@ -19,13 +19,14 @@
            <input type="text" class="form-control input-sm queue-box" id="queue-name">
            <button class="btn btn-info btn-sm" id="create-queue">Create Queue</a>
         </div>
-        <div class="col-md-10 border-left">
+        <div class="col-xs-10 border-left">
           <table class="table table-striped">
             <tr>
                 <th>Status</th>
                 <th>Task Name</th>
                 <th>Assignee</th>
                 <th>Date Created</th>
+                <th>Queue</th>
                 <th>Priority</th>
                 <th>Severity</th>
                 <th>Tags</th>
@@ -44,6 +45,14 @@
                 <td>{{task.name}}</td>
                 <td>{{task.assignee}}</td>
                 <td>{{task.created_date}}</td>
+                <td>
+                    <select class="form-control" id="task-queues">
+                    {% for queue in queues %}
+                        <option id="{{queue}}-task" data-task-id="{{task.id}}" name="{{queue}}" value="{{queue}}">{{queue}}</option>
+                    {% endfor %}
+                    </select>
+
+                </td>
                 <td>{{task.priority}}</td>
                 <td>{{task.severity}}</td>
                 <td class="tag-column"><input type="hidden" data-tag-id="{{task.id}}" class="task-tags" value="{{task.tags}}"></input></td>

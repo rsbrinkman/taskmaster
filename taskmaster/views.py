@@ -80,6 +80,13 @@ def update_queue(queue_name):
 
         return Response(status=200)
 
+@app.route('/queue/<queue_name>/<task_id>', methods=['POST'])
+def add_task_to_queue(queue_name, task_id):
+    if request.method == 'POST':
+        db.add_task_to_queue(task_id, queue_name)
+
+        return Response(status=200)
+
 @app.route('/task/<task_id>/update/<update_field>/<update_value>', methods=['POST'])
 def update_task(task_id, update_field, update_value):
     db.update_task(task_id, update_field, update_value)
