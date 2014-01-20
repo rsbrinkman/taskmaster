@@ -37,6 +37,7 @@ $(function() {
         });
     function removeQueue(result) {
         $('#' + id).remove();
+        $('#' + id +'-task').remove();
     }
     });
 });
@@ -61,9 +62,9 @@ function createQueue(queue) {
         });  
     function addQueue(result) {
        $('#queue-list').append('<li id=' + queue + '><a href="#" class="delete-queue" data-id=' + queue + '>x</a> ' + queue +'</li>');
+       $('#task-queues').append('<option name=' + queue + 'value=' + queue + '>' + queue + '</option>');
     }
 };
-
 
 $(function() {
     $('#task-status').change(function() {
@@ -73,6 +74,18 @@ $(function() {
           url: '/task/' + taskId  + '/update/' + 'status/' + status,
           type: 'POST'
         });
+    });
+});
+
+$(function() {
+    $('#task-queues').change(function () {
+        var queue = $(this).val();
+        var task = $(this).find(':selected').data('task-id')
+        $.ajax({
+          url: '/queue/' + queue +'/' + task,
+          type: 'POST'
+        });  
+
     });
 });
 
