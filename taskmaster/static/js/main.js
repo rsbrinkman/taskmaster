@@ -76,7 +76,3 @@ $(function() {
     });
 });
 
-$('.task-row').click(function() {
-    $(this).draggable();
-});
-
