@@ -25,32 +25,34 @@ $(function() {
       }
     });
   });
-});
 
-$(function() {
-    $('.delete-queue').click(function() {
-        var id = $(this).data('id')
-        $.ajax({
-            url: '/queue/' + id,
-            type: 'DELETE',
-            success: removeQueue
-        });
-    function removeQueue(result) {
-        $('#' + id).remove();
+  $('.container').on('click', '.delete-queue', function() {
+    var $this = $(this);
+    var id = $(this).data('queue-id');
+    $.ajax({
+      url: '/queue/' + id,
+      type: 'DELETE',
+      success: function(data) {
+        $this.parents('.queue-row').remove();
+      }
+    });
+  });
+
+  $('.container').on('click', '.queue-row', function(e) {
+    if(e.target === this) {
+      $(this).toggleClass('selected');
     }
-    });
-});
+  });
 
-$(function () {
-    $('#create-queue').click(function(){
-        createQueue($('#queue-name').val());
-    });
-});
+  $('#create-queue').click(function(){
+      createQueue($('#queue-name').val());
+  });
 
-$('#queue-name').keyup(function(ev) {
-    if (ev.which == 13) {
-        createQueue($('#queue-name').val());
-    }   
+  $('#queue-name').keyup(function(ev) {
+    if (ev.which === 13) {
+      createQueue($('#queue-name').val());
+    }
+  });
 });
 
 function createQueue(queue) {
@@ -58,9 +60,9 @@ function createQueue(queue) {
           url: '/queue/' + queue,
           type: 'POST',
           success: addQueue
-        });  
+        });
     function addQueue(result) {
-       $('#queue-list').append('<li id=' + queue + '><a href="#" class="delete-queue" data-id=' + queue + '>x</a> ' + queue +'</li>');
+       $('#queue-list').append('<li class="queue-row"><a href="#" class="delete-queue" data-queue-id=' + queue + '>x</a> ' + queue +'</li>');
     }
 };
 

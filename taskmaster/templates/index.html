@@ -4,16 +4,23 @@
     {{ super() }}
     <script src="static/js/main.js"></script>
     <script type="text/javascript">var TAGS = "{{tags}}";</script>
+    <script type="text/javascript">
+        var QUEUE_TASKS = {}
+        {% for queue in queues %}
+            QUEUE_TASKS["{{queue.0}}"] = {{queue.1|safe}};
+        {% endfor %}
+    </script>
+
 {% endblock %}
 
 {% block body %}
- <div class="container"> 
+ <div class="container">
     <div class="row">
         <div class="col-md-2">
            <h5><u>Queues</u></h5>
            <ul class="list-unstyled" id="queue-list">
            {% for queue in queues %}
-             <li id="{{queue}}"><a id="{{queue}}" href="#" class="delete-queue" data-id="{{queue}}">x</a> {{queue}}</li>
+             <li class="queue-row"><a href="#" class="delete-queue" data-queue-id="{{queue.0}}">x</a> {{queue.0}}</li>
            {% endfor %}
            </ul>
            <input type="text" class="form-control input-sm queue-box" id="queue-name">
