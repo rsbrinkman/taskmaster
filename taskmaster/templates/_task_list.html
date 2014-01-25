@@ -1,0 +1,18 @@
+<script data-template-name="task-list" type="underscore">
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Status</th>
+        <th>Task Name</th>
+        <th>Assignee</th>
+        <th>Date Created</th>
+        <th>Priority</th>
+        <th>Severity</th>
+        <th>Tags</th>
+        <th>Delete</th>
+      </tr>
+    </thead>
+    <%= tasks %>
+  </table>
+  <h4 id="no-task-message" <% if (tasks) { %>style="display:none"<% } %>>No tasks found for you, time to get to <a href="/create_task_form">work</a>
+</script>

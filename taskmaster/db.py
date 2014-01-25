@@ -21,7 +21,20 @@ def get_queue_tasks(queuename):
     return db.smembers('queue-tasks>%s' % queuename)
 
 def get_org_queues(orgname):
-    return db.smembers('org-queues>%s' % orgname)
+    queues = db.smembers('org-queues>%s' % orgname)
+
+    with db.pipeline() as pipe:
+        try:
+            pipe.multi()
+            for queue in queues:
+                pipe.smembers('queue-tasks>%s' % queue)
+            queue_tasks = pipe.execute()
+        except:
+            print 'Tagging failed'
+        finally:
+            pipe.reset()
+
+    return zip(queues, (list(tasks) for tasks in queue_tasks))
 
 def get_org_tasks(orgname):
     return db.smembers('org-tasks>%s' % orgname)
