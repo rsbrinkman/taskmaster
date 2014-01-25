@@ -1,0 +1,18 @@
+<script data-template-name="task-row" type="underscore">
+  <tr class="task-row">
+    <td>
+      <select class="form-control" id="task-status" data-task-id=<%= id %>>
+        <option name="unassigned" value="unassigned" <% if (status==='unassigned') { %>selected<% } %>>Unassigned</option>
+        <option name="not-started" value="not-started" <% if (status==='not-started') { %>selected<% } %>>Not Started</option>
+        <option name="in-progress" value="in-progress" <% if (status==='in-progress') { %>selected<% } %>>In Progress</option>
+      </select>
+    </td>
+    <td><%= name %></td>
+    <td><%= assignee %></td>
+    <td><%= created_date %></td>
+    <td><%= priority %></td>
+    <td><%= severity %></td>
+    <td class="tag-column"><input type="hidden" data-task-id="<%= id %>" class="task-tags" value="<%= tags %>"></input></td>
+    <td><button class="del-task" data-task-id="<%= id %>">Del</button>
+  </tr>
+</script>
