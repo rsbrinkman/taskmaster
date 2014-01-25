@@ -1,13 +1,19 @@
 var TEMPLATES = {}
 
 $(function() {
+  loadTemplates()
+  renderView();
+  setEventHandlers();
+});
+
+function loadTemplates() {
   _.each($('[type="underscore"]'), function(ele) {
     var $ele = $(ele);
     TEMPLATES[$ele.data('template-name')] = _.template($ele.html());
   });
+}
 
-  renderView();
-
+function setEventHandlers() {
   $('#task-view').on('click', '.del-task', function() {
     var $cell = $(this);
     var id = $cell.data('task-id');
@@ -62,7 +68,7 @@ $(function() {
       }
     });
   });
-});
+}
 
 function createQueue(queue) {
   $.ajax({
@@ -146,5 +152,4 @@ function renderView() {
       }
     });
   });
-
 }
