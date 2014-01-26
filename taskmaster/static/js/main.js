@@ -46,9 +46,27 @@ function setEventHandlers() {
       renderView();
     }
   });
+  
+  $('#task-queues'.change(function() {
+    var queue = $(this).val();
+    var taskId = $(this).data('task-id');
+    $.ajax({
+      url: '/task/' + taskId  + '/update/' + 'queue/' + status,
+      type: 'POST',
+      success: function() {
+        STATE.taskmap[taskId].status = status;
+      } 
+  });
 
   $('#create-queue').click(function(){
     createQueue($('#queue-name').val());
+    $.ajax({
+      url: '/task/' + taskId  + '/update/' + 'status/' + status,
+      type: 'POST',
+      success: function() {
+        STATE.taskmap[taskId].status = status;
+      }
+ 
   });
 
   $('#queue-name').keyup(function(ev) {
