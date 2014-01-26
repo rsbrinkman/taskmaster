@@ -46,7 +46,23 @@ function setEventHandlers() {
       renderView();
     }
   });
-
+  $('.container').on('change', '.task-queues', function(e) {
+    var queue = $(this).val();
+    var taskId = $(this).data('task-id');
+    $.ajax({
+      url: '/task/' + taskId  + '/update/' + 'queue/' + queue,
+      type: 'POST',
+      success: function() {
+        var currentQueue = STATE.taskmap[taskId].queue
+        if (currentQueue) {
+          removeEle(STATE.queuemap[currentQueue].tasks, taskId)
+          }
+        STATE.taskmap[taskId].queue = queue;
+        STATE.queuemap[queue].tasks.push(taskId);
+        renderView();
+      } 
+    });
+  });
   $('#create-queue').click(function(){
     createQueue($('#queue-name').val());
   });
@@ -164,7 +180,7 @@ function renderView() {
 function renderQueueTasks(queueId) {
   // Default to ALL if no queueId given
   var tasks = queueId ? STATE.queuemap[queueId].tasks : STATE.tasks;
-
+  
   var taskHTML = _.map(tasks, function(taskId) {
     return TEMPLATES['task-row'](STATE.taskmap[taskId]);
   });
