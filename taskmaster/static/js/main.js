@@ -1,78 +1,155 @@
-$(function() {
-  $('.task-tags').select2({
-    placeholder: "Add a tag",
-    tags: TAGS.split(',')
-  }).change(function(val) {
-    $.ajax({
-      url: '/task/' + $(this).data('tag-id') + '/tags/',
-      type: 'POST',
-      data: {
-        tags: JSON.stringify(val.val)
-      }
-    });
-  });
+var TEMPLATES = {}
 
-  $('.del-task').on('click', function() {
+$(function() {
+  loadTemplates()
+  renderView();
+  setEventHandlers();
+});
+
+function loadTemplates() {
+  _.each($('[type="underscore"]'), function(ele) {
+    var $ele = $(ele);
+    TEMPLATES[$ele.data('template-name')] = _.template($ele.html());
+  });
+}
+
+function setEventHandlers() {
+  $('#task-view').on('click', '.del-task', function() {
     var $cell = $(this);
+    var id = $cell.data('task-id');
     $.ajax({
-      url: '/task/' + $cell.data('task-id'),
+      url: '/task/' + id,
       type: 'DELETE',
       success: function() {
-        $cell.parents('.task-row').remove();
-        if (!$('.task-row').length) {
-          $('#no-task-message').show();
-        }
+        removeTask(id);
       }
     });
   });
-});
 
-$(function() {
-    $('.delete-queue').click(function() {
-        var id = $(this).data('id')
-        $.ajax({
-            url: '/queue/' + id,
-            type: 'DELETE',
-            success: removeQueue
-        });
-    function removeQueue(result) {
-        $('#' + id).remove();
+  $('.container').on('click', '.delete-queue', function() {
+    var $this = $(this);
+    var id = $(this).data('queue-id');
+    $.ajax({
+      url: '/queue/' + id,
+      type: 'DELETE',
+      success: function() {
+        removeQueue(id);
+      }
+    });
+  });
+
+  $('.container').on('click', '.queue-row', function(e) {
+    if(e.target === this) {
+      var $this = $(this);
+      $this.toggleClass('selected');
+      var id = $this.find('a').data('queue-id');
+      STATE.queuemap[id].selected = true;
     }
-    });
-});
+  });
 
-$(function () {
-    $('#create-queue').click(function(){
-        createQueue($('#queue-name').val());
-    });
-});
+  $('#create-queue').click(function(){
+    createQueue($('#queue-name').val());
+  });
 
-$('#queue-name').keyup(function(ev) {
-    if (ev.which == 13) {
-        createQueue($('#queue-name').val());
-    }   
-});
+  $('#queue-name').keyup(function(ev) {
+    if (ev.which === 13) {
+      createQueue($('#queue-name').val());
+    }
+  });
+
+  $('#task-status').change(function() {
+    var status = $('#task-status').val();
+    var taskId = $('#task-status').data('task-id');
+    $.ajax({
+      url: '/task/' + taskId  + '/update/' + 'status/' + status,
+      type: 'POST',
+      success: function() {
+        STATE.taskmap[taskId].status = status;
+      }
+    });
+  });
+}
 
 function createQueue(queue) {
-    $.ajax({
-          url: '/queue/' + queue,
-          type: 'POST',
-          success: addQueue
-        });  
-    function addQueue(result) {
-       $('#queue-list').append('<li id=' + queue + '><a href="#" class="delete-queue" data-id=' + queue + '>x</a> ' + queue +'</li>');
+  $.ajax({
+    url: '/queue/' + queue,
+    type: 'POST',
+    success: function() {
+      addQueue(queue);
+      renderView();
     }
-};
+  });
+}
 
+function removeTask(id) {
+  delete STATE.taskmap[id];
+  removeEle(STATE.tasks, id);
+  _.each(STATE.queuemap, function(queue) {
+    removeEle(queue.tasks, id);
+  });
+  renderView();
+}
 
-$(function() {
-    $('#task-status').change(function() {
-        var status = $('#task-status').val();
-        var taskId = $('#task-status').data('task-id');
-        $.ajax({
-          url: '/task/' + taskId  + '/update/' + 'status/' + status,
-          type: 'POST'
-        });
+function removeQueue(id) {
+  delete STATE.queuemap[id];
+  removeEle(STATE.queues, id);
+  renderView();
+}
+
+function addQueue(name) {
+  STATE.queues.push(name);
+  STATE.queuemap[name] = {
+    tasks: []
+  };
+  renderView();
+}
+
+function removeEle(list, ele) {
+  var index = list.indexOf(ele);
+  if (index > -1) {
+    list.splice(index, 1);
+  }
+}
+
+function renderView() {
+  /*
+   * Render HTML from the state and put on the DOM
+   */
+  var taskHTML = _.map(STATE.tasks, function(taskId) {
+    return TEMPLATES['task-row'](STATE.taskmap[taskId]);
+  });
+  taskHTML = taskHTML.join('');
+
+  var taskViewHTML = TEMPLATES['task-list']({tasks: taskHTML});
+  $('#task-view').html(taskViewHTML);
+
+  var queueHTML = _.map(STATE.queues, function(queueId) {
+    return TEMPLATES['queue-row']({queueId: queueId});
+  });
+  queueHTML = queueHTML.join('');
+
+  $('#queue-list').html(queueHTML);
+
+  /* 
+   * Hook up any needed event handlers
+   */
+  $('.task-tags').select2({
+    placeholder: "Add a tag",
+    tags: STATE.tags
+  }).change(function(val) {
+    var tags = val.val;
+    var taskId = $(this).data('task-id');
+    $.ajax({
+      url: '/task/' + taskId + '/tags/',
+      type: 'POST',
+      data: {
+        tags: JSON.stringify(tags)
+      },
+      success: function() {
+        STATE.taskmap[taskId].tags = tags.join(',');
+        newTags = _.difference(tags, STATE.tags);
+        STATE.tags = STATE.tags.concat(newTags);
+      }
     });
-});
-
+  });
+}
