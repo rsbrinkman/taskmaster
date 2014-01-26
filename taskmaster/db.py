@@ -54,8 +54,13 @@ def add_task_to_queue(taskname, queuename):
 def remove_from_queue(taskname, queuename):
     db.srem('queue-tasks>%s' % queuename, taskname)
 
-def move_task(taskname, from_queuename, to_queuename):
-    db.smove('queue-tasks>%s' % from_queuename, 'queue-tasks>%s' % to_queuename, taskname)
+def move_task(taskname, from_queuename=None, to_queuename=None):
+    if from_queuename and to_queuename:
+        db.smove('queue-tasks>%s' % from_queuename, 'queue-tasks>%s' % to_queuename, taskname)
+    elif from_queuename is None:
+        add_task_to_queue(taskname, to_queuename)
+    elif to_queuename is None:
+        remove_from_queue(taskname, from_queuename)
 
 def set_tags(task_id, updated_tags):
     task = get_task(task_id)
@@ -127,7 +132,10 @@ def create_task(task, orgname, username=None):
 def update_task(task_id, update_field, update_value):
     if update_field == 'status':
         db.hset('task>%s' % task_id, 'status', update_value)
-
+    if update_field == 'queue':
+        current_queue = db.hget('task>%s' % task_id, 'queue')
+        move_task(task_id, current_queue, update_value)
+        db.hset('task>%s' % task_id, 'queue', update_value)
 
 def delete_task(task_id, orgname):
     set_tags(task_id, [])

@@ -46,7 +46,19 @@ function setEventHandlers() {
       renderView();
     }
   });
-
+  
+  $('#task-queues').change(function() {
+    var queue = $(this).val();
+    var taskId = $(this).data('task-id');
+    $.ajax({
+      url: '/task/' + taskId  + '/update/' + 'queue/' + queue,
+      type: 'POST',
+      success: function() {
+        STATE.taskmap[taskId].queue = queue;
+        STATE.queuemap[queue].tasks = queue;
+      } 
+    });
+  });
   $('#create-queue').click(function(){
     createQueue($('#queue-name').val());
   });
@@ -164,7 +176,7 @@ function renderView() {
 function renderQueueTasks(queueId) {
   // Default to ALL if no queueId given
   var tasks = queueId ? STATE.queuemap[queueId].tasks : STATE.tasks;
-
+  
   var taskHTML = _.map(tasks, function(taskId) {
     return TEMPLATES['task-row'](STATE.taskmap[taskId]);
   });
