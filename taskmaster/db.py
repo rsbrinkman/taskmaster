@@ -57,9 +57,9 @@ def remove_from_queue(taskname, queuename):
 def move_task(taskname, from_queuename=None, to_queuename=None):
     if from_queuename and to_queuename:
         db.smove('queue-tasks>%s' % from_queuename, 'queue-tasks>%s' % to_queuename, taskname)
-    elif from_queuename is None:
+    elif not from_queuename:
         add_task_to_queue(taskname, to_queuename)
-    elif to_queuename is None:
+    elif not to_queuename:
         remove_from_queue(taskname, from_queuename)
 
 def set_tags(task_id, updated_tags):

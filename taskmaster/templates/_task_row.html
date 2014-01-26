@@ -14,7 +14,7 @@
     <td><%= severity %></td>
     <td>
         <select class="form-control task-queues" data-task-id=<%= id %>>
-            <option name='no-queue' value='none'></option>
+            <option name='no-queue'></option>
         <% _.each(STATE.queues, function(queueName) { %>
             <option name='<%= queueName %>' data-queue-id='<%= queueName %>' <% if (queue===queueName) { %>selected<% } %> value='<%= queueName %>'><%= queueName %></option>
         <% });  %>
