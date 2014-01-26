@@ -46,16 +46,20 @@ function setEventHandlers() {
       renderView();
     }
   });
-  
-  $('#task-queues').change(function() {
+  $('.container').on('change', '.task-queues', function(e) {
     var queue = $(this).val();
     var taskId = $(this).data('task-id');
     $.ajax({
       url: '/task/' + taskId  + '/update/' + 'queue/' + queue,
       type: 'POST',
       success: function() {
+        var currentQueue = STATE.taskmap[taskId].queue
+        if (currentQueue) {
+          removeEle(STATE.queuemap[currentQueue].tasks, taskId)
+          }
         STATE.taskmap[taskId].queue = queue;
-        STATE.queuemap[queue].tasks = queue;
+        STATE.queuemap[queue].tasks.push(taskId);
+        renderView();
       } 
     });
   });
