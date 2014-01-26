@@ -132,8 +132,9 @@ def update_queue(queue_name):
         db.delete_queue(queue_name, org)
         return Response(status=200)
 
+@app.route('/task/<task_id>/update/<update_field>/', methods=['POST'])
 @app.route('/task/<task_id>/update/<update_field>/<update_value>', methods=['POST'])
-def update_task(task_id, update_field, update_value):
+def update_task(task_id, update_field, update_value=''):
     db.update_task(task_id, update_field, update_value)
 
     return Response(status=200)
