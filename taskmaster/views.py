@@ -91,6 +91,7 @@ def create_task():
         task['priority'] = request.form['task-priority']
         task['severity'] = request.form['task-severity']
         task['created_date'] = str(datetime.now().replace(microsecond=0))
+        task['queue'] = None
         db.create_task(task, org, username=username)
 
     return render_template('create_tasks.html')
