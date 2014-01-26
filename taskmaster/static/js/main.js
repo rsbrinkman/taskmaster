@@ -41,9 +41,9 @@ function setEventHandlers() {
   $('.container').on('click', '.queue-row', function(e) {
     if(e.target === this) {
       var $this = $(this);
-      $this.toggleClass('selected');
       var id = $this.find('a').data('queue-id');
-      STATE.queuemap[id].selected = true;
+      STATE.queuemap[id].selected = !STATE.queuemap[id].selected;
+      renderView();
     }
   });
 
@@ -74,9 +74,12 @@ function createQueue(queue) {
   $.ajax({
     url: '/queue/' + queue,
     type: 'POST',
-    success: function() {
+    success: function(queue) {
       addQueue(queue);
       renderView();
+
+      // Wipe the input field to make it more clear it was processed
+      $('#queue-name').val('');
     }
   });
 }
@@ -96,11 +99,9 @@ function removeQueue(id) {
   renderView();
 }
 
-function addQueue(name) {
-  STATE.queues.push(name);
-  STATE.queuemap[name] = {
-    tasks: []
-  };
+function addQueue(queue) {
+  STATE.queues.push(queue.id);
+  STATE.queuemap[queue.id] = queue;
   renderView();
 }
 
@@ -115,16 +116,22 @@ function renderView() {
   /*
    * Render HTML from the state and put on the DOM
    */
-  var taskHTML = _.map(STATE.tasks, function(taskId) {
-    return TEMPLATES['task-row'](STATE.taskmap[taskId]);
+  var selectedQueues = _.filter(STATE.queues, function(queueId) {
+    return STATE.queuemap[queueId].selected;
   });
-  taskHTML = taskHTML.join('');
 
-  var taskViewHTML = TEMPLATES['task-list']({tasks: taskHTML});
+  var taskViewHTML = '';
+  if (selectedQueues.length) {
+    _.each(selectedQueues, function(queueId) {
+      taskViewHTML += renderQueueTasks(queueId);
+    });
+  } else {
+    taskViewHTML = renderQueueTasks();
+  }
   $('#task-view').html(taskViewHTML);
 
   var queueHTML = _.map(STATE.queues, function(queueId) {
-    return TEMPLATES['queue-row']({queueId: queueId});
+    return TEMPLATES['queue-row'](STATE.queuemap[queueId]);
   });
   queueHTML = queueHTML.join('');
 
@@ -152,4 +159,17 @@ function renderView() {
       }
     });
   });
+}
+
+function renderQueueTasks(queueId) {
+  // Default to ALL if no queueId given
+  var tasks = queueId ? STATE.queuemap[queueId].tasks : STATE.tasks;
+
+  var taskHTML = _.map(tasks, function(taskId) {
+    return TEMPLATES['task-row'](STATE.taskmap[taskId]);
+  });
+  taskHTML = taskHTML.join('');
+
+
+  return TEMPLATES['task-list']({queueName: queueId, tasks: taskHTML});
 }

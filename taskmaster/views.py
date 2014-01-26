@@ -48,7 +48,13 @@ def _task_state():
 
     # (queuename, queuetasks)
     queue_tasks = db.get_org_queues(org)
-    queuemap = dict((queue[0], {'tasks': queue[1]}) for queue in queue_tasks)
+    queuemap = {}
+    for queue in queue_tasks:
+        queuemap[queue[0]] = {
+            'id': queue[0],
+            'tasks': queue[1],
+            'selected': False, #TODO, remember what the user had last
+        }
     queues = [queue[0] for queue in queue_tasks]
     # TODO sort the list of queues
 
@@ -64,7 +70,7 @@ def _task_state():
 
 @app.route('/')
 def index():
-    return render_template('index.html', state=_task_state())
+    return render_template('index.html', state=json.dumps(_task_state()))
 
 @app.route('/test_db/')
 def test_db():
@@ -98,7 +104,14 @@ def show_queue_form():
 def create_queue(name):
     db.create_queue(name, org)
 
-    return render_template('create_queue.html')
+    #TODO unified way to get json from queue, duplicated in _get_state
+    queue_obj = {
+        'id': name,
+        'tasks': [],
+        'selected': False,
+    }
+
+    return Response(json.dumps(queue_obj), content_type='application/json')
 
 @app.route('/task/<task_id>', methods=['DELETE'])
 def task_update(task_id):
