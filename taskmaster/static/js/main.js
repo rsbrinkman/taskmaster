@@ -57,7 +57,6 @@ function setEventHandlers() {
         if (currentQueue) {
           removeEle(STATE.queuemap[currentQueue].tasks, taskId)
           }
-        debugger
         STATE.taskmap[taskId].queue = queue;
         if (queue) {
           STATE.queuemap[queue].tasks.push(taskId);
