@@ -1,7 +1,12 @@
 var TEMPLATES = {}
+var WHITESPACE = new RegExp(/\s+/);
 
 $(function() {
   loadTemplates()
+
+  // Used for quick filtering, need to call everytime we add/remove tokens to a task
+  FilterTasks.buildTokenSets(STATE.taskmap);
+
   renderView();
   setEventHandlers();
 });
@@ -85,6 +90,10 @@ function setEventHandlers() {
         STATE.taskmap[taskId].status = status;
       }
     });
+  });
+
+  $('#filter-tasks').keyup(function() {
+    renderView();
   });
 }
 
@@ -174,6 +183,7 @@ function renderView() {
         STATE.taskmap[taskId].tags = tags.join(',');
         newTags = _.difference(tags, STATE.tags);
         STATE.tags = STATE.tags.concat(newTags);
+        FilterTasks.buildTokenSets(STATE.taskmap);
       }
     });
   });
@@ -182,9 +192,19 @@ function renderView() {
 function renderQueueTasks(queueId) {
   // Default to ALL if no queueId given
   var tasks = queueId ? STATE.queuemap[queueId].tasks : STATE.tasks;
-  
+
+  var filterTokens;
+  var searchString = $('#filter-tasks').val();
+  if (searchString) {
+    filterTokens = searchString.trim().toLowerCase().split(WHITESPACE);
+  }
+
   var taskHTML = _.map(tasks, function(taskId) {
-    return TEMPLATES['task-row'](STATE.taskmap[taskId]);
+    if (FilterTasks.isAccepted(taskId, filterTokens)) {
+      return TEMPLATES['task-row'](STATE.taskmap[taskId]);
+    } else {
+      return '';
+    }
   });
   taskHTML = taskHTML.join('');
 
