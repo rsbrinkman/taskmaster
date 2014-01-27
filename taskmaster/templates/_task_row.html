@@ -8,7 +8,14 @@
       </select>
     </td>
     <td><%= name %></td>
-    <td><%= assignee %></td>
+    <td>
+       <select class="form-control task-assignee" data-task-id=<%= id %>>
+         <option name='no-user'></option>
+         <% _.each(STATE.users, function(userName) { %>
+           <option <% if (assignee===userName) { %>selected<% } %> value='<%= userName %>'><%= userName %></option>
+        <% });  %>
+      </select>
+   </td>
     <td><%= created_date %></td>
     <td><%= priority %></td>
     <td><%= severity %></td>
