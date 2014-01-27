@@ -5,8 +5,11 @@ from flask import render_template, request, Response
 from datetime import datetime
 
 #TODO: Create login interface.
-org='Taskmaster'
-username='Scott Brinkman'
+org = 'Taskmaster'
+users = [
+    'Scott Brinkman',
+    'Jon Munz',
+]
 
 def _task_state():
     '''
@@ -32,19 +35,19 @@ def _task_state():
     }
     '''
     # Get set of assigned tasks
-    assigned_tasks = list(db.get_assigned_tasks(username))
+    org_tasks = list(db.get_org_tasks(org))
     #TODO sort the list of tasks
 
     # Iterate over assigned tasks and build tasks object
     taskmap = {}
-    for task in assigned_tasks:
+    for task in org_tasks:
         retrieved_task = db.get_task(task)
         if retrieved_task:
             tags = ','.join(sorted(retrieved_task['tags'].split(',')))
             retrieved_task['tags'] = tags
             taskmap[retrieved_task['id']] = retrieved_task
         else:
-            db.remove_assigned_task(username, task)
+            db.remove_org_task(org, task)
 
     # (queuename, queuetasks)
     queue_tasks = db.get_org_queues(org)
@@ -61,11 +64,12 @@ def _task_state():
     tags = list(db.get_used_tags())
 
     return {
-        'tasks': assigned_tasks,
+        'tasks': org_tasks,
         'queues': queues,
         'tags': tags,
         'taskmap': taskmap,
         'queuemap': queuemap,
+        'users': users,
     }
 
 @app.route('/')
@@ -92,7 +96,7 @@ def create_task():
         task['severity'] = request.form['task-severity']
         task['created_date'] = str(datetime.now().replace(microsecond=0))
         task['queue'] = ''
-        db.create_task(task, org, username=username)
+        db.create_task(task, org)
 
     return render_template('create_tasks.html')
 

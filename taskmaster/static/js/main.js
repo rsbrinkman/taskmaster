@@ -67,9 +67,23 @@ function setEventHandlers() {
           STATE.queuemap[queue].tasks.push(taskId);
         }
         renderView();
-      } 
+      }
     });
   });
+
+  $('.container').on('change', '.task-assignee', function(e) {
+    var assignee = $(this).val();
+    var taskId = $(this).data('task-id');
+    $.ajax({
+      url: '/task/' + taskId  + '/update/' + 'assignee/' + assignee,
+      type: 'POST',
+      success: function() {
+        STATE.taskmap[taskId].assignee = assignee;
+      }
+    });
+  });
+
+
   $('#create-queue').click(function(){
     createQueue($('#queue-name').val());
   });
