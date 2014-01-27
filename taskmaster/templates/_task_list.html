@@ -2,9 +2,10 @@
   <% if (queueName) { %>
     <h1><%= queueName %></h1>
   <% } %>
-  <table class="table table-striped">
+  <table class="table table-striped" id="tasks-table">
     <thead>
       <tr>
+        <th class="hidden">description</th>
         <th>Status</th>
         <th>Task Name</th>
         <th>Assignee</th>

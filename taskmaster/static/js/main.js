@@ -83,7 +83,18 @@ function setEventHandlers() {
     });
   });
 
-
+  $('#tasks-table tbody tr').click(function() {
+    var tasksTable = $('#tasks-table').dataTable();
+    if (tasksTable.fnIsOpen(this)) {  
+      tasksTable.fnClose( this );
+    }    
+    else {  
+      var taskId = $(this).attr('id');
+      tasksTable.fnOpen( this, TEMPLATES['task-details']({task: STATE.taskmap[taskId]}), 'task-details');  
+    }
+  });
+  
+  
   $('#create-queue').click(function(){
     createQueue($('#queue-name').val());
   });
@@ -177,7 +188,14 @@ function renderView() {
   queueHTML = queueHTML.join('');
 
   $('#queue-list').html(queueHTML);
-
+  $('#tasks-table').dataTable({
+        "bPaginate": false,
+        "bLengthChange": false,
+        "bFilter": false,
+        "bSort": false,
+        "bInfo": false,
+        "bAutoWidth": false 
+  });
   /* 
    * Hook up any needed event handlers
    */

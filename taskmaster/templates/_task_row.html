@@ -1,5 +1,6 @@
 <script data-template-name="task-row" type="underscore">
-  <tr class="task-row">
+  <tr class="task-row" id='<%= id %>'>
+    <td class="hidden"><%= description %></td>
     <td>
       <select class="form-control task-status" data-task-id=<%= id %>>
         <option name="not-started" value="not-started" <% if (status==='not-started') { %>selected<% } %>>Not Started</option>
