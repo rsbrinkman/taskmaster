@@ -1,8 +1,7 @@
 <script data-template-name="task-row" type="underscore">
   <tr class="task-row">
     <td>
-      <select class="form-control" id="task-status" data-task-id=<%= id %>>
-        <option name="unassigned" value="unassigned" <% if (status==='unassigned') { %>selected<% } %>>Unassigned</option>
+      <select class="form-control task-status" data-task-id=<%= id %>>
         <option name="not-started" value="not-started" <% if (status==='not-started') { %>selected<% } %>>Not Started</option>
         <option name="in-progress" value="in-progress" <% if (status==='in-progress') { %>selected<% } %>>In Progress</option>
       </select>

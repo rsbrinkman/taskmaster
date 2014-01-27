@@ -75,9 +75,9 @@ function setEventHandlers() {
     }
   });
 
-  $('#task-status').change(function() {
-    var status = $('#task-status').val();
-    var taskId = $('#task-status').data('task-id');
+  $('.container').on('change', '.task-status', function() {
+    var status = $(this).val();
+    var taskId = $(this).data('task-id');
     $.ajax({
       url: '/task/' + taskId  + '/update/' + 'status/' + status,
       type: 'POST',
@@ -86,6 +86,7 @@ function setEventHandlers() {
       }
     });
   });
+
 }
 
 function createQueue(queue) {
