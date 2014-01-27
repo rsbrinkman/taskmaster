@@ -39,11 +39,17 @@ def get_org_queues(orgname):
 def get_org_tasks(orgname):
     return db.smembers('org-tasks>%s' % orgname)
 
+def remove_org_task(orgname, task):
+    db.srem('org-tasks>%s' % orgname, task)
+
 def get_assigned_tasks(username):
     return db.smembers('assigned>%s' % username)
 
-def remove_assigned_task(username, task):
-    db.srem('assigned>%s' % username, task)
+def assign_task(username, task_id):
+    db.sadd('assigned>%s' % username, task_id)
+
+def remove_assigned_task(username, task_id):
+    db.srem('assigned>%s' % username, task_id)
 
 def get_tasks_from_tag(tagname):
     return db.smembers('tag-tasks>%s>' % tagname)
@@ -61,6 +67,14 @@ def move_task(taskname, from_queuename=None, to_queuename=None):
         add_task_to_queue(taskname, to_queuename)
     elif not to_queuename:
         remove_from_queue(taskname, from_queuename)
+
+def change_assignee(task_id, current_assignee=None, new_assignee=None):
+    if current_assignee and new_assignee:
+        db.smove('assigned>%s' % current_assignee, 'assigned>%s' % new_assignee, task_id)
+    elif not current_assignee:
+        assign_task(new_assignee, task_id)
+    elif not new_assignee:
+        remove_assigned_task(current_assignee, task_id)
 
 def set_tags(task_id, updated_tags):
     task = get_task(task_id)
@@ -108,7 +122,7 @@ def set_tags(task_id, updated_tags):
 def get_used_tags():
     return db.smembers('used-tags')
 
-def create_task(task, orgname, username=None):
+def create_task(task, orgname):
     # Create the hashmap task object
     task_id = uuid.uuid4().hex
     with db.pipeline() as pipe:
@@ -119,8 +133,8 @@ def create_task(task, orgname, username=None):
             task['tags'] = ''
             pipe.hmset('task>%s' % task_id, task)
             pipe.sadd('org-tasks>%s' % orgname, task_id)
-            if username:
-                pipe.sadd('assigned>%s' % username, task_id)
+            if task['assignee']:
+                pipe.sadd('assigned>%s' % task['assignee'], task_id)
             pipe.execute()
         except:
             if settings.DEBUG:
@@ -132,10 +146,14 @@ def create_task(task, orgname, username=None):
 def update_task(task_id, update_field, update_value):
     if update_field == 'status':
         db.hset('task>%s' % task_id, 'status', update_value)
-    if update_field == 'queue':
+    elif update_field == 'queue':
         current_queue = db.hget('task>%s' % task_id, 'queue')
         move_task(task_id, current_queue, update_value)
         db.hset('task>%s' % task_id, 'queue', update_value)
+    elif update_field == 'assignee':
+        current_assignee = db.hget('task>%s' % task_id, 'assignee')
+        change_assignee(task_id, current_assignee, update_value)
+        db.hset('task>%s' % task_id, 'assignee', update_value)
 
 def delete_task(task_id, orgname):
     set_tags(task_id, [])
