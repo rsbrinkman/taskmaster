@@ -94,7 +94,18 @@ function setEventHandlers() {
     }
   });
   
-  
+  $('.container').on('change', '#task-description', function() {
+     var taskId = $('.description-container').attr('id');
+     var description = $('#task-description').val();
+     $.ajax({
+      url: '/task/' + taskId  + '/update/' + 'description/' + description,
+      type: 'POST',
+      success: function() {
+        STATE.taskmap[taskId].description = description;
+      }
+    });
+ 
+  });
   $('#create-queue').click(function(){
     createQueue($('#queue-name').val());
   });
