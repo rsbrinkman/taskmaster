@@ -83,8 +83,8 @@ function setEventHandlers() {
     });
   });
 
-  $('#tasks-table tbody tr').click(function() {
-    var tasksTable = $('#tasks-table').dataTable();
+  $('.tasks-table tbody tr').click(function() {
+    var tasksTable = $('.tasks-table').dataTable();
     if (tasksTable.fnIsOpen(this)) {  
       tasksTable.fnClose( this );
     }    
