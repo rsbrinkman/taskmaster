@@ -1,0 +1,66 @@
+<script data-template-name="create-task" type="underscore">
+<div class="create-form-container">
+    <h3>Create a task</h3>
+        <form role="form" name="create" id="create-task-form" method="POST" action="/">
+            <div class="form-group">
+                <label for="task-name">Task Name</label>
+                <input type="text" class="form-control" name="task-name" />
+            </div>
+            <div class="form-group">
+                <label for="task-description">Task description</label>
+                <textarea class="form-control" rows="3" cols="5" name="task-description"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="task-status">Task Status</label>
+                <select class="form-control" name="task-status">
+                    <option name="not-started">Not Started</option>
+                    <option name="in-progress">In Progress</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="task-assignee">Task Assignee</label>
+                <input type="text" class="form-control" name="task-assignee" />
+            </div>
+            <label>Priority</label>
+                <label class="radio-inline">
+                    <input type="radio" name="task-priority" id="task-priority-0" value="0" />0
+                </label>
+                <label class="radio-inline">
+                    <input type="radio" name="task-priority" id="task-priority-1" value="1" />1
+                </label>
+                <label class="radio-inline">
+                    <input type="radio" name="task-priority" id="task-priority-2" value="2" checked/>2
+                </label>
+                <label class="radio-inline">
+                    <input type="radio" name="task-priority" id="task-priority-3" value="3" />3
+                </label>
+                <label class="radio-inline">
+                    <input type="radio" name="task-priority" id="task-priority-4" value="4" />4
+                </label>
+            <div>
+            <label>Severity</label>
+                <label class="radio-inline">
+                    <input type="radio" name="task-severity" id="task-severity-0" value="0" />0
+                </label>
+                <label class="radio-inline">
+                    <input type="radio" name="task-severity" id="task-severity-1" value="1" />
+                1
+                </label>
+                <label class="radio-inline">
+                    <input type="radio" name="task-severity" id="task-severity-2" value="2" checked/>
+                2
+                </label>
+                <label class="radio-inline">
+                    <input type="radio" name="task-severity" id="task-severity-3" value="3" />
+                3
+                </label>
+                <label class="radio-inline">
+                    <input type="radio" name="task-severity" id="task-severity-4" value="4" />4
+                </label>
+            </div>
+            <button type="submit" class="btn btn-default">Submit</button>
+        </form>
+    </div>
+</div>
+
+</script>
