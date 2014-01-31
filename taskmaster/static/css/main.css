@@ -18,6 +18,18 @@
     cursor: pointer;
 }
 
+.task-row {
+    cursor: pointer;
+}
+
 .queue-row.selected {
     background: #ddd;
+}
+
+.description-container {
+    width: 50%;
+}
+
+.task-details {
+    background-color:#ffffff !important;
 }
