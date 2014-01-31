@@ -198,7 +198,6 @@ function renderView() {
   });
   $('.tasks-table tbody tr').click(function() {
     var tasksTable = $('.tasks-table').dataTable();
-    console.log(tasksTable);
     if (tasksTable.fnIsOpen(this)) {  
       tasksTable.fnClose( this );
     }    
