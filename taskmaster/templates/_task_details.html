@@ -1,7 +1,7 @@
 <script data-template-name="task-details" type="underscore">
 <h4>Description</h4>
-<div class="description-container" id="<%= task.id %>">
-    <textarea class="form-control" rows=5 id="task-description"><%= task.description %>
+<div class="description-container" data-task-id="<%= task.id %>">
+    <textarea class="form-control task-description" rows=5 ><%= task.description %>
     </textarea>
 </div>
 </script>

@@ -83,20 +83,9 @@ function setEventHandlers() {
     });
   });
 
-  $('.tasks-table tbody tr').click(function() {
-    var tasksTable = $('.tasks-table').dataTable();
-    if (tasksTable.fnIsOpen(this)) {  
-      tasksTable.fnClose( this );
-    }    
-    else {  
-      var taskId = $(this).attr('id');
-      tasksTable.fnOpen( this, TEMPLATES['task-details']({task: STATE.taskmap[taskId]}), 'task-details');  
-    }
-  });
-  
   $('.container').on('change', '#task-description', function() {
-     var taskId = $('.description-container').attr('id');
-     var description = $('#task-description').val();
+     var taskId = $('.description-container').data('task-id');
+     var description = $('.task-description').val();
      $.ajax({
       url: '/task/' + taskId  + '/update/' + 'description/' + description,
       type: 'POST',
@@ -199,7 +188,7 @@ function renderView() {
   queueHTML = queueHTML.join('');
 
   $('#queue-list').html(queueHTML);
-  $('#tasks-table').dataTable({
+  $('.tasks-table').dataTable({
         "bPaginate": false,
         "bLengthChange": false,
         "bFilter": false,
@@ -207,6 +196,17 @@ function renderView() {
         "bInfo": false,
         "bAutoWidth": false 
   });
+  $('.tasks-table tbody tr').click(function() {
+    var tasksTable = $('.tasks-table').dataTable();
+    console.log(tasksTable);
+    if (tasksTable.fnIsOpen(this)) {  
+      tasksTable.fnClose( this );
+    }    
+    else {  
+      var taskId = $(this).attr('id');
+      tasksTable.fnOpen( this, TEMPLATES['task-details']({task: STATE.taskmap[taskId]}), 'task-details');  
+    }
+  }); 
   /* 
    * Hook up any needed event handlers
    */
