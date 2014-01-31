@@ -51,6 +51,7 @@ function setEventHandlers() {
       renderView();
     }
   });
+  
   $('.container').on('change', '.task-queues', function(e) {
     var queue = $(this).val();
     var taskId = $(this).data('task-id');
@@ -114,6 +115,27 @@ function setEventHandlers() {
       success: function() {
         STATE.taskmap[taskId].status = status;
       }
+    });
+  });
+
+  $('.create-tasks').click(function() {
+    $('#task-view').prepend(TEMPLATES['create-task']);
+  });
+
+  $('.container').on('change', '.create-form-container', function() {
+    $( "#create-task-form" ).submit(function( event ) { 
+      console.log(event);
+      event.preventDefault();
+      var formData = $(this).serialize();
+      console.log(formData);
+      $.ajax({
+        url: '/task',
+        type: 'POST',
+        data: formData,
+        success: function() {
+          renderView();
+        }
+      });
     });
   });
 

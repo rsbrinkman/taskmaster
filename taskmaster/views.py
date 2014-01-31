@@ -98,7 +98,7 @@ def create_task():
         task['queue'] = ''
         db.create_task(task, org)
 
-    return render_template('create_tasks.html')
+    return Response(status=200)
 
 @app.route('/queue_form', methods=['GET'])
 def show_queue_form():
