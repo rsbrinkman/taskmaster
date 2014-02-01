@@ -6,7 +6,7 @@ $(function() {
 
   // Used for quick filtering, need to call everytime we add/remove tokens to a task
   FilterTasks.buildTokenSets(STATE.taskmap);
-
+  
   renderView();
   setEventHandlers();
 });
@@ -119,23 +119,20 @@ function setEventHandlers() {
   });
 
   $('.create-tasks').click(function() {
-    $('#task-view').prepend(TEMPLATES['create-task']);
+    $('.create-form-container').toggleClass('hidden');
   });
 
-  $('.container').on('change', '.create-form-container', function() {
-    $( "#create-task-form" ).submit(function( event ) { 
-      console.log(event);
-      event.preventDefault();
-      var formData = $(this).serialize();
-      console.log(formData);
-      $.ajax({
-        url: '/task',
-        type: 'POST',
-        data: formData,
-        success: function() {
-          renderView();
-        }
-      });
+  $( "#create-task-form" ).submit(function( event ) { 
+    event.preventDefault();
+    var formData = $(this).serialize();
+    $.ajax({
+      url: '/task',
+      type: 'POST',
+      data: formData,
+      success: function(data) {
+        addTask(data);
+        renderView();
+      }
     });
   });
 
@@ -167,6 +164,12 @@ function removeTask(id) {
   renderView();
 }
 
+function addTask(task) {
+  STATE.tasks.push(task.id);
+  STATE.taskmap[task.id] = task;
+  renderView();
+}
+
 function removeQueue(id) {
   delete STATE.queuemap[id];
   removeEle(STATE.queues, id);
@@ -193,6 +196,7 @@ function renderView() {
   var selectedQueues = _.filter(STATE.queues, function(queueId) {
     return STATE.queuemap[queueId].selected;
   });
+  
 
   var taskViewHTML = '';
   if (selectedQueues.length) {
@@ -202,12 +206,16 @@ function renderView() {
   } else {
     taskViewHTML = renderQueueTasks();
   }
-  $('#task-view').html(taskViewHTML);
-
+  
   var queueHTML = _.map(STATE.queues, function(queueId) {
     return TEMPLATES['queue-row'](STATE.queuemap[queueId]);
   });
   queueHTML = queueHTML.join('');
+  
+  var createTaskHTML = TEMPLATES['create-task']('');
+  var allTaskHTML = createTaskHTML + taskViewHTML;
+  $('#task-view').html(allTaskHTML);
+
 
   $('#queue-list').html(queueHTML);
   $('.tasks-table').dataTable({
@@ -220,7 +228,6 @@ function renderView() {
   });
   $('.tasks-table tbody tr').click(function() {
     var tasksTable = $('.tasks-table').dataTable();
-    console.log(tasksTable);
     if (tasksTable.fnIsOpen(this)) {  
       tasksTable.fnClose( this );
     }    

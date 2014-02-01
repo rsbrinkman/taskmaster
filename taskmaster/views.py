@@ -96,9 +96,9 @@ def create_task():
         task['severity'] = request.form['task-severity']
         task['created_date'] = str(datetime.now().replace(microsecond=0))
         task['queue'] = ''
-        db.create_task(task, org)
+        task = db.create_task(task, org)
 
-    return Response(status=200)
+    return Response(json.dumps(task), content_type='application/json')
 
 @app.route('/queue_form', methods=['GET'])
 def show_queue_form():
