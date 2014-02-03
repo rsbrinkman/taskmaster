@@ -1,6 +1,6 @@
 import uuid
 import redis
-from datetime import datetime
+import datetime, time
 from taskmaster import settings
 
 db = redis.StrictRedis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
@@ -14,14 +14,11 @@ def test():
 def get_task(taskname):
     return db.hgetall('task>%s' % taskname)
 
-def get_queue(queuename):
-    return db.hgetall('queue>%s' % queuename)
-
-def get_queue_tasks(queuename):
-    return db.smembers('queue-tasks>%s' % queuename)
+def update_queue_order(orgname, updates):
+    db.zadd('org-queues>%s' % orgname, *updates)
 
 def get_org_queues(orgname):
-    queues = db.smembers('org-queues>%s' % orgname)
+    queues = db.zrange('org-queues>%s' % orgname, 0, -1)
 
     with db.pipeline() as pipe:
         try:
@@ -30,7 +27,8 @@ def get_org_queues(orgname):
                 pipe.smembers('queue-tasks>%s' % queue)
             queue_tasks = pipe.execute()
         except:
-            print 'Tagging failed'
+            if settings.DEBUG:
+                raise
         finally:
             pipe.reset()
 
@@ -97,7 +95,8 @@ def set_tags(task_id, updated_tags):
             pipe.hmset('task>%s' % task_id, task)
             pipe.execute()
         except:
-            print 'Tagging failed'
+            if settings.DEBUG:
+                raise
         finally:
             pipe.reset()
 
@@ -115,7 +114,8 @@ def set_tags(task_id, updated_tags):
                     pipe.srem('used-tags', tag)
             pipe.execute()
         except:
-            print 'Tagging failed'
+            if settings.DEBUG:
+                raise
         finally:
             pipe.reset()
 
@@ -139,7 +139,6 @@ def create_task(task, orgname):
         except:
             if settings.DEBUG:
                 raise
-            print 'Task creation failed'
         finally:
             pipe.reset()
 
@@ -169,23 +168,23 @@ def delete_task(task_id, orgname):
         except:
             if settings.DEBUG:
                 raise
-            print 'Task creation failed'
         finally:
             pipe.reset()
 
-def create_queue(name, orgname, filter_expression=None):
+def create_queue(name, orgname):
+    # Use current epoch time as the score for the sorted set,
+    # guarantees that newly added members will be at the end
+    score = time.mktime(datetime.datetime.now().timetuple()) * 1000
+
     # Create the hashmap queue object
     with db.pipeline() as pipe:
         try:
             pipe.multi()
-            pipe.hmset('queue>%s' % name, {
-                'created': str(datetime.now().replace(microsecond=0)),
-                'filter_expression': filter_expression,
-            })
-            pipe.sadd('org-queues>%s' % orgname, name)
+            pipe.zadd('org-queues>%s' % orgname, score, name)
             pipe.execute()
         except:
-            print 'Task creation failed'
+            if settings.DEBUG:
+                raise
         finally:
             pipe.reset()
 
@@ -193,10 +192,11 @@ def delete_queue(name, orgname):
     with db.pipeline() as pipe:
         try:
             pipe.multi()
-            pipe.srem('org-queues>%s' % orgname, name)
+            pipe.zrem('org-queues>%s' % orgname, name)
             pipe.execute()
         except:
-            print 'Queue deletion failed'
+            if settings.DEBUG:
+                raise
         finally:
             pipe.reset()
 
