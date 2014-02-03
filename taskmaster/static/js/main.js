@@ -83,7 +83,18 @@ function setEventHandlers() {
     });
   });
 
-
+  $('.container').on('change', '#task-description', function() {
+     var taskId = $('.description-container').data('task-id');
+     var description = $('.task-description').val();
+     $.ajax({
+      url: '/task/' + taskId  + '/update/' + 'description/' + description,
+      type: 'POST',
+      success: function() {
+        STATE.taskmap[taskId].description = description;
+      }
+    });
+ 
+  });
   $('#create-queue').click(function(){
     createQueue($('#queue-name').val());
   });
@@ -205,7 +216,24 @@ function renderView() {
   queueHTML = queueHTML.join('');
 
   $('#queue-list').html(queueHTML);
-
+  $('.tasks-table').dataTable({
+        "bPaginate": false,
+        "bLengthChange": false,
+        "bFilter": false,
+        "bSort": false,
+        "bInfo": false,
+        "bAutoWidth": false 
+  });
+  $('.tasks-table tbody tr').click(function() {
+    var tasksTable = $('.tasks-table').dataTable();
+    if (tasksTable.fnIsOpen(this)) {  
+      tasksTable.fnClose( this );
+    }    
+    else {  
+      var taskId = $(this).attr('id');
+      tasksTable.fnOpen( this, TEMPLATES['task-details']({task: STATE.taskmap[taskId]}), 'task-details');  
+    }
+  }); 
   /* 
    * Hook up any needed event handlers
    */
