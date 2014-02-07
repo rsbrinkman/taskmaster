@@ -131,7 +131,6 @@ function setEventHandlers() {
       data: formData,
       success: function(data) {
         addTask(data);
-        renderView();
       }
     });
   });
@@ -167,6 +166,7 @@ function removeTask(id) {
 function addTask(task) {
   STATE.tasks.push(task.id);
   STATE.taskmap[task.id] = task;
+  FilterTasks.buildTokenSets(STATE.taskmap);
   renderView();
 }
 
@@ -206,7 +206,6 @@ function renderView() {
   } else {
     taskViewHTML = renderQueueTasks();
   }
-  
   var queueHTML = _.map(STATE.queues, function(queueId) {
     return TEMPLATES['queue-row'](STATE.queuemap[queueId]);
   });
@@ -226,7 +225,7 @@ function renderView() {
         "bInfo": false,
         "bAutoWidth": false 
   });
-  $('.tasks-table tbody tr').click(function() {
+  $('.tasks-table tbody tr').click(function(ev) {
     var tasksTable = $('.tasks-table').dataTable();
     if (tasksTable.fnIsOpen(this)) {  
       tasksTable.fnClose( this );
@@ -264,7 +263,6 @@ function renderView() {
 function renderQueueTasks(queueId) {
   // Default to ALL if no queueId given
   var tasks = queueId ? STATE.queuemap[queueId].tasks : STATE.tasks;
-
   var filterTokens;
   var searchString = $('#filter-tasks').val();
   if (searchString) {
@@ -272,7 +270,10 @@ function renderQueueTasks(queueId) {
   }
 
   var taskHTML = _.map(tasks, function(taskId) {
-    if (FilterTasks.isAccepted(taskId, filterTokens)) {
+    if (jQuery.isEmptyObject(filterTokens)) {
+      return TEMPLATES['task-row'](STATE.taskmap[taskId]);
+    }
+    else if (FilterTasks.isAccepted(taskId, filterTokens)) {
       return TEMPLATES['task-row'](STATE.taskmap[taskId]);
     } else {
       return '';
