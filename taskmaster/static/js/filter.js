@@ -5,7 +5,7 @@ var FilterTasks = (function() {
 
   function buildTokenSets(tasks) {
     _.each(tasks, function(task) {
-
+      
       // Collect tokens
       var tokens = [];
       _.each(fieldsToFilterOn, function(field) {

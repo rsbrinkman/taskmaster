@@ -143,6 +143,8 @@ def create_task(task, orgname):
         finally:
             pipe.reset()
 
+    return task
+
 def update_task(task_id, update_field, update_value):
     if update_field == 'status':
         db.hset('task>%s' % task_id, 'status', update_value)
