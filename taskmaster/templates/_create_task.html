@@ -24,14 +24,14 @@
             <label>Priority</label>
                 <% _.each([0,1,2,3,4], function (i) { %>
                     <label class="radio-inline">
-                        <input type="radio" name="task-priority" id="task-priority-<%=i%>" value="<%=i%>" /><%=i%>
+                        <input type="radio" name="task-priority" id="task-priority-<%=i%>" <% if (i===2) { %>checked<% } %> value="<%=i%>" /><%=i%>
                     </label>
                 <% }); %>
             <div>
             <label>Severity</label>
                 <% _.each([0,1,2,3,4], function (i) { %>
                 <label class="radio-inline">
-                    <input type="radio" name="task-severity" id="task-severity-<%=i%>" value="<%=i%>" /><%=i%>
+                    <input type="radio" name="task-severity" id="task-severity-<%=i%>" <% if (i===2) { %>checked<% } %> value="<%=i%>" /><%=i%>
                 </label>
                 <% }); %>
             </div>
