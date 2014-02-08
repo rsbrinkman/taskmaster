@@ -254,6 +254,10 @@ function renderView() {
         "bAutoWidth": false 
   });
   $('.tasks-table tbody tr').click(function(ev) {
+    //Stop the details section from opening when selecting stuff
+    if ($(ev.target).is('select') ) {
+      return false
+    }
     var tasksTable = $('.tasks-table').dataTable();
     if (tasksTable.fnIsOpen(this)) {  
       tasksTable.fnClose( this );
