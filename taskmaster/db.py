@@ -15,10 +15,10 @@ def get_task(taskname):
     return db.hgetall('task>%s' % taskname)
 
 def update_queue_order(orgname, updates):
-    db.zadd('org-queues>%s' % orgname, *updates)
+    db.zadd('org-queues2>%s' % orgname, *updates)
 
 def get_org_queues(orgname):
-    queues = db.zrange('org-queues>%s' % orgname, 0, -1)
+    queues = db.zrange('org-queues2>%s' % orgname, 0, -1)
 
     with db.pipeline() as pipe:
         try:
@@ -182,7 +182,7 @@ def create_queue(name, orgname):
     with db.pipeline() as pipe:
         try:
             pipe.multi()
-            pipe.zadd('org-queues>%s' % orgname, score, name)
+            pipe.zadd('org-queues2>%s' % orgname, score, name)
             pipe.execute()
         except:
             if settings.DEBUG:
@@ -194,7 +194,7 @@ def delete_queue(name, orgname):
     with db.pipeline() as pipe:
         try:
             pipe.multi()
-            pipe.zrem('org-queues>%s' % orgname, name)
+            pipe.zrem('org-queues2>%s' % orgname, name)
             pipe.execute()
         except:
             if settings.DEBUG:
