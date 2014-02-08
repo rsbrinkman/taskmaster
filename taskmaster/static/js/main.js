@@ -138,6 +138,34 @@ function setEventHandlers() {
   $('#filter-tasks').keyup(function() {
     renderView();
   });
+
+  $('#queue-list').sortable({
+    stop: function(e, ui) {
+      var queues = $(this).sortable('toArray', {attribute: 'data-queue-id'});
+
+      // Check if the order has changed
+      if(JSON.stringify(STATE.queues) !== JSON.stringify(queues)) {
+        // Generate a list of [new_position1, queue1, new_position2, queue2, ...]
+        var updates = [];
+        _.each(STATE.queues, function(queueName, index) {
+          if (queueName !== queues[index]) {
+            updates.push(queues.indexOf(queueName));
+            updates.push(queueName);
+          }
+        });
+
+        $.ajax({
+          type: 'PUT',
+          url: '/order/queue/',
+          data: {
+            updates: JSON.stringify(updates)
+          }
+        });
+
+        STATE.queues = queues;
+      }
+    }
+  });
 }
 
 function createQueue(queue) {
