@@ -33,3 +33,20 @@
 .task-details {
     background-color:#ffffff !important;
 }
+
+table.drop-hover {
+    border-style: solid;
+    border-color: #0000ff;
+}
+
+.queue-row.drop-hover {
+    border-style: solid;
+    border-color: #0000ff;
+}
+
+.dragged-task {
+    width: 150px !important; /* http://bugs.jqueryui.com/ticket/4345 */
+    height: 24px !important;
+    text-align:center;
+    background-color: #F9F9F9;
+    border: 1px solid #DDDDDD;
