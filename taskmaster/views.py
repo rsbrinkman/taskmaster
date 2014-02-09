@@ -135,6 +135,12 @@ def update_queue_order():
     db.update_queue_order(org, json.loads(request.form['updates']))
     return Response(status=200)
 
+@app.route('/order/task/', methods=['PUT'])
+@app.route('/order/task/<queue_name>', methods=['PUT'])
+def update_task_order(queue_name=''):
+    db.update_task_order(org, json.loads(request.form['updates']), queue_name=queue_name)
+    return Response(status=200)
+
 @app.route('/queue/<queue_name>', methods=['DELETE'])
 def update_queue(queue_name):
     if request.method == 'DELETE':

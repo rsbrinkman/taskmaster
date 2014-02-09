@@ -59,11 +59,12 @@ function setEventHandlers() {
       type: 'POST',
       success: function() {
         var currentQueue = STATE.taskmap[taskId].queue
-        if (currentQueue) {
+
+        if (currentQueue && STATE.queuemap[currentQueue]) {
           removeEle(STATE.queuemap[currentQueue].tasks, taskId)
           }
         STATE.taskmap[taskId].queue = queue;
-        if (queue) {
+        if (queue && STATE.queuemap[queue]) {
           STATE.queuemap[queue].tasks.push(taskId);
         }
         renderView();
@@ -124,30 +125,32 @@ function setEventHandlers() {
   $('#queue-list').sortable({
     stop: function(e, ui) {
       var queues = $(this).sortable('toArray', {attribute: 'data-queue-id'});
-
-      // Check if the order has changed
-      if(JSON.stringify(STATE.queues) !== JSON.stringify(queues)) {
-        // Generate a list of [new_position1, queue1, new_position2, queue2, ...]
-        var updates = [];
-        _.each(STATE.queues, function(queueName, index) {
-          if (queueName !== queues[index]) {
-            updates.push(queues.indexOf(queueName));
-            updates.push(queueName);
-          }
-        });
-
-        $.ajax({
-          type: 'PUT',
-          url: '/order/queue/',
-          data: {
-            updates: JSON.stringify(updates)
-          }
-        });
-
-        STATE.queues = queues;
-      }
+      reorderList(queues, STATE.queues, '/order/queue/');
+      STATE.queues = queues;
     }
   });
+}
+
+function reorderList(sortedList, prevList, url) {
+  // Check if the order has changed
+  if(JSON.stringify(sortedList) !== JSON.stringify(prevList)) {
+    // Generate a list of [new_position1, queue1, new_position2, queue2, ...]
+    var updates = [];
+    _.each(prevList, function(itemName, index) {
+      if (itemName !== sortedList[index]) {
+        updates.push(sortedList.indexOf(itemName));
+        updates.push(itemName);
+      }
+    });
+
+    $.ajax({
+      type: 'PUT',
+      url: url,
+      data: {
+        updates: JSON.stringify(updates)
+      }
+    });
+  }
 }
 
 function createQueue(queue) {
@@ -257,6 +260,24 @@ function renderView() {
       }
     });
   });
+
+  $('#task-view tbody').sortable({
+    items: '.task-row',
+    stop: function(e, ui) {
+      var tasks = $(this).sortable('toArray', {attribute: 'id'});
+
+      var queueName = $(this).parent('table').data('queue-name');
+
+      if (queueName) {
+        reorderList(tasks, STATE.queuemap[queueName].tasks, '/order/task/' + queueName);
+        STATE.queuemap[queueName].tasks = tasks;
+      } else {
+        reorderList(tasks, STATE.tasks, '/order/task/');
+        STATE.tasks = tasks;
+      }
+    }
+  });
+
 }
 
 function renderQueueTasks(queueId) {
