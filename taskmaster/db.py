@@ -11,6 +11,21 @@ def test():
     db.delete('test_key')
     return result
 
+
+def get_user_preferences(username):
+    '''
+    Various user level preferences, hard-coded for now
+    '''
+
+    return {
+        'style_rules': [
+            {
+                'rule': 'status:done',
+                'class': 'striked',
+            }
+        ]
+    }
+
 def get_task(taskname):
     return db.hgetall('task>%s' % taskname)
 

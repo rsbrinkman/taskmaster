@@ -6,6 +6,8 @@ from datetime import datetime
 
 #TODO: Create login interface.
 org = 'Taskmaster'
+default_user='Joe'
+
 users = [
     'Scott Brinkman',
     'Jon Munz',
@@ -63,6 +65,8 @@ def _task_state():
 
     tags = list(db.get_used_tags())
 
+    preferences = db.get_user_preferences(default_user)
+
     return {
         'tasks': org_tasks,
         'queues': queues,
@@ -70,6 +74,7 @@ def _task_state():
         'taskmap': taskmap,
         'queuemap': queuemap,
         'users': users,
+        'preferences': preferences,
     }
 
 @app.route('/')

@@ -1,12 +1,20 @@
 var TEMPLATES = {}
 var WHITESPACE = new RegExp(/\s+/);
+var styleRules;
 
 $(function() {
   loadTemplates()
 
   // Used for quick filtering, need to call everytime we add/remove tokens to a task
   FilterTasks.buildTokenSets(STATE.taskmap);
-  
+
+  styleRules =_.map(STATE.preferences.style_rules, function(styleRule) {
+    return {
+      filter: FilterTasks.compileFilter(styleRule.rule),
+      cssClass: styleRule.class
+    }
+  });
+
   renderView();
   setEventHandlers();
 });
@@ -97,11 +105,11 @@ function setEventHandlers() {
     var taskId = $(this).data('task-id');
     $.ajax({
       url: '/task/' + taskId  + '/update/' + 'status/' + status,
-      type: 'POST',
-      success: function() {
-        STATE.taskmap[taskId].status = status;
-      }
+      type: 'POST'
     });
+
+    STATE.taskmap[taskId].status = status;
+    renderView();
   });
 
   $('.create-tasks').click(function() {
@@ -362,18 +370,25 @@ function renderView() {
 function renderQueueTasks(queueId) {
   // Default to ALL if no queueId given
   var tasks = queueId ? STATE.queuemap[queueId].tasks : STATE.tasks;
-  var filterTokens;
   var searchString = $('#filter-tasks').val();
-  if (searchString) {
-    filterTokens = searchString.trim().toLowerCase().split(WHITESPACE);
-  }
+
+  filter = FilterTasks.compileFilter(searchString);
 
   var taskHTML = _.map(tasks, function(taskId) {
-    if (jQuery.isEmptyObject(filterTokens)) {
-      return TEMPLATES['task-row'](STATE.taskmap[taskId]);
-    }
-    else if (FilterTasks.isAccepted(taskId, filterTokens)) {
-      return TEMPLATES['task-row'](STATE.taskmap[taskId]);
+    var task = STATE.taskmap[taskId];
+
+    if (task && filter.match(task)) {
+      var context = $.extend({
+        cssClass: ''
+      }, task);
+
+      _.each(styleRules, function(styleRule) {
+        if (styleRule.filter.match(context)) {
+          context.cssClass = styleRule.cssClass;
+        }
+      });
+
+      return TEMPLATES['task-row'](context);
     } else {
       return '';
     }

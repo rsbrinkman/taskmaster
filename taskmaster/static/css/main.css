@@ -22,6 +22,10 @@
     cursor: pointer;
 }
 
+.task-row.striked {
+    text-decoration: line-through;
+}
+
 .queue-row.selected {
     background: #ddd;
 }
