@@ -56,7 +56,7 @@ def _task_state():
         queuemap[queue[0]] = {
             'id': queue[0],
             'tasks': queue[1],
-            'selected': False, #TODO, remember what the user had last
+            'selected': True, #TODO, remember what the user had last
         }
     queues = [queue[0] for queue in queue_tasks]
     # TODO sort the list of queues

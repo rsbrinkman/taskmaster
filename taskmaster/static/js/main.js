@@ -54,22 +54,7 @@ function setEventHandlers() {
   $('.container').on('change', '.task-queues', function(e) {
     var queue = $(this).val();
     var taskId = $(this).data('task-id');
-    $.ajax({
-      url: '/task/' + taskId  + '/update/' + 'queue/' + queue,
-      type: 'POST',
-      success: function() {
-        var currentQueue = STATE.taskmap[taskId].queue
-
-        if (currentQueue && STATE.queuemap[currentQueue]) {
-          removeEle(STATE.queuemap[currentQueue].tasks, taskId)
-          }
-        STATE.taskmap[taskId].queue = queue;
-        if (queue && STATE.queuemap[queue]) {
-          STATE.queuemap[queue].tasks.push(taskId);
-        }
-        renderView();
-      }
-    });
+    putTaskInQueue(taskId, queue);
   });
 
   $('.container').on('change', '.task-assignee', function(e) {
@@ -195,6 +180,24 @@ function removeEle(list, ele) {
   }
 }
 
+function putTaskInQueue(taskId, queueName) {
+  var currentQueue = STATE.taskmap[taskId].queue
+
+  if (currentQueue && STATE.queuemap[currentQueue]) {
+    removeEle(STATE.queuemap[currentQueue].tasks, taskId)
+    }
+  STATE.taskmap[taskId].queue = queueName;
+  if (queueName && STATE.queuemap[queueName]) {
+    STATE.queuemap[queueName].tasks.push(taskId);
+  }
+  renderView();
+
+  $.ajax({
+    url: '/task/' + taskId  + '/update/' + 'queue/' + queueName,
+    type: 'POST'
+  });
+}
+
 function renderView() {
   /*
    * Render HTML from the state and put on the DOM
@@ -219,6 +222,8 @@ function renderView() {
   queueHTML = queueHTML.join('');
 
   $('#queue-list').html(queueHTML);
+
+
   $('.tasks-table').dataTable({
         "bPaginate": false,
         "bLengthChange": false,
@@ -263,10 +268,22 @@ function renderView() {
 
   $('#task-view tbody').sortable({
     items: '.task-row',
+    cursorAt: { left: 5, top: 5 },
+    helper: function(e, ui) {
+      var text = STATE.taskmap[ui.prop('id')].name;
+      return $('<div class="dragged-task">' + text + '</div>');
+    },
     stop: function(e, ui) {
-      var tasks = $(this).sortable('toArray', {attribute: 'id'});
-
       var queueName = $(this).parent('table').data('queue-name');
+
+      if (ui.item.data('justDropped')) {
+        // Don't have a nicer way of doing this, prevents sorting behavior if we've
+        // ended the drag by dropping the task into another queue
+        ui.item.data('justDropped', false);
+        return false;
+      }
+
+      var tasks = $(this).sortable('toArray', {attribute: 'id'});
 
       if (queueName) {
         reorderList(tasks, STATE.queuemap[queueName].tasks, '/order/task/' + queueName);
@@ -278,6 +295,35 @@ function renderView() {
     }
   });
 
+  $('#task-view table').droppable({
+    accept: function(taskRow) {
+      // Don't allow dropping into the queue it's already in
+      var queueName = $(this).data('queue-name');
+      return queueName && ($(this).data('queue-name') !== taskRow.data('queue-name'));
+    },
+    drop: function(e, ui) {
+      var taskId = ui.draggable.prop('id');
+      var queueName = $(this).data('queue-name');
+      putTaskInQueue(taskId, queueName);
+
+      ui.draggable.data('justDropped', true);
+    },
+    hoverClass: 'drop-hover'
+  });
+
+  $('.queue-row').droppable({
+    drop: function(e, ui) {
+      var queueName = $(this).data('queue-id');
+      var taskId = ui.draggable.prop('id');
+
+      if (STATE.taskmap[taskId].queue !== queueName) {
+        putTaskInQueue(taskId, queueName);
+      }
+
+      ui.draggable.data('justDropped', true);
+    },
+    hoverClass: 'drop-hover'
+  });
 }
 
 function renderQueueTasks(queueId) {
@@ -298,7 +344,6 @@ function renderQueueTasks(queueId) {
     }
   });
   taskHTML = taskHTML.join('');
-
 
   return TEMPLATES['task-list']({queueName: queueId, tasks: taskHTML});
 }
