@@ -2,7 +2,7 @@
   <% if (queueName) { %>
     <h1><%= queueName %></h1>
   <% } %>
-  <table class="table table-striped tasks-table">
+  <table data-queue-name="<%= queueName %>" class="table table-striped tasks-table">
     <thead>
       <tr>
         <th>Status</th>

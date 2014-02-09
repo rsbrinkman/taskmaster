@@ -17,6 +17,12 @@ def get_task(taskname):
 def update_queue_order(orgname, updates):
     db.zadd('org-queues2>%s' % orgname, *updates)
 
+def update_task_order(orgname, updates, queue_name=''):
+    if queue_name:
+        db.zadd('queue-tasks2>%s' % queue_name, *updates)
+    else:
+        db.zadd('org-tasks2>%s' % orgname, *updates)
+
 def get_org_queues(orgname):
     queues = db.zrange('org-queues2>%s' % orgname, 0, -1)
 
@@ -24,7 +30,7 @@ def get_org_queues(orgname):
         try:
             pipe.multi()
             for queue in queues:
-                pipe.smembers('queue-tasks>%s' % queue)
+                pipe.zrange('queue-tasks2>%s' % queue, 0, -1)
             queue_tasks = pipe.execute()
         except:
             if settings.DEBUG:
@@ -35,10 +41,10 @@ def get_org_queues(orgname):
     return zip(queues, (list(tasks) for tasks in queue_tasks))
 
 def get_org_tasks(orgname):
-    return db.smembers('org-tasks>%s' % orgname)
+    return db.zrange('org-tasks2>%s' % orgname, 0, -1)
 
 def remove_org_task(orgname, task):
-    db.srem('org-tasks>%s' % orgname, task)
+    db.zrem('org-tasks2>%s' % orgname, task)
 
 def get_assigned_tasks(username):
     return db.smembers('assigned>%s' % username)
@@ -53,14 +59,15 @@ def get_tasks_from_tag(tagname):
     return db.smembers('tag-tasks>%s>' % tagname)
 
 def add_task_to_queue(taskname, queuename):
-    db.sadd('queue-tasks>%s' % queuename, taskname)
+    db.zadd('queue-tasks2>%s' % queuename,  _default_score(), taskname)
 
 def remove_from_queue(taskname, queuename):
-    db.srem('queue-tasks>%s' % queuename, taskname)
+    db.zrem('queue-tasks2>%s' % queuename, taskname)
 
 def move_task(taskname, from_queuename=None, to_queuename=None):
     if from_queuename and to_queuename:
-        db.smove('queue-tasks>%s' % from_queuename, 'queue-tasks>%s' % to_queuename, taskname)
+        add_task_to_queue(taskname, to_queuename)
+        remove_from_queue(taskname, from_queuename)
     elif not from_queuename:
         add_task_to_queue(taskname, to_queuename)
     elif not to_queuename:
@@ -132,7 +139,7 @@ def create_task(task, orgname):
             task['id'] = task_id
             task['tags'] = ''
             pipe.hmset('task>%s' % task_id, task)
-            pipe.sadd('org-tasks>%s' % orgname, task_id)
+            pipe.zadd('org-tasks2>%s' % orgname,  _default_score(), task_id)
             if task['assignee']:
                 pipe.sadd('assigned>%s' % task['assignee'], task_id)
             pipe.execute()
@@ -165,7 +172,7 @@ def delete_task(task_id, orgname):
         try:
             pipe.multi()
             pipe.delete('task>%s' % task_id)
-            pipe.srem('org-tasks>%s' % orgname, task_id)
+            pipe.zrem('org-tasks2>%s' % orgname, task_id)
             if task['assignee']:
                 pipe.srem('assigned>%s' % task['assignee'], task_id)
             pipe.execute()
@@ -176,31 +183,12 @@ def delete_task(task_id, orgname):
             pipe.reset()
 
 def create_queue(name, orgname):
-    # Use current epoch time as the score for the sorted set,
-    # guarantees that newly added members will be at the end
-    score = time.mktime(datetime.datetime.now().timetuple()) * 1000
-
-    # Create the hashmap queue object
-    with db.pipeline() as pipe:
-        try:
-            pipe.multi()
-            pipe.zadd('org-queues2>%s' % orgname, score, name)
-            pipe.execute()
-        except:
-            if settings.DEBUG:
-                raise
-        finally:
-            pipe.reset()
+    db.zadd('org-queues2>%s' % orgname, _default_score(), name)
 
 def delete_queue(name, orgname):
-    with db.pipeline() as pipe:
-        try:
-            pipe.multi()
-            pipe.zrem('org-queues2>%s' % orgname, name)
-            pipe.execute()
-        except:
-            if settings.DEBUG:
-                raise
-        finally:
-            pipe.reset()
+    db.zrem('org-queues2>%s' % orgname, name)
 
+def _default_score():
+    # Use current epoch time as the score for the sorted set,
+    # guarantees that newly added members will be at the end
+    return time.mktime(datetime.datetime.now().timetuple()) * 1000
