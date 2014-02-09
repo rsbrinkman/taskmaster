@@ -71,7 +71,7 @@ var FilterTasks = (function() {
               }
 
               if (v[0] === '!') {
-                return task[key] !== v;
+                return task[key] !== v.substr(1);
               } else {
                 return task[key] === v;
               }
