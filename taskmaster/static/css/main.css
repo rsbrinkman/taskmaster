@@ -1,3 +1,10 @@
+table {
+    font-size: 11px;
+}
+select.input-sm {
+    height:20px !important;
+    line-height: 20px;
+}
 .underline {
     border-bottom: 1px solid black;
     box-shadow: 3px 1px 2px #888888;
@@ -7,8 +14,12 @@
 .border-left {
     border-left: 1px #888888 solid;
 }
+#s2id_groupSelect, .select2-input, .select2-container, .select2-search-field, .select2-choices {
+    min-width: 100px;
+}
 .tag-column {
-    width: 300px;
+    max-width: 250px;
+    min-width: 100px;
 }
 .queue-box {
     margin-bottom: 5px;
@@ -28,6 +39,8 @@
 
 .queue-row.selected {
     background: #ddd;
+    border-radius: 2px;
+    box-shadow: 1px 1px 1px #ddd;
 }
 
 .description-container {
@@ -39,13 +52,16 @@
 }
 
 table.drop-hover {
-    border-style: solid;
-    border-color: #0000ff;
+    border: 1px solid #ddd;
+    background-color: whiteSmoke;
+    border-radius: 4px;
+
 }
 
 .queue-row.drop-hover {
-    border-style: solid;
-    border-color: #0000ff;
+    border: 1px solid #ddd;
+    background-color: whiteSmoke;
+    border-radius: 2px;
 }
 
 .dragged-task {
@@ -54,3 +70,10 @@ table.drop-hover {
     text-align:center;
     background-color: #F9F9F9;
     border: 1px solid #DDDDDD;
+    border-radius: 2px;
+    box-shadow: 2px 2px 2px #ddd;
+}
+
+.header-filter-container {
+    margin-top: 30px;
+}

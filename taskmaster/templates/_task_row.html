@@ -1,7 +1,7 @@
 <script data-template-name="task-row" type="underscore">
 <tr class="task-row <%= cssClass %>" id='<%= id %>' data-queue-name='<%= queue %>'>
     <td>
-      <select class="form-control task-status" data-task-id=<%= id %>>
+      <select class="form-control task-status input-sm" data-task-id=<%= id %>>
         <option name="not-started" value="not-started" <% if (status==='not-started') { %>selected<% } %>>Not Started</option>
         <option name="in-progress" value="in-progress" <% if (status==='in-progress') { %>selected<% } %>>In Progress</option>
         <option name="done" value="done" <% if (status==='done') { %>selected<% } %>>Done</option>
@@ -9,7 +9,7 @@
     </td>
     <td><%= name %></td>
     <td>
-       <select class="form-control task-assignee" data-task-id=<%= id %>>
+       <select class="form-control task-assignee input-sm" data-task-id=<%= id %>>
          <option name='no-user'></option>
          <% _.each(STATE.users, function(userName) { %>
            <option <% if (assignee===userName) { %>selected<% } %> value='<%= userName %>'><%= userName %></option>
@@ -20,13 +20,13 @@
     <td><%= priority %></td>
     <td><%= severity %></td>
     <td>
-        <select class="form-control task-queues" data-task-id=<%= id %>>
+        <select class="form-control task-queues input-sm" data-task-id=<%= id %>>
             <option name='no-queue'></option>
         <% _.each(STATE.queues, function(queueName) { %>
             <option name='<%= queueName %>' data-queue-id='<%= queueName %>' <% if (queue===queueName) { %>selected<% } %> value='<%= queueName %>'><%= queueName %></option>
         <% });  %>
         </select>
     <td class="tag-column"><input type="hidden" data-task-id="<%= id %>" class="task-tags" value="<%= tags %>"></input></td>
-    <td><button class="del-task" data-task-id="<%= id %>">Del</button>
+    <td><button class="btn btn-sm del-task" data-task-id="<%= id %>">Del</button>
   </tr>
 </script>

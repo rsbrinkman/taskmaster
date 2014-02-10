@@ -157,6 +157,8 @@ def create_task(task, orgname):
             pipe.zadd('org-tasks2>%s' % orgname,  _default_score(), task_id)
             if task['assignee']:
                 pipe.sadd('assigned>%s' % task['assignee'], task_id)
+            if task['queue']:
+                add_task_to_queue(task_id, task['queue'])
             pipe.execute()
         except:
             if settings.DEBUG:

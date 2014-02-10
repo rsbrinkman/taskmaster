@@ -3,9 +3,9 @@
 <head>
   <title>Taskmaster</title>
   {% block css %}
-    <link rel="stylesheet" type="text/css" href="static/css/main.css"/>
     <link href="static/css/bootstrap.min.css" rel="stylesheet">
     <link href="static/select2-3.4.5/select2.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="static/css/main.css"/>
   {% endblock %}
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="static/images/favicon_tm.ico" type="image/x-icon">
@@ -13,11 +13,11 @@
 </head>
 <body>
   <div class="row">
-    <div class="col-md-6">
+    <div class="col-md-3">
         <a href="/"><h1>Taskmaster</a>
         <a href="#" class="btn btn-primary create-tasks" role="button">Create</a></h1>
     </div>
-    <div class="col-md-6">
+    <div class="col-md-9">
         {% block header_row %}
         {% endblock %}
     </div>
