@@ -99,8 +99,12 @@ def create_task():
         task['assignee'] = request.form['task-assignee']
         task['priority'] = request.form['task-priority']
         task['severity'] = request.form['task-severity']
-        task['created_date'] = str(datetime.now().replace(microsecond=0))
-        task['queue'] = ''
+        task['created_date'] = str(datetime.now().date())
+        if request.form['task-queue'] == 'no-queue':
+            #TODO: Use this to set a the 'null' queue in UI/UX queue
+            #TODO: This is a good opportunity to link to a task.
+            task['queue'] = ''
+        task['queue'] = request.form['task-queue']
         task = db.create_task(task, org)
 
     return Response(json.dumps(task), content_type='application/json')
