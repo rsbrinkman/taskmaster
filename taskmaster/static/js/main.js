@@ -78,7 +78,7 @@ function setEventHandlers() {
     });
   });
 
-  $('.container').on('change', '#task-description', function() {
+  $('.container').on('change', '.task-description', function() {
      var taskId = $('.description-container').data('task-id');
      var description = $('.task-description').val();
      $.ajax({
@@ -112,22 +112,11 @@ function setEventHandlers() {
     renderView();
   });
 
-  $('.create-tasks').click(function() {
+  $('body').on('click', '.create-tasks', function() {
     $('.create-form-container').toggleClass('hidden');
+    STATE.showingCreateTask = !STATE.showingCreateTask;
   });
-
-  $( "#create-task-form" ).submit(function( event ) { 
-    event.preventDefault();
-    var formData = $(this).serialize();
-    $.ajax({
-      url: '/task',
-      type: 'POST',
-      data: formData,
-      success: function(data) {
-        addTask(data);
-      }
-    });
-  });
+  
 
   $('#filter-tasks').keyup(function() {
     renderView();
@@ -190,6 +179,9 @@ function removeTask(id) {
 function addTask(task) {
   STATE.tasks.push(task.id);
   STATE.taskmap[task.id] = task;
+  if (task.queue) {
+    putTaskInQueue(task.id, task.queue);
+  }
   FilterTasks.buildTokenSets(STATE.taskmap);
   renderView();
 }
@@ -252,8 +244,8 @@ function renderView() {
     return TEMPLATES['queue-row'](STATE.queuemap[queueId]);
   });
   queueHTML = queueHTML.join('');
-  
-  var createTaskHTML = TEMPLATES['create-task']('');
+
+  var createTaskHTML = TEMPLATES['create-task']({visible: STATE.showingCreateTask});
   var allTaskHTML = createTaskHTML + taskViewHTML;
   $('#task-view').html(allTaskHTML);
 
@@ -282,10 +274,28 @@ function renderView() {
       var taskId = $(this).attr('id');
       tasksTable.fnOpen( this, TEMPLATES['task-details']({task: STATE.taskmap[taskId]}), 'task-details');  
     }
-  }); 
+  });
   /* 
    * Hook up any needed event handlers
    */
+
+  $( ".create-form-container button[type='submit']" ).on('click',  function( event ) {
+    var formData = $(this).parent('form').serialize();
+    $.ajax({
+      url: '/task',
+      type: 'POST',
+      data: formData,
+      success: function(data) {
+        addTask(data);
+      }
+    });
+
+    return false;
+  });
+  $('.create-task-close').click(function() {
+    $('.create-form-container').toggleClass('hidden');
+    STATE.showingCreateTask = !STATE.showingCreateTask;
+  });
   $('.task-tags').select2({
     placeholder: "Add a tag",
     tags: STATE.tags
@@ -356,7 +366,9 @@ function renderView() {
     drop: function(e, ui) {
       var queueName = $(this).data('queue-id');
       var taskId = ui.draggable.prop('id');
-
+      if (!taskId) {
+        return false;
+      }
       if (STATE.taskmap[taskId].queue !== queueName) {
         putTaskInQueue(taskId, queueName);
       }

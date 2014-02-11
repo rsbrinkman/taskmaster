@@ -20,9 +20,9 @@
   </table>
   <h4 id="no-task-message" <% if (tasks) { %>style="display:none"<% } %>>
     <% if (queueName) { %>
-      This queue has no tasks, add one <a href="/create_task_form">here</a>
+      This queue has no tasks, add one <button class="btn btn-primary create-tasks">here</button>
     <% } else { %>
-      No tasks found for you, time to get to <a href="/create_task_form">work</a>
+      No tasks found for you, time to get to <button class="btn btn-primary create-tasks">work</button>
     <% } %>
   </h4>
 </script>
