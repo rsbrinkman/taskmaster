@@ -117,10 +117,7 @@ function setEventHandlers() {
     STATE.showingCreateTask = !STATE.showingCreateTask;
   });
   
-  $('.create-task-close').click(function() {
-    $('.create-form-container').toggleClass('hidden');
-    STATE.showingCreateTask = !STATE.showingCreateTask;
-  });
+
   $('#filter-tasks').keyup(function() {
     renderView();
   });
@@ -182,7 +179,9 @@ function removeTask(id) {
 function addTask(task) {
   STATE.tasks.push(task.id);
   STATE.taskmap[task.id] = task;
-  putTaskInQueue(task.id, task.queue)
+  if (task.queue) {
+    putTaskInQueue(task.id, task.queue);
+  }
   FilterTasks.buildTokenSets(STATE.taskmap);
   renderView();
 }
@@ -293,7 +292,10 @@ function renderView() {
 
     return false;
   });
-
+  $('.create-task-close').click(function() {
+    $('.create-form-container').toggleClass('hidden');
+    STATE.showingCreateTask = !STATE.showingCreateTask;
+  });
   $('.task-tags').select2({
     placeholder: "Add a tag",
     tags: STATE.tags
