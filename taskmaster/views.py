@@ -6,7 +6,7 @@ from datetime import datetime
 
 #TODO: Create login interface.
 org = 'Taskmaster'
-default_user='Joe'
+default_user = 'Joe'
 
 users = [
     'Scott Brinkman',
@@ -38,7 +38,6 @@ def _task_state():
     '''
     # Get set of assigned tasks
     org_tasks = list(db.get_org_tasks(org))
-    #TODO sort the list of tasks
 
     # Iterate over assigned tasks and build tasks object
     taskmap = {}
@@ -57,15 +56,15 @@ def _task_state():
     for queue in queue_tasks:
         queuemap[queue[0]] = {
             'id': queue[0],
-            'tasks': queue[1],
-            'selected': False, #TODO, remember what the user had last
+            'tasks': queue[1]
         }
     queues = [queue[0] for queue in queue_tasks]
-    # TODO sort the list of queues
 
     tags = list(db.get_used_tags())
 
     preferences = db.get_user_preferences(default_user)
+
+    filters = db.get_saved_filters(default_user)
 
     return {
         'tasks': org_tasks,
@@ -75,6 +74,7 @@ def _task_state():
         'queuemap': queuemap,
         'users': users,
         'preferences': preferences,
+        'filtermap': filters,
     }
 
 @app.route('/')
@@ -138,6 +138,16 @@ def task_tags(task_id):
     db.set_tags(task_id, json.loads(request.form['tags']))
 
     return Response(status=200)
+
+@app.route('/filter/<filtername>/', methods=['POST', 'DELETE'])
+def manage_user_filter(filtername, username=default_user):
+    if request.method == 'POST':
+        rule = request.form['rule']
+        obj = db.create_filter(username, filtername, rule)
+        return Response(json.dumps(obj), content_type='application/json')
+    elif request.method == 'DELETE':
+        db.delete_filter(username, filtername)
+        return Response(status=200)
 
 @app.route('/order/queue/', methods=['PUT'])
 def update_queue_order():
