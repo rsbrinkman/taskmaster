@@ -1,12 +1,24 @@
 var TEMPLATES = {}
-var WHITESPACE = new RegExp(/\s+/);
 var styleRules;
+var COOKIES = {
+  view: 'view'
+}
 
 $(function() {
   loadTemplates()
 
   // Used for quick filtering, need to call everytime we add/remove tokens to a task
   FilterTasks.buildTokenSets(STATE.taskmap);
+
+  // Initialize these so the underscore template doesn't complain
+  _.each(STATE.queuemap, function(queue) {
+    queue.selected = false;
+  });
+  _.each(STATE.filtermap, function(filter) {
+    filter.selected = false;
+  });
+
+  compileFilters();
 
   styleRules =_.map(STATE.preferences.style_rules, function(styleRule) {
     return {
@@ -15,9 +27,18 @@ $(function() {
     }
   });
 
+  loadCookies();
   renderView();
   setEventHandlers();
 });
+
+function compileFilters() {
+  _.each(STATE.filtermap, function(filter) {
+    if (!filter.compiled) {
+      filter.compiled = FilterTasks.compileFilter(filter.rule);
+    }
+  });
+}
 
 function loadTemplates() {
   _.each($('[type="underscore"]'), function(ele) {
@@ -116,10 +137,17 @@ function setEventHandlers() {
     $('.create-form-container').toggleClass('hidden');
     STATE.showingCreateTask = !STATE.showingCreateTask;
   });
-  
 
-  $('#filter-tasks').keyup(function() {
+  $('#filter-tasks-go').click(function() {
+    STATE.searchString = $('#filter-tasks').val();
     renderView();
+  });
+
+  $('#filter-tasks').keyup(function(ev) {
+    if (ev.which === 13) {
+      STATE.searchString = $('#filter-tasks').val();
+      renderView();
+    }
   });
 
   $('#queue-list').sortable({
@@ -129,6 +157,62 @@ function setEventHandlers() {
       STATE.queues = queues;
     }
   });
+
+  $('#save-filter').click(function() {
+    saveFilter();
+  });
+
+  $('#save-filter-name').keyup(function(ev) {
+    if (ev.which === 13) {
+      saveFilter();
+    }
+  });
+
+  $('#saved-filters').on('click', '.remove-filter', function(ev) {
+    var name = $(this).data('name');
+    $.ajax({
+      url: '/filter/' + name + '/',
+      type: 'DELETE'
+    });
+
+    delete STATE.filtermap[name];
+    renderView();
+  });
+
+  $('#saved-filters').on('change', 'input[type="checkbox"]', function(ev) {
+    var $this = $(this);
+
+    var selected = $this.prop('checked');
+    var name = $this.data('name');
+
+    STATE.filtermap[name].selected = selected;
+    renderView();
+  });
+}
+
+function saveFilter() {
+  var name = $('#save-filter-name').val();
+  var rule = $('#filter-tasks').val();
+
+  if (name && rule) {
+    $.ajax({
+      url: '/filter/' + name + '/',
+      type: 'POST',
+      data: {
+        rule: rule
+      }
+    });
+
+    STATE.filtermap[name] = {
+      name: name,
+      rule: rule,
+      selected: true
+    }
+
+    $('#save-filter-name, #filter-tasks').val('');
+    compileFilters();
+    renderView();
+  }
 }
 
 function reorderList(sortedList, prevList, url) {
@@ -230,7 +314,9 @@ function renderView() {
   var selectedQueues = _.filter(STATE.queues, function(queueId) {
     return STATE.queuemap[queueId].selected;
   });
-  
+
+
+  renderSavedFilters();
 
   var taskViewHTML = '';
   if (selectedQueues.length) {
@@ -377,35 +463,120 @@ function renderView() {
     },
     hoverClass: 'drop-hover'
   });
+
+  saveCookies();
 }
 
 function renderQueueTasks(queueId) {
   // Default to ALL if no queueId given
   var tasks = queueId ? STATE.queuemap[queueId].tasks : STATE.tasks;
-  var searchString = $('#filter-tasks').val();
+  var searchString = STATE.searchString;
 
-  filter = FilterTasks.compileFilter(searchString);
+  var selectedFilters = [];
+  _.each(STATE.filtermap, function(filter) {
+    if (filter.selected) {
+      selectedFilters.push(filter.compiled);
+    }
+  });
+  selectedFilters.push(FilterTasks.compileFilter(searchString));
 
   var taskHTML = _.map(tasks, function(taskId) {
     var task = STATE.taskmap[taskId];
 
-    if (task && filter.match(task)) {
-      var context = $.extend({
-        cssClass: ''
-      }, task);
-
-      _.each(styleRules, function(styleRule) {
-        if (styleRule.filter.match(context)) {
-          context.cssClass = styleRule.cssClass;
-        }
+    if (task) {
+      var matched = _.every(selectedFilters, function(filter) {
+        return filter.match(task);
       });
 
-      return TEMPLATES['task-row'](context);
-    } else {
-      return '';
+      if (matched) {
+        var context = $.extend({
+          cssClass: ''
+        }, task);
+
+        _.each(styleRules, function(styleRule) {
+          if (styleRule.filter.match(context)) {
+            context.cssClass = styleRule.cssClass;
+          }
+        });
+
+        return TEMPLATES['task-row'](context);
+      }
     }
+
+    return '';
   });
   taskHTML = taskHTML.join('');
 
   return TEMPLATES['task-list']({queueName: queueId, tasks: taskHTML});
+}
+
+function renderSavedFilters() {
+
+  var filter_names = _.keys(STATE.filtermap);
+  filter_names.sort();
+
+  var filterHTML =_.map(filter_names, function(name) {
+    var filter = _.clone(STATE.filtermap[name]);
+    filter.rule = filter.rule.replace(/"/g, '&quot;');
+    return TEMPLATES['saved-filter'](filter);
+  });
+
+  $('#saved-filters').html(filterHTML.join(''));
+}
+
+function saveCookies() {
+  /*
+   * Save current view, selected filters, queues, etc.
+   */
+  var selectedQueues = [];
+  _.each(STATE.queuemap, function(queue) {
+    if (queue.selected) {
+      selectedQueues.push(queue.id);
+    }
+  });
+
+  var selectedFilters = [];
+  _.each(STATE.filtermap, function(filter) {
+    if (filter.selected) {
+      selectedFilters.push(filter.name);
+    }
+  });
+
+  var view = {
+    selectedQueues: selectedQueues,
+    selectedFilters: selectedFilters,
+    searchString: STATE.searchString
+  };
+
+  $.cookie(COOKIES.view, JSON.stringify(view));
+}
+
+function loadCookies() {
+  var view = $.cookie(COOKIES.view);
+  try {
+    if (view) {
+      view = JSON.parse(view);
+      _.each(view.selectedQueues, function(queueId) {
+        var queue = STATE.queuemap[queueId];
+        if (queue) {
+          queue.selected = true;
+        }
+      });
+
+      _.each(view.selectedFilters, function(filterName) {
+        var filter = STATE.filtermap[filterName];
+        if (filter) {
+          filter.selected = true;
+        }
+      });
+
+      if (view.searchString) {
+        STATE.searchString = view.searchString;
+        $('#filter-tasks').val(view.searchString);
+      }
+    }
+  } catch(err) {
+    // Remove invalid cookies
+    $.removeCookie(COOKIES.view);
+  }
 }
