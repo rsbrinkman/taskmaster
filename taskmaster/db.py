@@ -11,6 +11,17 @@ def test():
     db.delete('test_key')
     return result
 
+def execute_multi(func):
+    with db.pipeline() as pipe:
+        try:
+            pipe.multi()
+            func(pipe)
+            return pipe.execute()
+        except:
+            if settings.DEBUG:
+                raise
+        finally:
+            pipe.reset()
 
 def get_user_preferences(username):
     '''
@@ -25,6 +36,38 @@ def get_user_preferences(username):
             }
         ]
     }
+
+def get_saved_filters(username):
+    filter_names = db.smembers('user-filters>%s' % username)
+
+    def m(p):
+        for filter_name in filter_names:
+            p.hgetall('user-filters>%s>%s' % (username, filter_name))
+
+    filters = execute_multi(m)
+
+    return dict(zip(filter_names, filters))
+
+def create_filter(username, filter_name, filter_rule):
+    obj = {
+        'name': filter_name,
+        'rule': filter_rule,
+    }
+
+    def m(p):
+        p.hmset('user-filters>%s>%s' % (username, filter_name), obj)
+        p.sadd('user-filters>%s' % username, filter_name)
+
+    execute_multi(m)
+
+    return obj
+
+def delete_filter(username, filter_name):
+    def m(p):
+        p.delete('user-filters>%s>%s' % (username, filter_name))
+        p.srem('user-filters>%s' % username, filter_name)
+
+    execute_multi(m)
 
 def get_task(taskname):
     return db.hgetall('task>%s' % taskname)
@@ -61,15 +104,6 @@ def get_org_tasks(orgname):
 def remove_org_task(orgname, task):
     db.zrem('org-tasks2>%s' % orgname, task)
 
-def get_assigned_tasks(username):
-    return db.smembers('assigned>%s' % username)
-
-def assign_task(username, task_id):
-    db.sadd('assigned>%s' % username, task_id)
-
-def remove_assigned_task(username, task_id):
-    db.srem('assigned>%s' % username, task_id)
-
 def get_tasks_from_tag(tagname):
     return db.smembers('tag-tasks>%s>' % tagname)
 
@@ -87,14 +121,6 @@ def move_task(taskname, from_queuename=None, to_queuename=None):
         add_task_to_queue(taskname, to_queuename)
     elif not to_queuename:
         remove_from_queue(taskname, from_queuename)
-
-def change_assignee(task_id, current_assignee=None, new_assignee=None):
-    if current_assignee and new_assignee:
-        db.smove('assigned>%s' % current_assignee, 'assigned>%s' % new_assignee, task_id)
-    elif not current_assignee:
-        assign_task(new_assignee, task_id)
-    elif not new_assignee:
-        remove_assigned_task(current_assignee, task_id)
 
 def set_tags(task_id, updated_tags):
     task = get_task(task_id)
@@ -155,8 +181,6 @@ def create_task(task, orgname):
             task['tags'] = ''
             pipe.hmset('task>%s' % task_id, task)
             pipe.zadd('org-tasks2>%s' % orgname,  _default_score(), task_id)
-            if task['assignee']:
-                pipe.sadd('assigned>%s' % task['assignee'], task_id)
             if task['queue']:
                 add_task_to_queue(task_id, task['queue'])
             pipe.execute()
@@ -179,7 +203,6 @@ def update_task(task_id, update_field, update_value):
         db.hset('task>%s' % task_id, 'queue', update_value)
     elif update_field == 'assignee':
         current_assignee = db.hget('task>%s' % task_id, 'assignee')
-        change_assignee(task_id, current_assignee, update_value)
         db.hset('task>%s' % task_id, 'assignee', update_value)
 
 def delete_task(task_id, orgname):
@@ -190,8 +213,6 @@ def delete_task(task_id, orgname):
             pipe.multi()
             pipe.delete('task>%s' % task_id)
             pipe.zrem('org-tasks2>%s' % orgname, task_id)
-            if task['assignee']:
-                pipe.srem('assigned>%s' % task['assignee'], task_id)
             pipe.execute()
         except:
             if settings.DEBUG:
