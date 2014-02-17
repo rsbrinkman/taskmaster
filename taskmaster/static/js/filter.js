@@ -1,13 +1,14 @@
-
 var FilterTasks = (function() {
-  var whitespace = new RegExp(/\s+/);
+  // Allows tokens with spaces to be surrounded by " "
+  // http://stackoverflow.com/questions/16261635/javascript-split-string-by-space-but-ignore-space-in-quotes-notice-not-to-spli
+  var spaces = new RegExp(/(?:[^\s"]+|"[^"]*")+/g);
+  var quotes = new RegExp(/"/g);
   var nonWordChars = new RegExp(/[^\w']+/);
   var taskTokens = {};
   var fieldsToFilterOn = ['name', 'tags'];
 
   function buildTokenSets(tasks) {
     _.each(tasks, function(task) {
-      
       // Collect tokens
       var tokens = [];
       _.each(fieldsToFilterOn, function(field) {
@@ -51,7 +52,9 @@ var FilterTasks = (function() {
         return
       }
 
-      _.each(rule.trim().toLowerCase().split(whitespace), function(t) {
+      var tokens = rule.trim().toLowerCase().match(spaces);
+      _.each(tokens, function(t) {
+        t = t.replace(quotes, '');
         var colonOperator = t.indexOf(':');
 
         if (colonOperator < 0) {
@@ -64,6 +67,8 @@ var FilterTasks = (function() {
           // TODO validate 'key' for now assume it is an attribute on
           // task that can be compared to the value directly
           var matchTest = function(task) {
+            var taskValue = task[key].trim().toLowerCase();
+
             return _.some(value.split(','), function(v) {
               v = v.trim().toLowerCase();
               if (!v.length) {
@@ -71,9 +76,9 @@ var FilterTasks = (function() {
               }
 
               if (v[0] === '!') {
-                return task[key] !== v.substr(1);
+                return taskValue !== v.substr(1);
               } else {
-                return task[key] === v;
+                return taskValue === v;
               }
             });
           };

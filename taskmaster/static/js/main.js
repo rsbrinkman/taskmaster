@@ -1,6 +1,8 @@
 var TEMPLATES = {}
-var WHITESPACE = new RegExp(/\s+/);
 var styleRules;
+var COOKIES = {
+  view: 'view'
+}
 
 $(function() {
   loadTemplates()
@@ -8,7 +10,7 @@ $(function() {
   // Used for quick filtering, need to call everytime we add/remove tokens to a task
   FilterTasks.buildTokenSets(STATE.taskmap);
 
-  // TODO load these from cookie
+  // Initialize these so the underscore template doesn't complain
   _.each(STATE.queuemap, function(queue) {
     queue.selected = false;
   });
@@ -25,6 +27,7 @@ $(function() {
     }
   });
 
+  loadCookies();
   renderView();
   setEventHandlers();
 });
@@ -460,6 +463,8 @@ function renderView() {
     },
     hoverClass: 'drop-hover'
   });
+
+  saveCookies();
 }
 
 function renderQueueTasks(queueId) {
@@ -511,8 +516,67 @@ function renderSavedFilters() {
   filter_names.sort();
 
   var filterHTML =_.map(filter_names, function(name) {
-    return TEMPLATES['saved-filter'](STATE.filtermap[name]);
+    var filter = _.clone(STATE.filtermap[name]);
+    filter.rule = filter.rule.replace(/"/g, '&quot;');
+    return TEMPLATES['saved-filter'](filter);
   });
 
   $('#saved-filters').html(filterHTML.join(''));
+}
+
+function saveCookies() {
+  /*
+   * Save current view, selected filters, queues, etc.
+   */
+  var selectedQueues = [];
+  _.each(STATE.queuemap, function(queue) {
+    if (queue.selected) {
+      selectedQueues.push(queue.id);
+    }
+  });
+
+  var selectedFilters = [];
+  _.each(STATE.filtermap, function(filter) {
+    if (filter.selected) {
+      selectedFilters.push(filter.name);
+    }
+  });
+
+  var view = {
+    selectedQueues: selectedQueues,
+    selectedFilters: selectedFilters,
+    searchString: STATE.searchString
+  };
+
+  $.cookie(COOKIES.view, JSON.stringify(view));
+}
+
+function loadCookies() {
+  var view = $.cookie(COOKIES.view);
+  try {
+    if (view) {
+      view = JSON.parse(view);
+      _.each(view.selectedQueues, function(queueId) {
+        var queue = STATE.queuemap[queueId];
+        if (queue) {
+          queue.selected = true;
+        }
+      });
+
+      _.each(view.selectedFilters, function(filterName) {
+        var filter = STATE.filtermap[filterName];
+        if (filter) {
+          filter.selected = true;
+        }
+      });
+
+      if (view.searchString) {
+        STATE.searchString = view.searchString;
+        $('#filter-tasks').val(view.searchString);
+      }
+    }
+  } catch(err) {
+    // Remove invalid cookies
+    $.removeCookie(COOKIES.view);
+  }
 }
