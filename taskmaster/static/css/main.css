@@ -94,3 +94,18 @@ table.drop-hover {
 #save-filter-name {
     width: 150px;
 }
+
+.create-form-header {
+    position: relative;
+}
+
+.create-form-header h3 {
+    display: inline-block;
+}
+
+.create-form-header .create-task-close {
+    position: absolute;
+    right: 0px;
+    top: 10px;
+    cursor: pointer;
+}
