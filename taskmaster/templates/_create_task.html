@@ -1,6 +1,10 @@
 <script data-template-name="create-task" type="underscore">
 <div class="create-form-container <% if (!visible) { %> hidden <% } %>">
-    <h3>Create a task</h3>
+
+    <div class="create-form-header">
+      <h3>Create a task</h3>
+      <a class="create-task-close">[X]</a>
+    </div>
     <form role="form" name="create" method="POST">
         <div class="form-group">
             <label for="task-name">Task Name</label>
