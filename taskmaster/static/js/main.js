@@ -86,7 +86,23 @@ function setEventHandlers() {
     var taskId = $(this).data('task-id');
     putTaskInQueue(taskId, queue);
   });
+  
+  $('#org-dropdown').change(function() {
+    org = $(this).val();
+    console.log(org);
+    STATE.org = org
+    $.ajax({
+      url: '/',
+      type: 'GET',
+      data: {
+        org: org
+      }
+    });
 
+    console.log(STATE.org);
+    renderView();
+  });
+  
   $('.container').on('change', '.task-assignee', function(e) {
     var assignee = $(this).val();
     var taskId = $(this).data('task-id');
@@ -311,6 +327,7 @@ function renderView() {
   /*
    * Render HTML from the state and put on the DOM
    */
+  $('#org-selector').html(TEMPLATES['org-selector'](STATE.orgs));
   var selectedQueues = _.filter(STATE.queues, function(queueId) {
     return STATE.queuemap[queueId].selected;
   });
@@ -402,7 +419,6 @@ function renderView() {
       }
     });
   });
-
   $('#task-view tbody').sortable({
     items: '.task-row',
     cursorAt: { left: 5, top: 5 },

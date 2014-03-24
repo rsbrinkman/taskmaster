@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block js %}
+  {{ super() }}
+  <script src="static/js/admin.js"></script>
+{% endblock %}
+
+
+{% block body %}
+    <h4>Welcome to Taskmaster</h4>    
+    <label for="org">Email</label>
+    <input type="text" name="email" id ="email">
+    <label for="org">Name</label>
+    <input type="text" name="name" id="name">
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password" disabled>
+    <button class="btn" id="create-user">Get Some</button>
+
+{% endblock %}

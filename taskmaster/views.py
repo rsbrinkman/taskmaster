@@ -1,11 +1,15 @@
 import json
-
+import ast
 from taskmaster import app, db
 from flask import render_template, request, Response
+from flask.ext.login import LoginManager
 from datetime import datetime
+# Login Stuff
+login_manager = LoginManager()
+login_manager.init_app(app)
 
 #TODO: Create login interface.
-org = 'Taskmaster'
+#org = 'Taskmaster'
 default_user = 'Joe'
 
 users = [
@@ -13,7 +17,7 @@ users = [
     'Jon Munz',
 ]
 
-def _task_state():
+def _task_state(org=None):
     '''
     Returns a JSON representation of the user's current tasks and queues, used to
     render the client-side DOM.
@@ -36,6 +40,17 @@ def _task_state():
         'tags': [ 'tag1', 'tag2', ... ]
     }
     '''
+    # Get the current user
+    user = request.args.get('user','')
+
+    # Get the user's orgs
+    orgs = ast.literal_eval(db.get_user_orgs(user))
+
+    # Get a chosen or default org
+    if not org:
+        # this is dumb, but easy until we build a 'primary' org concept
+        org = orgs[0]
+
     # Get set of assigned tasks
     org_tasks = list(db.get_org_tasks(org))
 
@@ -66,6 +81,8 @@ def _task_state():
 
     filters = db.get_saved_filters(default_user)
 
+    users = db.get_org_users(org)
+
     return {
         'tasks': org_tasks,
         'queues': queues,
@@ -75,15 +92,74 @@ def _task_state():
         'users': users,
         'preferences': preferences,
         'filtermap': filters,
+        'user' : user,
+        'orgs': orgs,
+        'org': org
     }
+@login_manager.user_loader
+def load_user(userid):
+    return db.get_user(userid)
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        # login and validate the user...
+        login_user(user)
+        flash("Logged in successfully.")
+        return redirect(request.args.get("next") or url_for("index"))
+    return render_template("login.html", form=form)
 
 @app.route('/')
 def index():
     return render_template('index.html', state=json.dumps(_task_state()))
 
+
 @app.route('/test_db/')
 def test_db():
     return db.test()
+
+@app.route('/admin')
+def admin():
+    user = db.get_user(request.args.get('user', ''))
+
+    return render_template('admin.html', user=user)
+
+@app.route('/signup')
+def signup():
+    return render_template('sign_up.html')
+
+@app.route('/user', methods=['POST'])
+def create_user():
+    if request.method == 'POST':
+        email = request.form['email']
+        name = request.form['name']
+        db.create_user(email, name)
+
+    return Response(status=200)
+
+@app.route('/org/<orgname>', methods=['POST'])
+def create_org(orgname):
+    if request.method == 'POST':
+        users = request.form['users']
+        db.create_org(orgname, admins=users)
+
+    return Response(status=200)
+
+@app.route('/org/<orgname>/user/<username>', methods=['POST'])
+def add_user_to_org(orgname, username):
+    if request.method == 'POST':
+        db.add_user_to_org(orgname, username)
+
+    return Response(status=200)
+
+@app.route('/orgs/<orgname>', methods=['POST'])
+def search_org(orgname):
+    if request.method == 'POST':
+        org = db.get_org(orgname)
+    return Response(json.dumps(org), content_type='application/json')
+
+
 
 @app.route('/create_task_form', methods=['GET'])
 def show_task_form():

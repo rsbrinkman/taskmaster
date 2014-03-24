@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block js %}
+  {{ super() }}
+  <script src="static/js/admin.js"></script>
+{% endblock %}
+
+
+{% block body %}
+<div class="content">    
+    <label for="org-search">Search Organizations</label>
+    <input type="text" name="org-search" id ="org-search">
+    <button class="btn" id="search">Search Orgs</button>
+    <div class="search-results">
+
+    </div>
+    
+    <h4>My Organizations</h4>    
+    {{user}}     
+    <h4>Add User to Org</h4>
+    <label for="org">organization</label>
+    <input type="text" name="org" id ="org">
+    <label for="user">User</label>
+    <input type="text" name="user" id="user">
+    <button class="btn" id="add-user">Add</button>
+
+    <h4>Create an Organization</h4>
+    <label for="org-name">Organization</label>
+    <input type="text" name="org-name" id ="org-name">
+    <label for="users">Users</label>
+    <input type="text" name="users" id="users">
+    <button class="btn" id="create-org">Create</button>
+    <h4>My Information</h4>    
+</div>
+{% endblock %}
