@@ -1,4 +1,5 @@
 import uuid
+import json
 import redis
 import datetime, time
 from taskmaster import settings
@@ -171,53 +172,51 @@ def get_used_tags():
     return db.smembers('used-tags')
 
 def get_user(username):
-    return db.hgetall('user>%s' % username)
+    user = db.hgetall('user>%s' % username)
+    orgs = get_user_orgs(username)
+    user['orgs'] = get_user_orgs(username)
+    return user
 
 def create_org(orgname, followers=None, admins=None):
     users = {}
     if admins:
-        users['admins'] = admins
-        db.hmset('org>%s' % orgname, users)
+        db.sadd('org>%s' % orgname, admins)
+        #users['admins'] = admins
+        #db.hmset('org>%s' % orgname, users)
 
 def get_org(orgname):
-
-    org = {}
-    if db.hgetall('org>%s' % orgname):
-        org[orgname] = db.hgetall('org>%s' % orgname)
-        return org
+    org = db.smembers(orgname)
+    if org:
+        return orgname
     else:
         return None
-
 def add_user_to_org(orgname, user, level='admin'):
     if level == 'admin':
-        admins = db.hget('org>%s' % orgname, 'admins')
-        admins = admins.split(',')
-        user = str(user)
-        admins.append(user)
-    db.hset('org>%s' % orgname, 'admins', admins)
+        db.sadd('org>%s' % orgname, user)
+
     # Also update user object
-    orgs = db.hget('user>%s' % user, 'orgs')
-    orgs = orgs.split(',')
-    orgs.append(orgname)
-    db.hset('user>%s' % user, 'orgs', orgs)
+    db.sadd('user>orgs>%s' % user, orgname)
 
 def get_org_users(orgname, level='admin'):
     if level == 'admin':
 
-        return db.hget('org>%s' % orgname, 'admins')
+        return db.smembers('org>%s' % orgname)
 
 def get_user_orgs(user, level='admin'):
     if level == 'admin':
-        orgs = db.hget('user>%s' % user, 'orgs')
-        if not orgs:
-            orgs = '[]'
-        return orgs
+
+        return db.smembers('user>orgs>%s' % user)
 
 def create_user(username, name, orgs=None):
     user = {}
     user['name'] = name
     user['password'] = ''
-    user['orgs'] = orgs
+    """
+    if orgs:
+        user['orgs'] = orgs
+        db.hmset('user>%s' % username, user)
+    else:
+    """
     db.hmset('user>%s' % username, user)
 
 def create_task(task, orgname):

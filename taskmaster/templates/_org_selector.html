@@ -1,7 +1,8 @@
 <script data-template-name="org-selector" type="underscore">
-<select id="org-dropdown" class="form-control">
-    <% _.each(STATE.orgs, function(org) { %>
-        <option name="<%= org %>" value="<%= org %>"><%= org %></option>
-    <% });  %>
-</select>
+    <label for="org-dropdown">Organization</label>
+    <select id="org-dropdown" class="form-control">
+        <% _.each(STATE.orgs, function(org) { %>
+            <option <% if (STATE.org===org) { %>selected<% } %> name="<%= org %>" value="<%= org %>"><%= org %></option>
+        <% });  %>
+    </select>
 </script>

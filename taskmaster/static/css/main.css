@@ -109,3 +109,9 @@ table.drop-hover {
     top: 10px;
     cursor: pointer;
 }
+#org-selector {
+    float: right;
+    margin-right: 20px;
+    margin-top: 10px;
+    min-width: 80px;
+}

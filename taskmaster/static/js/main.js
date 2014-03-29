@@ -1,7 +1,8 @@
 var TEMPLATES = {}
 var styleRules;
 var COOKIES = {
-  view: 'view'
+  view: 'view',
+  org: 'org'
 }
 
 $(function() {
@@ -87,20 +88,21 @@ function setEventHandlers() {
     putTaskInQueue(taskId, queue);
   });
   
-  $('#org-dropdown').change(function() {
+  $('body').on('change', '#org-dropdown', function(e) {
     org = $(this).val();
-    console.log(org);
     STATE.org = org
+    $.cookie(COOKIES.org, org);
+    $(this).attr('selected', true);
     $.ajax({
-      url: '/',
-      type: 'GET',
+      url: '/render',
+      type: 'POST',
       data: {
-        org: org
+        org: org,
+      },
+      success: function() {
+        window.location.reload()
       }
     });
-
-    console.log(STATE.org);
-    renderView();
   });
   
   $('.container').on('change', '.task-assignee', function(e) {
@@ -327,7 +329,7 @@ function renderView() {
   /*
    * Render HTML from the state and put on the DOM
    */
-  $('#org-selector').html(TEMPLATES['org-selector'](STATE.orgs));
+  $('#org-selector').html(TEMPLATES['org-selector'](STATE.orgs, STATE.org));
   var selectedQueues = _.filter(STATE.queues, function(queueId) {
     return STATE.queuemap[queueId].selected;
   });

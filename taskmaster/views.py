@@ -4,6 +4,7 @@ from taskmaster import app, db
 from flask import render_template, request, Response
 from flask.ext.login import LoginManager
 from datetime import datetime
+from functools import wraps
 # Login Stuff
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -44,13 +45,12 @@ def _task_state(org=None):
     user = request.args.get('user','')
 
     # Get the user's orgs
-    orgs = ast.literal_eval(db.get_user_orgs(user))
+    orgs = list(db.get_user_orgs(user))
 
     # Get a chosen or default org
     if not org:
         # this is dumb, but easy until we build a 'primary' org concept
         org = orgs[0]
-
     # Get set of assigned tasks
     org_tasks = list(db.get_org_tasks(org))
 
@@ -81,7 +81,7 @@ def _task_state(org=None):
 
     filters = db.get_saved_filters(default_user)
 
-    users = db.get_org_users(org)
+    users = list(db.get_org_users(org))
 
     return {
         'tasks': org_tasks,
@@ -96,24 +96,37 @@ def _task_state(org=None):
         'orgs': orgs,
         'org': org
     }
-@login_manager.user_loader
-def load_user(userid):
-    return db.get_user(userid)
 
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    form = LoginForm()
-    if form.validate_on_submit():
-        # login and validate the user...
-        login_user(user)
-        flash("Logged in successfully.")
-        return redirect(request.args.get("next") or url_for("index"))
-    return render_template("login.html", form=form)
+def get_user_info(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        org = request.cookies.get('org')
+        print org
+        return org
+    return decorated_function
 
-@app.route('/')
-def index():
-    return render_template('index.html', state=json.dumps(_task_state()))
+def get_org():
+    org = request.cookies.get('org')
+    if org:
+        return org
 
+@app.route('/', methods=['GET', 'POST'])
+def index(org=None):
+
+    org = request.cookies.get('org')
+    if org:
+        return render_template('index.html', state=json.dumps(_task_state(org)))
+
+    else:
+        orgs = list(db.get_user_orgs(request.args.get('user', '')))
+        return render_template('index.html', state=json.dumps(_task_state(orgs[0])))
+
+@app.route('/render', methods=['GET', 'POST'])
+def render():
+    if request.method == 'POST':
+        org = request.form['org']
+        print org
+        return index(org)
 
 @app.route('/test_db/')
 def test_db():
@@ -181,6 +194,8 @@ def create_task():
             #TODO: This is a good opportunity to link to a task.
             task['queue'] = ''
         task['queue'] = request.form['task-queue']
+        # Grab the org from the cookie
+        org = request.cookies.get('org')
         task = db.create_task(task, org)
 
     return Response(json.dumps(task), content_type='application/json')
@@ -192,6 +207,7 @@ def show_queue_form():
 
 @app.route('/queue/<name>', methods=['POST'])
 def create_queue(name):
+    org = get_org()
     db.create_queue(name, org)
 
     #TODO unified way to get json from queue, duplicated in _get_state
