@@ -181,8 +181,6 @@ def create_org(orgname, followers=None, admins=None):
     users = {}
     if admins:
         db.sadd('org>%s' % orgname, admins)
-        #users['admins'] = admins
-        #db.hmset('org>%s' % orgname, users)
 
 def get_org(orgname):
     org = db.smembers(orgname)
