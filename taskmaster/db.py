@@ -174,16 +174,16 @@ def get_used_tags():
 def get_user(username):
     user = db.hgetall('user>%s' % username)
     orgs = get_user_orgs(username)
-    user['orgs'] = get_user_orgs(username)
+    user['orgs'] = list(get_user_orgs(username))
     return user
 
 def create_org(orgname, followers=None, admins=None):
-    users = {}
     if admins:
+        print admins
         db.sadd('org>%s' % orgname, admins)
 
 def get_org(orgname):
-    org = db.smembers(orgname)
+    org = db.smembers('org>%s' % orgname)
     if org:
         return orgname
     else:
@@ -209,12 +209,7 @@ def create_user(username, name, orgs=None):
     user = {}
     user['name'] = name
     user['password'] = ''
-    """
-    if orgs:
-        user['orgs'] = orgs
-        db.hmset('user>%s' % username, user)
-    else:
-    """
+    user['username'] = username
     db.hmset('user>%s' % username, user)
 
 def create_task(task, orgname):

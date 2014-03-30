@@ -1,12 +1,13 @@
   $('#create-org').click(function () {
     var org = $('#org-name').val();
     var users = $('#users').val();
-    console.log(org);
-    console.log(users);
     $.ajax({
       type: 'POST',
       url: '/org/' + org,
       data:{ 'users': users },
+      success: function() {
+        $('.org-creation-results').append(org + ' created!');
+      }
     });
   });
   $('#create-user').click(function () {
@@ -30,6 +31,11 @@
     $.ajax({
       type: 'POST',
       url: '/org/' + org + '/user/' + email,
+      success: function() {
+        $('.user-org-results').empty()
+        $('.user-org-results').append(email + ' added to ' + org + ' successfully!');
+        $('.my-org-list').append('<li>' + org + '</li>');
+      }
     });
   });
   $('#search').click(function () {
@@ -40,12 +46,11 @@
       success: function(data) {
         // display the results
         if (!data) {
+            $('.search-results').empty()
             $('.search-results').append('No Search results found');
         }
         else {
-          $.map(data, function(k, v) {
-            $('.search-results').append(v);
-          });
+            $('.search-results').append(data);
         }
 
       }

@@ -6,7 +6,7 @@
 
 
 {% block body %}
-<div class="content">    
+<div class="container">    
     <label for="org-search">Search Organizations</label>
     <input type="text" name="org-search" id ="org-search">
     <button class="btn" id="search">Search Orgs</button>
@@ -15,13 +15,19 @@
     </div>
     
     <h4>My Organizations</h4>    
-    {{user}}     
+    <p>
+    <ul class="my-org-list">
+    {% for org in user.orgs %}
+        <li>{{org}}</li>
+    {% endfor %}
+    </ul></p>
     <h4>Add User to Org</h4>
-    <label for="org">organization</label>
+    <label for="org">Organization</label>
     <input type="text" name="org" id ="org">
     <label for="user">User</label>
     <input type="text" name="user" id="user">
     <button class="btn" id="add-user">Add</button>
+    <div class="user-org-results"></div>
 
     <h4>Create an Organization</h4>
     <label for="org-name">Organization</label>
@@ -29,6 +35,13 @@
     <label for="users">Users</label>
     <input type="text" name="users" id="users">
     <button class="btn" id="create-org">Create</button>
-    <h4>My Information</h4>    
+    <div class="org-creation-results"></div>
+    <h4>My Information</h4>
+    <p>
+    <h5>Username</h5>
+    <p>{{user.username}}</p>
+    <h5>Name</h5>
+    <p>{{user.name}}</p>
+    </p>
 </div>
 {% endblock %}

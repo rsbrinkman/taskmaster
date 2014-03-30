@@ -101,7 +101,7 @@ def get_user_info(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         org = request.cookies.get('org')
-        print org
+
         return org
     return decorated_function
 
@@ -125,7 +125,7 @@ def index(org=None):
 def render():
     if request.method == 'POST':
         org = request.form['org']
-        print org
+
         return index(org)
 
 @app.route('/test_db/')
