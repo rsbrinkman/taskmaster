@@ -17,9 +17,14 @@
     <h4>My Organizations</h4>    
     <p>
     <ul class="my-org-list">
-    {% for org in user.orgs %}
-        <li>{{org}}</li>
-    {% endfor %}
+    {% if user.orgs %}
+        {% for org in user.orgs %}
+            <li>{{org}}</li>
+        {% endfor %}
+    {% else %}
+        <p>Join an Organization below!</p>
+    {% endif %}
+    
     </ul></p>
     <h4>Add User to Org</h4>
     <label for="org">Organization</label>
@@ -37,11 +42,16 @@
     <button class="btn" id="create-org">Create</button>
     <div class="org-creation-results"></div>
     <h4>My Information</h4>
-    <p>
-    <h5>Username</h5>
-    <p>{{user.username}}</p>
-    <h5>Name</h5>
-    <p>{{user.name}}</p>
-    </p>
+    <div class="row">
+      <div class="col-md-2">
+        <p>Username</p>
+        <p>{{user.username}}</p>
+      </div>
+      <div class="col-md-8">
+        <p>Name</p>
+        <p>{{user.name}}</p>
+      </div>
+    </div>
+    <a class="btn btn-success" href="/" rel="keep-params">Get Started</a>
 </div>
 {% endblock %}

@@ -167,7 +167,16 @@ function setEventHandlers() {
       renderView();
     }
   });
+  $("a[rel~='keep-params']").click(function(e) {
+    e.preventDefault();
 
+    var params = window.location.search,
+        dest = $(this).attr('href') + params;
+
+    window.setTimeout(function() {
+        window.location.href = dest;
+    }, 100);
+  });
   $('#queue-list').sortable({
     stop: function(e, ui) {
       var queues = $(this).sortable('toArray', {attribute: 'data-queue-id'});
@@ -598,3 +607,4 @@ function loadCookies() {
     $.removeCookie(COOKIES.view);
   }
 }
+

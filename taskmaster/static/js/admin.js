@@ -6,7 +6,9 @@
       url: '/org/' + org,
       data:{ 'users': users },
       success: function() {
+        $('.org-creation-results').empty()
         $('.org-creation-results').append(org + ' created!');
+        $('.my-org-list').append('<li>' + org + '</li>');
       }
     });
   });
@@ -50,9 +52,20 @@
             $('.search-results').append('No Search results found');
         }
         else {
+            $('.search-results').empty()
             $('.search-results').append(data);
         }
 
       }
     });
+  });
+  $("a[rel~='keep-params']").click(function(e) {
+    e.preventDefault();
+
+    var params = window.location.search,
+        dest = $(this).attr('href') + params;
+
+    window.setTimeout(function() {
+        window.location.href = dest;
+    }, 100);
   });

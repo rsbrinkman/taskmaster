@@ -179,8 +179,8 @@ def get_user(username):
 
 def create_org(orgname, followers=None, admins=None):
     if admins:
-        print admins
         db.sadd('org>%s' % orgname, admins)
+        db.sadd('user>orgs>%s' % admins, orgname)
 
 def get_org(orgname):
     org = db.smembers('org>%s' % orgname)

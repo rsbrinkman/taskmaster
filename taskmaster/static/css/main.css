@@ -114,6 +114,7 @@ table.drop-hover {
     margin-right: 20px;
     margin-top: 10px;
     min-width: 80px;
+    text-align: center;
 }
 .sign-up {
     text-align: center;
@@ -125,4 +126,8 @@ table.drop-hover {
 }
 .center-align {
     text-align: center;
+}
+.admin-page {
+    float: right;
+    margin-right: 10px;
 }
