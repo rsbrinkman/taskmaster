@@ -121,13 +121,6 @@ def index(org=None):
         orgs = list(db.get_user_orgs(request.args.get('user', '')))
         return render_template('index.html', state=json.dumps(_task_state(orgs[0])))
 
-@app.route('/render', methods=['GET', 'POST'])
-def render():
-    if request.method == 'POST':
-        org = request.form['org']
-
-        return index(org)
-
 @app.route('/test_db/')
 def test_db():
     return db.test()

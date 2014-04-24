@@ -93,16 +93,7 @@ function setEventHandlers() {
     STATE.org = org
     $.cookie(COOKIES.org, org);
     $(this).attr('selected', true);
-    $.ajax({
-      url: '/render',
-      type: 'POST',
-      data: {
-        org: org,
-      },
-      success: function() {
-        window.location.reload()
-      }
-    });
+    location.reload();
   });
   
   $('.container').on('change', '.task-assignee', function(e) {
