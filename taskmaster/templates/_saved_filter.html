@@ -1,0 +1,6 @@
+<script data-template-name="saved-filter" type="underscore">
+  <div  title="<%= rule %>">
+  <input type="checkbox" <% if (selected) { %> checked <% } %> data-name="<%= name %>"><%= name %></input>
+  <button class="remove-filter" data-name="<%= name %>">x</button>
+  </div>
+</script>

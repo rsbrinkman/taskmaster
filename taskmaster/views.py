@@ -1,19 +1,24 @@
 import json
-
+import ast
 from taskmaster import app, db
-from flask import render_template, request, Response
+from flask import render_template, request, Response, g
+from flask.ext.login import LoginManager
 from datetime import datetime
+from functools import wraps
+# Login Stuff
+login_manager = LoginManager()
+login_manager.init_app(app)
 
 #TODO: Create login interface.
-org = 'Taskmaster'
-default_user='Joe'
+#org = 'Taskmaster'
+default_user = 'Joe'
 
 users = [
     'Scott Brinkman',
     'Jon Munz',
 ]
 
-def _task_state():
+def _task_state(org=None):
     '''
     Returns a JSON representation of the user's current tasks and queues, used to
     render the client-side DOM.
@@ -36,9 +41,15 @@ def _task_state():
         'tags': [ 'tag1', 'tag2', ... ]
     }
     '''
+    # Get the user's orgs
+    orgs = list(db.get_user_orgs(g.user))
+
+    # Get a chosen or default org
+    if not org:
+        # this is dumb, but easy until we build a 'primary' org concept
+        org = orgs[0]
     # Get set of assigned tasks
     org_tasks = list(db.get_org_tasks(org))
-    #TODO sort the list of tasks
 
     # Iterate over assigned tasks and build tasks object
     taskmap = {}
@@ -57,15 +68,17 @@ def _task_state():
     for queue in queue_tasks:
         queuemap[queue[0]] = {
             'id': queue[0],
-            'tasks': queue[1],
-            'selected': False, #TODO, remember what the user had last
+            'tasks': queue[1]
         }
     queues = [queue[0] for queue in queue_tasks]
-    # TODO sort the list of queues
 
     tags = list(db.get_used_tags())
 
     preferences = db.get_user_preferences(default_user)
+
+    filters = db.get_saved_filters(default_user)
+
+    users = list(db.get_org_users(org))
 
     return {
         'tasks': org_tasks,
@@ -75,15 +88,72 @@ def _task_state():
         'queuemap': queuemap,
         'users': users,
         'preferences': preferences,
+        'filtermap': filters,
+        'user' : g.user,
+        'orgs': orgs,
+        'org': org
     }
 
-@app.route('/')
+@app.before_request
+def get_user_info():
+    g.org = request.cookies.get('org')
+    g.user = request.cookies.get('user')
+
+
+
+@app.route('/', methods=['GET'])
 def index():
-    return render_template('index.html', state=json.dumps(_task_state()))
+    if g.org:
+        return render_template('index.html', state=json.dumps(_task_state(g.org)))
+
+    else:
+        orgs = list(db.get_user_orgs(g.user))
+        return render_template('index.html', state=json.dumps(_task_state(orgs[0])))
 
 @app.route('/test_db/')
 def test_db():
     return db.test()
+
+@app.route('/admin')
+def admin():
+
+    return render_template('admin.html', user=g.user)
+
+@app.route('/signup')
+def signup():
+    return render_template('sign_up.html')
+
+@app.route('/user', methods=['POST'])
+def create_user():
+    if request.method == 'POST':
+        email = request.form['email']
+        name = request.form['name']
+        db.create_user(email, name)
+
+    return Response(status=200)
+
+@app.route('/org/<orgname>', methods=['POST'])
+def create_org(orgname):
+    if request.method == 'POST':
+        users = request.form['users']
+        db.create_org(orgname, admins=users)
+
+    return Response(status=200)
+
+@app.route('/org/<orgname>/user/<username>', methods=['POST'])
+def add_user_to_org(orgname, username):
+    if request.method == 'POST':
+        db.add_user_to_org(orgname, username)
+
+    return Response(status=200)
+
+@app.route('/orgs/<orgname>', methods=['POST'])
+def search_org(orgname):
+    if request.method == 'POST':
+        org = db.get_org(orgname)
+    return Response(json.dumps(org), content_type='application/json')
+
+
 
 @app.route('/create_task_form', methods=['GET'])
 def show_task_form():
@@ -105,7 +175,8 @@ def create_task():
             #TODO: This is a good opportunity to link to a task.
             task['queue'] = ''
         task['queue'] = request.form['task-queue']
-        task = db.create_task(task, org)
+        # Grab the org from the cookie
+        task = db.create_task(task, g.org)
 
     return Response(json.dumps(task), content_type='application/json')
 
@@ -116,7 +187,7 @@ def show_queue_form():
 
 @app.route('/queue/<name>', methods=['POST'])
 def create_queue(name):
-    db.create_queue(name, org)
+    db.create_queue(name, g.org)
 
     #TODO unified way to get json from queue, duplicated in _get_state
     queue_obj = {
@@ -138,6 +209,16 @@ def task_tags(task_id):
     db.set_tags(task_id, json.loads(request.form['tags']))
 
     return Response(status=200)
+
+@app.route('/filter/<filtername>/', methods=['POST', 'DELETE'])
+def manage_user_filter(filtername, username=default_user):
+    if request.method == 'POST':
+        rule = request.form['rule']
+        obj = db.create_filter(username, filtername, rule)
+        return Response(json.dumps(obj), content_type='application/json')
+    elif request.method == 'DELETE':
+        db.delete_filter(username, filtername)
+        return Response(status=200)
 
 @app.route('/order/queue/', methods=['PUT'])
 def update_queue_order():
