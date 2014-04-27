@@ -1,7 +1,7 @@
 import json
 import ast
 from taskmaster import app, db
-from flask import render_template, request, Response
+from flask import render_template, request, Response, g
 from flask.ext.login import LoginManager
 from datetime import datetime
 from functools import wraps
@@ -97,28 +97,20 @@ def _task_state(org=None):
         'org': org
     }
 
-def get_user_info(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        org = request.cookies.get('org')
+@app.before_request
+def get_user_info():
+    g.org = request.cookies.get('org')
+    g.user = request.args.get('user','')
 
-        return org
-    return decorated_function
 
-def get_org():
-    org = request.cookies.get('org')
-    if org:
-        return org
 
-@app.route('/', methods=['GET', 'POST'])
-def index(org=None):
-
-    org = request.cookies.get('org')
-    if org:
-        return render_template('index.html', state=json.dumps(_task_state(org)))
+@app.route('/', methods=['GET'])
+def index():
+    if g.org:
+        return render_template('index.html', state=json.dumps(_task_state(g.org)))
 
     else:
-        orgs = list(db.get_user_orgs(request.args.get('user', '')))
+        orgs = list(db.get_user_orgs(g.user))
         return render_template('index.html', state=json.dumps(_task_state(orgs[0])))
 
 @app.route('/test_db/')
@@ -200,8 +192,7 @@ def show_queue_form():
 
 @app.route('/queue/<name>', methods=['POST'])
 def create_queue(name):
-    org = get_org()
-    db.create_queue(name, org)
+    db.create_queue(name, g.org)
 
     #TODO unified way to get json from queue, duplicated in _get_state
     queue_obj = {

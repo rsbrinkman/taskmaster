@@ -173,17 +173,18 @@ def get_used_tags():
 
 def get_user(username):
     user = db.hgetall('user>%s' % username)
-    orgs = get_user_orgs(username)
     user['orgs'] = list(get_user_orgs(username))
+
     return user
 
-def create_org(orgname, followers=None, admins=None):
-    if admins:
-        db.sadd('org>%s' % orgname, admins)
-        db.sadd('user>orgs>%s' % admins, orgname)
+def create_org(orgname, followers=None, admin=None):
+    if admin:
+        db.sadd('org>%s' % orgname, admin)
+        db.sadd('user>orgs>%s' % admin, orgname)
 
 def get_org(orgname):
     org = db.smembers('org>%s' % orgname)
+    print org
     if org:
         return orgname
     else:

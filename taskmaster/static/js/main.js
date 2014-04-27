@@ -90,9 +90,7 @@ function setEventHandlers() {
   
   $('body').on('change', '#org-dropdown', function(e) {
     org = $(this).val();
-    STATE.org = org
     $.cookie(COOKIES.org, org);
-    $(this).attr('selected', true);
     location.reload();
   });
   
