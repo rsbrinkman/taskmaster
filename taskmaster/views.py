@@ -41,10 +41,6 @@ def _task_state(org=None):
         'tags': [ 'tag1', 'tag2', ... ]
     }
     '''
-    # Get the current user
-    #user = request.args.get('user','')
-    print g.user
-
     # Get the user's orgs
     orgs = list(db.get_user_orgs(g.user))
 
