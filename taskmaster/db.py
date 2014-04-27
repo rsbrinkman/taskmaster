@@ -1,4 +1,5 @@
 import uuid
+import json
 import redis
 import datetime, time
 from taskmaster import settings
@@ -170,6 +171,47 @@ def set_tags(task_id, updated_tags):
 def get_used_tags():
     return db.smembers('used-tags')
 
+def get_user(username):
+    user = db.hgetall('user>%s' % username)
+    user['orgs'] = list(get_user_orgs(username))
+
+    return user
+
+def create_org(orgname, followers=None, admin=None):
+    if admin:
+        db.sadd('org>%s' % orgname, admin)
+        db.sadd('user>orgs>%s' % admin, orgname)
+
+def get_org(search_string):
+    org = db.smembers('org>%s' % search_string)
+    if org:
+        return search_string
+    else:
+        return None
+def add_user_to_org(orgname, user, level='admin'):
+    if level == 'admin':
+        db.sadd('org>%s' % orgname, user)
+
+    # Also update user object
+    db.sadd('user>orgs>%s' % user, orgname)
+
+def get_org_users(orgname, level='admin'):
+    if level == 'admin':
+
+        return db.smembers('org>%s' % orgname)
+
+def get_user_orgs(user, level='admin'):
+    if level == 'admin':
+
+        return db.smembers('user>orgs>%s' % user)
+
+def create_user(username, name, orgs=None):
+    user = {}
+    user['name'] = name
+    user['password'] = ''
+    user['username'] = username
+    db.hmset('user>%s' % username, user)
+
 def create_task(task, orgname):
     # Create the hashmap task object
     task_id = uuid.uuid4().hex
@@ -225,6 +267,8 @@ def create_queue(name, orgname):
 
 def delete_queue(name, orgname):
     db.zrem('org-queues2>%s' % orgname, name)
+
+
 
 def _default_score():
     # Use current epoch time as the score for the sorted set,

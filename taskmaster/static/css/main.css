@@ -109,3 +109,25 @@ table.drop-hover {
     top: 10px;
     cursor: pointer;
 }
+#org-selector {
+    float: right;
+    margin-right: 20px;
+    margin-top: 10px;
+    min-width: 80px;
+    text-align: center;
+}
+.sign-up {
+    text-align: center;
+    width: 30%;
+    margin: 0 auto;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #888888;
+}
+.center-align {
+    text-align: center;
+}
+.admin-page {
+    float: right;
+    margin-right: 10px;
+}

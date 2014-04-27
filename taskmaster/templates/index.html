@@ -11,7 +11,8 @@
 
 
 {% block header_row %}
-<h1></h1>
+<div class="admin-page"><a href="/admin" rel="keep-params">Admin</a></div>
+<div id="org-selector"></div>
 <div class="header-filter-container">
     <input type="text" placeholder="filter w/ key:value" id="filter-tasks"></input>
     <button id="filter-tasks-go">Go</button>
@@ -24,6 +25,7 @@
         <button id="save-filter">Save</button>
     </div>
 </div>
+                
 {% endblock %}
 
 {% block body %}
@@ -34,6 +36,7 @@
 {% include '_task_details.html' %}
 {% include '_create_task.html' %}
 {% include '_saved_filter.html' %}
+{% include '_org_selector.html' %}
 
 <div class="container">
   <div class="row">
