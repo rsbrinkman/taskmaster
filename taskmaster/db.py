@@ -182,11 +182,10 @@ def create_org(orgname, followers=None, admin=None):
         db.sadd('org>%s' % orgname, admin)
         db.sadd('user>orgs>%s' % admin, orgname)
 
-def get_org(orgname):
-    org = db.smembers('org>%s' % orgname)
-    print org
+def get_org(search_string):
+    org = db.smembers('org>%s' % search_string)
     if org:
-        return orgname
+        return search_string
     else:
         return None
 def add_user_to_org(orgname, user, level='admin'):

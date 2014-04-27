@@ -24,6 +24,7 @@
       },
       success: function() {
         window.location = "/admin?user=" + email;
+        $.cookie('user', email);
         }
     });
   });

@@ -42,10 +42,11 @@ def _task_state(org=None):
     }
     '''
     # Get the current user
-    user = request.args.get('user','')
+    #user = request.args.get('user','')
+    print g.user
 
     # Get the user's orgs
-    orgs = list(db.get_user_orgs(user))
+    orgs = list(db.get_user_orgs(g.user))
 
     # Get a chosen or default org
     if not org:
@@ -92,7 +93,7 @@ def _task_state(org=None):
         'users': users,
         'preferences': preferences,
         'filtermap': filters,
-        'user' : user,
+        'user' : g.user,
         'orgs': orgs,
         'org': org
     }
@@ -100,7 +101,7 @@ def _task_state(org=None):
 @app.before_request
 def get_user_info():
     g.org = request.cookies.get('org')
-    g.user = request.args.get('user','')
+    g.user = request.cookies.get('user')
 
 
 
@@ -119,9 +120,8 @@ def test_db():
 
 @app.route('/admin')
 def admin():
-    user = db.get_user(request.args.get('user', ''))
 
-    return render_template('admin.html', user=user)
+    return render_template('admin.html', user=g.user)
 
 @app.route('/signup')
 def signup():
@@ -180,8 +180,7 @@ def create_task():
             task['queue'] = ''
         task['queue'] = request.form['task-queue']
         # Grab the org from the cookie
-        org = request.cookies.get('org')
-        task = db.create_task(task, org)
+        task = db.create_task(task, g.org)
 
     return Response(json.dumps(task), content_type='application/json')
 
