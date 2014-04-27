@@ -136,7 +136,7 @@ def create_user():
 def create_org(orgname):
     if request.method == 'POST':
         users = request.form['users']
-        db.create_org(orgname, admins=users)
+        db.create_org(orgname, admin=users)
 
     return Response(status=200)
 
