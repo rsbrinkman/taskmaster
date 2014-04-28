@@ -31,15 +31,7 @@
   $('#add-user').click(function () {
     var email = $('#user').val();
     var org = $('#org').val();
-    $.ajax({
-      type: 'POST',
-      url: '/org/' + org + '/user/' + email,
-      success: function() {
-        $('.user-org-results').empty()
-        $('.user-org-results').append(email + ' added to ' + org + ' successfully!');
-        $('.my-org-list').append('<li>' + org + '</li>');
-      }
-    });
+    addUserToOrg(email, org);
   });
   $('#search').click(function () {
     var org = $('#org-search').val();
@@ -54,10 +46,34 @@
         }
         else {
             $('.search-results').empty()
-            $('.search-results').append(data);
+            $('.search-results').append(data + "<button data-org=" + data + " class='btn btn-sm join-org'>Join</button>");
         }
 
       }
     });
   });
+  $('.task-home').click(function () {
+    selectedOrg = $('.org-list').val();
+    $.cookie('org', selectedOrg);
+    window.location.href = '/';
+  });
+  $('.container').on('click', '.join-org', function() {
+    email = $.cookie('user');
+    org = $(this).data('org');
+    addUserToOrg(email, org);
+  });
+  function addUserToOrg(email, org) {
+    $.ajax({
+      type: 'POST',
+      url: '/org/' + org + '/user/' + email,
+      success: function() {
+        $('.user-org-results').empty()
+        $('.user-org-results').append(email + ' added to ' + org + ' successfully!');
+        $('.no-org').empty()
+        $('.my-org-list').append('<li>' + org + '</li>');
+        $('.org-list').append('<option name=' + org + '>' + org + '</option>');
+        $('.task-home').removeAttr('disabled');
+      }
+    });
+  };
 

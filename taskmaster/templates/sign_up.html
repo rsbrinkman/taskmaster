@@ -7,7 +7,12 @@
 
 {% block body %}
     <div class="container">
-    <h3 class="center-align">Welcome to Taskmaster</h3>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="message">{{messages|first}}</div>
+        {% endif %}
+    {% endwith %}
+  <h3 class="center-align">Welcome to Taskmaster</h3>
         <div class="sign-up">
             <div class="form-group">
                 <label for="email">Email</label>

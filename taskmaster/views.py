@@ -1,7 +1,7 @@
 import json
 import ast
 from taskmaster import app, db
-from flask import render_template, request, Response, g
+from flask import render_template, request, Response, g, redirect, url_for, flash
 from flask.ext.login import LoginManager
 from datetime import datetime
 from functools import wraps
@@ -103,12 +103,17 @@ def get_user_info():
 
 @app.route('/', methods=['GET'])
 def index():
-    if g.org:
+    if g.org and g.user:
         return render_template('index.html', state=json.dumps(_task_state(g.org)))
-
+    elif not g.user:
+        flash('Please sign up and select an org')
+        return redirect(url_for('signup'))
+    elif not g.org:
+        flash('Please select an org')
+        return redirect(url_for('admin'))
     else:
-        orgs = list(db.get_user_orgs(g.user))
-        return render_template('index.html', state=json.dumps(_task_state(orgs[0])))
+        flash('You should not be able to get here')
+        return redirect(url_for('signup'))
 
 @app.route('/test_db/')
 def test_db():
@@ -116,8 +121,8 @@ def test_db():
 
 @app.route('/admin')
 def admin():
-
-    return render_template('admin.html', user=g.user)
+    user = db.get_user(g.user)
+    return render_template('admin.html', user=user)
 
 @app.route('/signup')
 def signup():
@@ -201,7 +206,7 @@ def create_queue(name):
 @app.route('/task/<task_id>', methods=['DELETE'])
 def task_update(task_id):
     if request.method == 'DELETE':
-        db.delete_task(task_id, org)
+        db.delete_task(task_id, g.org)
         return Response(status=200)
 
 @app.route('/task/<task_id>/tags/', methods=['POST'])
@@ -222,19 +227,19 @@ def manage_user_filter(filtername, username=default_user):
 
 @app.route('/order/queue/', methods=['PUT'])
 def update_queue_order():
-    db.update_queue_order(org, json.loads(request.form['updates']))
+    db.update_queue_order(g.org, json.loads(request.form['updates']))
     return Response(status=200)
 
 @app.route('/order/task/', methods=['PUT'])
 @app.route('/order/task/<queue_name>', methods=['PUT'])
 def update_task_order(queue_name=''):
-    db.update_task_order(org, json.loads(request.form['updates']), queue_name=queue_name)
+    db.update_task_order(g.org, json.loads(request.form['updates']), queue_name=queue_name)
     return Response(status=200)
 
 @app.route('/queue/<queue_name>', methods=['DELETE'])
 def update_queue(queue_name):
     if request.method == 'DELETE':
-        db.delete_queue(queue_name, org)
+        db.delete_queue(queue_name, g.org)
         return Response(status=200)
 
 @app.route('/task/<task_id>/update/<update_field>/', methods=['POST'])
