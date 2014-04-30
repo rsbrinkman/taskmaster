@@ -217,6 +217,7 @@ function saveFilter() {
     }
 
     $('#save-filter-name, #filter-tasks').val('');
+    STATE.searchString = '';
     compileFilters();
     renderView();
   }
