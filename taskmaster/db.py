@@ -3,8 +3,12 @@ import json
 import redis
 import datetime, time
 from taskmaster import settings
+from passlib.apps import custom_app_context
 
 db = redis.StrictRedis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
+
+
+class UserConflict(Exception): pass
 
 def test():
     db.set('test_key', 'test_successful')
@@ -205,12 +209,23 @@ def get_user_orgs(user, level='admin'):
 
         return db.smembers('user>orgs>%s' % user)
 
-def create_user(username, name, orgs=None):
-    user = {}
-    user['name'] = name
-    user['password'] = ''
-    user['username'] = username
-    db.hmset('user>%s' % username, user)
+def create_user(username, name, password):
+    key = 'user>%s' % username
+
+    if db.exists(key):
+        raise UserConflict
+
+    user = {
+        'name': name,
+        'username': username,
+        'password_hash': custom_app_context.encrypt(password)
+    }
+
+    db.hmset(key, user)
+
+def login_user(username, password):
+    #TODO
+    custom_app_context.verify(password, password_hash)
 
 def create_task(task, orgname):
     # Create the hashmap task object
@@ -267,8 +282,6 @@ def create_queue(name, orgname):
 
 def delete_queue(name, orgname):
     db.zrem('org-queues2>%s' % orgname, name)
-
-
 
 def _default_score():
     # Use current epoch time as the score for the sorted set,

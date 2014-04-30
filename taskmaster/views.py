@@ -18,6 +18,28 @@ users = [
     'Jon Munz',
 ]
 
+def require_user(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if g.user:
+            return f(*args, **kwargs)
+        else:
+            flash('Please login and select an org')
+            return redirect(url_for('signup'))
+
+    return decorated_function
+
+def require_org(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if g.org:
+            return f(*args, **kwargs)
+        else:
+            flash('Please select an org')
+            return redirect(url_for('admin'))
+
+    return decorated_function
+
 def _task_state(org=None):
     '''
     Returns a JSON representation of the user's current tasks and queues, used to
@@ -100,26 +122,18 @@ def get_user_info():
     g.user = request.cookies.get('user')
 
 
-
 @app.route('/', methods=['GET'])
+@require_user
+@require_org
 def index():
-    if g.org and g.user:
-        return render_template('index.html', state=json.dumps(_task_state(g.org)))
-    elif not g.user:
-        flash('Please sign up and select an org')
-        return redirect(url_for('signup'))
-    elif not g.org:
-        flash('Please select an org')
-        return redirect(url_for('admin'))
-    else:
-        flash('You should not be able to get here')
-        return redirect(url_for('signup'))
+    return render_template('index.html', state=json.dumps(_task_state(g.org)))
 
 @app.route('/test_db/')
 def test_db():
     return db.test()
 
 @app.route('/admin')
+@require_user
 def admin():
     user = db.get_user(g.user)
     return render_template('admin.html', user=user)
@@ -130,12 +144,19 @@ def signup():
 
 @app.route('/user', methods=['POST'])
 def create_user():
-    if request.method == 'POST':
-        email = request.form['email']
-        name = request.form['name']
-        db.create_user(email, name)
+    email = request.form['email']
+    name = request.form['name']
+    password = request.form['password']
 
-    return Response(status=200)
+    try:
+        db.create_user(email, name, password)
+        return Response(status=201)
+    except db.UserConflict:
+        return Response("Email address already in use", status=409)
+
+@app.route('/authenticate', methods=['POST'])
+def authenticate():
+    return Response('Email address and password do not match any user', status=400)
 
 @app.route('/org/<orgname>', methods=['POST'])
 def create_org(orgname):
