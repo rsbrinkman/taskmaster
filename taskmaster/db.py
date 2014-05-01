@@ -223,9 +223,30 @@ def create_user(username, name, password):
 
     db.hmset(key, user)
 
+    return _generate_token(username)
+
 def login_user(username, password):
-    #TODO
-    custom_app_context.verify(password, password_hash)
+    password_hash = db.hget("user>%s" % username, 'password_hash')
+
+    if custom_app_context.verify(password, password_hash):
+        return _generate_token(username)
+
+def _generate_token(username):
+    # TODO to do this properly we'll need to
+    #   1. set a timeout on the auth token
+    #   2. probably reset the timeout every verification
+    #   3. do everything over https
+    auth_token = uuid.uuid4().hex
+    db.hset("user>%s" % username, 'token', auth_token)
+
+    return auth_token
+
+def logout_user(username):
+    db.hdel("user>%s" % username, 'token')
+
+def verify_token(username, provided_token):
+    stored_token = db.hget("user>%s" % username, 'token')
+    return stored_token and stored_token == provided_token
 
 def create_task(task, orgname):
     # Create the hashmap task object

@@ -40,8 +40,9 @@
           'name': name,
           'password': password
         },
-        success: function(data) {
+        success: function(token) {
           $.cookie('user', email);
+          $.cookie('token', token);
           window.location = "/admin";
         },
         error: function(jqXHR, textStatus, errorThrown) {
@@ -66,9 +67,10 @@
         'email': email,
         'password': password
       },
-      success: function(data) {
+      success: function(token) {
+        $.cookie('token', token);
         $.cookie('user', email);
-        window.location = "/admin";
+        window.location = "/";
       },
       error: function(jqXHR, textStatus, errorThrown) {
         $error.text(jqXHR.responseText);
