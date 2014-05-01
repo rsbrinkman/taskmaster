@@ -195,6 +195,16 @@ function setEventHandlers() {
     STATE.filtermap[name].selected = selected;
     renderView();
   });
+
+
+  $('#logout').on('click', function() {
+    $.ajax({
+      url: '/logout',
+      type: 'POST'
+    });
+
+    window.location = "/signup";
+  });
 }
 
 function saveFilter() {
@@ -217,6 +227,7 @@ function saveFilter() {
     }
 
     $('#save-filter-name, #filter-tasks').val('');
+    STATE.searchString = '';
     compileFilters();
     renderView();
   }
