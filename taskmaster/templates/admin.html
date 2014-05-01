@@ -7,6 +7,11 @@
 
 {% block body %}
 <div class="container">    
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="message">{{messages|first}}</div>
+        {% endif %}
+    {% endwith %}
     <label for="org-search">Search Organizations</label>
     <input type="text" name="org-search" id ="org-search">
     <button class="btn" id="search">Search Orgs</button>
@@ -20,7 +25,7 @@
             <li>{{org}}</li>
         {% endfor %}
     {% else %}
-        <p>Join an Organization below!</p>
+        <p class="no-org">Join an Organization below!</p>
     {% endif %}
     
     </ul></p>
@@ -42,10 +47,25 @@
     <h4>My Information</h4>
     <div class="row">
       <div class="col-md-2">
-        <p>Username</p>
-        <p>{{user}}</p>
+        <p><u>Username</u></p>
+        <p>{{user.username}}</p>
       </div>
+      <div class="col-md-2">
+        <p><u>Name</u></p>
+        <p>{{user.name}}</p>
     </div>
-    <a class="btn btn-success" href="/">Get Started</a>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-2">
+            <select class="form-control org-list">
+                {% for org in user.orgs %}
+                    <option name="{{org}}">{{org}}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button class="btn btn-success task-home" {% if not user.orgs %}disabled{% endif %}>Get Started</button>
+        </div>
 </div>
 {% endblock %}

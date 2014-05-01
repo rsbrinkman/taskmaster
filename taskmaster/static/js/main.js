@@ -352,7 +352,7 @@ function renderView() {
         "bPaginate": false,
         "bLengthChange": false,
         "bFilter": false,
-        "bSort": false,
+        "bSort": true,
         "bInfo": false,
         "bAutoWidth": false 
   });
