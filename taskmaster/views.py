@@ -108,12 +108,9 @@ def index():
     elif not g.user:
         flash('Please sign up and select an org')
         return redirect(url_for('signup'))
-    elif not g.org:
+    else:
         flash('Please select an org')
         return redirect(url_for('admin'))
-    else:
-        flash('You should not be able to get here')
-        return redirect(url_for('signup'))
 
 @app.route('/test_db/')
 def test_db():
