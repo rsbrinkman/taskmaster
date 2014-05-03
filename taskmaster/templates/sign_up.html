@@ -13,22 +13,54 @@
         {% endif %}
     {% endwith %}
   <h3 class="center-align">Welcome to Taskmaster</h3>
-        <div class="sign-up">
+    <div class="authenticate">
+        <form id="sign-up-form" class="left">
+            <h5 class="form-group">
+                Register for a new account
+            </h5>
             <div class="form-group">
                 <label for="email">Email</label>
-                <input class="form-control" type="email" name="email" id="email" placeholder="Email" required>
+                <input class="form-control" type="email" name="email" placeholder="Email" required>
             </div>
             <div class="form-group">
                 <label for="name">Name</label>
-                <input class="form-control" type="text" name="name" id="name">
+                <input class="form-control" required type="text" name="name">
             </div>
             <div class="form-group">
                 <label for="password">Password</label>
-                <input class="form-control" type="password" name="password" id="password" disabled>
+                <input class="form-control" required type="password" name="password">
             </div>
             <div class="form-group">
-                <button class="btn" id="create-user">Get Some</button>
+                <label for="password-confirm">Confirm Password</label>
+                <input class="form-control" required type="password" name="password-confirm">
+
             </div>
-        </div>
+            <div class="form-group">
+                <button type="submit" class="btn">Sign Up</button>
+            </div>
+            <div class="error label label-danger"></div>
+        </form>
+
+        <form id="login-form" class="right">
+            <h5 class="form-group">
+                Login to an existing account
+            </h5>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input class="form-control" type="email" name="email" placeholder="Email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input class="form-control" required type="password" name="password">
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn">Login</button>
+            </div>
+            <div class="error label label-danger"></div>
+        </form>
+
+        <div class="clear"/>
+    </div>
+
     </div>
 {% endblock %}

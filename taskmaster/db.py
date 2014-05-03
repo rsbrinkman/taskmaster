@@ -3,8 +3,12 @@ import json
 import redis
 import datetime, time
 from taskmaster import settings
+from passlib.apps import custom_app_context
 
 db = redis.StrictRedis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
+
+
+class UserConflict(Exception): pass
 
 def test():
     db.set('test_key', 'test_successful')
@@ -205,12 +209,44 @@ def get_user_orgs(user, level='admin'):
 
         return db.smembers('user>orgs>%s' % user)
 
-def create_user(username, name, orgs=None):
-    user = {}
-    user['name'] = name
-    user['password'] = ''
-    user['username'] = username
-    db.hmset('user>%s' % username, user)
+def create_user(username, name, password):
+    key = 'user>%s' % username
+
+    if db.exists(key):
+        raise UserConflict
+
+    user = {
+        'name': name,
+        'username': username,
+        'password_hash': custom_app_context.encrypt(password)
+    }
+
+    db.hmset(key, user)
+
+    return _generate_token(username)
+
+def login_user(username, password):
+    password_hash = db.hget("user>%s" % username, 'password_hash')
+
+    if custom_app_context.verify(password, password_hash):
+        return _generate_token(username)
+
+def _generate_token(username):
+    # TODO to do this properly we'll need to
+    #   1. set a timeout on the auth token
+    #   2. probably reset the timeout every verification
+    #   3. do everything over https
+    auth_token = uuid.uuid4().hex
+    db.hset("user>%s" % username, 'token', auth_token)
+
+    return auth_token
+
+def logout_user(username):
+    db.hdel("user>%s" % username, 'token')
+
+def verify_token(username, provided_token):
+    stored_token = db.hget("user>%s" % username, 'token')
+    return stored_token and stored_token == provided_token
 
 def create_task(task, orgname):
     # Create the hashmap task object
@@ -267,8 +303,6 @@ def create_queue(name, orgname):
 
 def delete_queue(name, orgname):
     db.zrem('org-queues2>%s' % orgname, name)
-
-
 
 def _default_score():
     # Use current epoch time as the score for the sorted set,
