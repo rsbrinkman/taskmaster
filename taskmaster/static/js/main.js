@@ -281,8 +281,8 @@ function removeTask(id) {
 function addTask(task) {
   STATE.tasks.push(task.id);
   STATE.taskmap[task.id] = task;
-  if (task.queue) {
-    putTaskInQueue(task.id, task.queue);
+  if (task.queue && STATE.queuemap[task.queue]) {
+    STATE.queuemap[task.queue].tasks.push(task.id);
   }
   FilterTasks.buildTokenSets(STATE.taskmap);
   renderView();
