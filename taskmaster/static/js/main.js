@@ -343,7 +343,7 @@ function putTaskInQueue(taskId, queueName) {
 
   $.ajax({
     url: '/task/' + taskId  + '/update/' + 'queue/' + queueName,
-    type: 'POST',
+    type: 'POST'
   });
 }
 
