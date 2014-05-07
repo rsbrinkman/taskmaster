@@ -166,6 +166,12 @@ def logout():
     db.logout_user(g.user)
     return Response(status=200)
 
+@app.route('/user/<username>/<update_field>/<update_value>', methods=['POST'])
+def update_user(username, update_field, update_value):
+    db.update_user(username, update_field, update_value)
+
+    return Response(status=200)
+
 @app.route('/org/<orgname>', methods=['POST'])
 def create_org(orgname):
     if request.method == 'POST':
@@ -262,6 +268,7 @@ def update_queue_order():
 @app.route('/order/task/', methods=['PUT'])
 @app.route('/order/task/<queue_name>', methods=['PUT'])
 def update_task_order(queue_name=''):
+    print 'got here'
     db.update_task_order(g.org, json.loads(request.form['updates']), queue_name=queue_name)
     return Response(status=200)
 

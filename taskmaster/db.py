@@ -84,6 +84,7 @@ def update_task_order(orgname, updates, queue_name=''):
     if queue_name:
         db.zadd('queue-tasks2>%s' % queue_name, *updates)
     else:
+        print updates
         db.zadd('org-tasks2>%s' % orgname, *updates)
 
 def get_org_queues(orgname):
@@ -282,6 +283,12 @@ def update_task(task_id, update_field, update_value):
     elif update_field == 'assignee':
         current_assignee = db.hget('task>%s' % task_id, 'assignee')
         db.hset('task>%s' % task_id, 'assignee', update_value)
+    elif update_field == 'name':
+        db.hset('task>%s' % task_id, 'name', update_value)
+
+def update_user(username, update_field, update_value):
+    if update_field == 'name':
+        db.hset('user>%s' % username, 'name', update_value)
 
 def delete_task(task_id, orgname):
     set_tags(task_id, [])
