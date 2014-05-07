@@ -90,15 +90,10 @@ function setEventHandlers() {
     });
   $('.container').on('change', '.edit-box', function(e) {
     var $this = $(this);
-    console.log($this);
     var taskId = $(this).parent('tr').attr('id');
-    console.log(taskId);
     $.ajax({
       url: '/task/' + taskId  + '/update/' + 'name/' + $this.val(),
-      type: 'POST',
-      success: function() {
-        console.log('success'); 
-      }
+      type: 'POST'
     });
   });
   $('.container').on('click', '.queue-row', function(e) {
@@ -272,8 +267,6 @@ function reorderList(sortedList, prevList, url) {
         updates.push(itemName);
       }
     });
-    console.log('reordering');
-    console.log(JSON.stringify(updates));
     $.ajax({
       type: 'PUT',
       url: url,
@@ -438,7 +431,8 @@ function renderView() {
         "bPaginate": false,
         "bLengthChange": false,
         "bFilter": false,
-        "bSort": false,
+        "bSort": true,
+        "aaSorting": [],
         "bInfo": false,
         "bAutoWidth": false 
   });

@@ -268,7 +268,6 @@ def update_queue_order():
 @app.route('/order/task/', methods=['PUT'])
 @app.route('/order/task/<queue_name>', methods=['PUT'])
 def update_task_order(queue_name=''):
-    print 'got here'
     db.update_task_order(g.org, json.loads(request.form['updates']), queue_name=queue_name)
     return Response(status=200)
 
