@@ -371,11 +371,10 @@ function renderView() {
     if ($(ev.target).is('select') ) {
       return false
     }
-    var tasksTable = $('.tasks-table').dataTable();
-    if (tasksTable.fnIsOpen(this)) {  
+    var tasksTable = $(ev.target).parents('.tasks-table').dataTable();
+    if (tasksTable.fnIsOpen(this)) {
       tasksTable.fnClose( this );
-    }    
-    else {  
+    } else {
       var taskId = $(this).attr('id');
       tasksTable.fnOpen( this, TEMPLATES['task-details']({task: STATE.taskmap[taskId]}), 'task-details');  
     }
