@@ -228,7 +228,7 @@ def create_user(username, name, password):
 def login_user(username, password):
     password_hash = db.hget("user>%s" % username, 'password_hash')
 
-    if custom_app_context.verify(password, password_hash):
+    if password_hash and custom_app_context.verify(password, password_hash):
         return _generate_token(username)
 
 def _generate_token(username):
