@@ -83,6 +83,19 @@
     var org = $('#org').val();
     addUserToOrg(email, org);
   });
+  $('.name').blur(function() {
+    var $this = $(this);
+    var name = $this.html();
+    var username = $('.username').html()
+
+    $.ajax({
+      type: 'POST',
+      url: '/user/' + username +'/name/' + name,
+      success: function() {
+        $('.updates').append('Updated!');  
+      }
+    });
+  });
   $('#search').click(function () {
     var org = $('#org-search').val();
     $.ajax({

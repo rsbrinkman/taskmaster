@@ -282,6 +282,12 @@ def update_task(task_id, update_field, update_value):
     elif update_field == 'assignee':
         current_assignee = db.hget('task>%s' % task_id, 'assignee')
         db.hset('task>%s' % task_id, 'assignee', update_value)
+    elif update_field == 'name':
+        db.hset('task>%s' % task_id, 'name', update_value)
+
+def update_user(username, update_field, update_value):
+    if update_field == 'name':
+        db.hset('user>%s' % username, 'name', update_value)
 
 def delete_task(task_id, orgname):
     set_tags(task_id, [])

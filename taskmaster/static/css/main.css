@@ -189,3 +189,10 @@ table.drop-hover {
 .join-org {
     margin-left: 25px;
 }
+.sorting, .sorting_asc, .sorting_desc {
+    cursor: pointer;
+}
+.edit-box {
+    height: 20px;
+    margin-top: 8px;
+}

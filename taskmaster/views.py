@@ -170,6 +170,12 @@ def logout():
     db.logout_user(g.user)
     return Response(status=200)
 
+@app.route('/user/<username>/<update_field>/<update_value>', methods=['POST'])
+def update_user(username, update_field, update_value):
+    db.update_user(username, update_field, update_value)
+
+    return Response(status=200)
+
 @app.route('/org/<orgname>', methods=['POST'])
 def create_org(orgname):
     if request.method == 'POST':
