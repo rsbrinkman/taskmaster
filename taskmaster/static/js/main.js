@@ -384,6 +384,7 @@ function renderView() {
       return $('td:eq('+iColumn+') select', tr).val();
     } );
   }
+  // TODO: Figure out what a better date sorting option, potentially moment.js
   var customDateDDMMMYYYYToOrd = function (date) {
       "use strict"; //let's avoid tom-foolery in this function
       // Convert to a number YYYYMMDD which we can use to order
