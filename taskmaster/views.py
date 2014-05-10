@@ -237,7 +237,7 @@ def create_queue(name):
     return Response(json.dumps(queue_obj), content_type='application/json')
 
 @app.route('/task/<task_id>', methods=['DELETE'])
-def task_update(task_id):
+def delete_task(task_id):
     if request.method == 'DELETE':
         db.delete_task(task_id, g.org)
         return Response(status=200)
@@ -270,10 +270,15 @@ def update_task_order(queue_name=''):
     return Response(status=200)
 
 @app.route('/queue/<queue_name>', methods=['DELETE'])
-def update_queue(queue_name):
+def delete_queue(queue_name):
     if request.method == 'DELETE':
         db.delete_queue(queue_name, g.org)
         return Response(status=200)
+
+@app.route('/queue/<queue_name>/update/<update_field>/<update_value>', methods=['POST'])
+def update_queue(queue_name, update_field, update_value):
+    db.update_queue(queue_name, update_field, update_value)
+    return Response(status=200)
 
 @app.route('/task/<task_id>/update/<update_field>/', methods=['POST'])
 @app.route('/task/<task_id>/update/<update_field>/<update_value>', methods=['POST'])

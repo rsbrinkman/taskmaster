@@ -63,7 +63,8 @@ function setEventHandlers() {
 
   $('.container').on('click', '.delete-queue', function() {
     var $this = $(this);
-    var id = $(this).data('queue-id');
+    var id = $(this).parents('.queue-row').data('queue-id');
+
     $.ajax({
       url: '/queue/' + id,
       type: 'DELETE',
@@ -73,10 +74,42 @@ function setEventHandlers() {
     });
   });
 
+  $('.container').on('click', '.rename-queue', function() {
+    var $this = $(this);
+    var name = $(this).parents('.queue-row').find('.display-name').text();
+
+    $(this).parents('.queue-row')
+      .addClass('editing')
+      .find('.edit-name').val(name).focus();
+  });
+
+  var onEditQueue = function(e) {
+    var $this = $(this);
+    var $row = $this.parents('.queue-row');
+
+    $row.removeClass('editing');
+
+    var newName = $this.val();
+    var oldName = $row.find('.display-name').text();
+
+    if(newName && oldName !== newName) {
+      $row.find('.display-name').text(newName);
+      renameQueue($row.data('queue-id'), newName);
+    }
+  };
+
+  $('.container').on('keyup', '.edit-name', function(e) {
+    if (e.which === 13) {
+      onEditQueue.call(this, e);
+    }
+  });
+
+  $('.container').on('blur', '.edit-name', onEditQueue);
+
   $('.container').on('click', '.queue-row', function(e) {
-    if(e.target === this) {
+    if($(e.target).hasClass('view-queue')) {
       var $this = $(this);
-      var id = $this.find('a').data('queue-id');
+      var id = $this.data('queue-id');
       STATE.queuemap[id].selected = !STATE.queuemap[id].selected;
       renderView();
     }
@@ -205,6 +238,10 @@ function setEventHandlers() {
 
     window.location = "/signup";
   });
+}
+
+function renameQueue() {
+  console.log('need to rename');
 }
 
 function saveFilter() {
