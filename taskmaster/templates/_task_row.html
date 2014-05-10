@@ -7,7 +7,7 @@
         <option name="done" value="done" <% if (status==='done') { %>selected<% } %>>Done</option>
       </select>
     </td>
-    <td><%= name %></td>
+    <td  class="edit task-name"><%= name %></td>
     <td>
        <select class="form-control task-assignee input-sm" data-task-id=<%= id %>>
          <option name='no-user'></option>

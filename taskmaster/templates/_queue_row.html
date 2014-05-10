@@ -1,3 +1,15 @@
 <script data-template-name="queue-row" type="underscore">
-<li data-queue-id="<%= id %>" class="queue-row <% if (selected) { %>selected<% } %>"><a href="#" class="delete-queue" data-queue-id="<%= id %>"><img src="/static/images/remove-icon-sm.png" height="24px"/></span></a> <%= id %></li>
+<li data-queue-id="<%= id %>" class="queue-row <% if (selected) { %>selected<% } %>">
+  <div class="dropdown view-queue">
+      <span class="edit-queue glyphicon glyphicon-pencil" id="<%= id %>-queue-drop" data-toggle="dropdown"></span>
+
+      <span class="display-name view-queue"><%= id %></span>
+      <input class="edit-name">
+
+    <ul class="dropdown-menu" role="menu" aria-labelledby="<%= id %>-queue-drop">
+      <li role="presentation"><a class="rename-queue" role="menuitem" tabindex="-1" href="#">Rename</a></li>
+      <li role="presentation"><a class="delete-queue" role="menuitem" tabindex="-1" href="#">Delete</a></li>
+    </ul>
+  </div>
+</li>
 </script>

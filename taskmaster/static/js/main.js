@@ -63,7 +63,8 @@ function setEventHandlers() {
 
   $('.container').on('click', '.delete-queue', function() {
     var $this = $(this);
-    var id = $(this).data('queue-id');
+    var id = $(this).parents('.queue-row').data('queue-id');
+
     $.ajax({
       url: '/queue/' + id,
       type: 'DELETE',
@@ -72,11 +73,67 @@ function setEventHandlers() {
       }
     });
   });
+  function editableTextBlurred() {
+      var html = $(this).val();
+      var viewableText = $("<td class='edit task-name'>");
+      viewableText.html(html);
+      $(this).replaceWith(viewableText);
+  };
+  $('.container').on('dblclick', '.edit', function (e) {
+    var $this = $(this);
+    var nameHtml = $(this).html();
+    var editableText = $("<input type='text' class='form-control edit-box input-sm'/>");
+    editableText.val(nameHtml);
+    $this.replaceWith(editableText);
+    editableText.focus();
+    // setup the blur event for this new textarea
+    editableText.blur(editableTextBlurred);
+    });
+  $('.container').on('change', '.edit-box', function(e) {
+    var $this = $(this);
+    var taskId = $(this).parent('tr').attr('id');
+    $.ajax({
+      url: '/task/' + taskId  + '/update/' + 'name/' + $this.val(),
+      type: 'POST'
+    });
+  });
+
+  $('.container').on('click', '.rename-queue', function() {
+    var $this = $(this);
+    var name = $(this).parents('.queue-row').find('.display-name').text();
+
+    $(this).parents('.queue-row')
+      .addClass('editing')
+      .find('.edit-name').val(name).focus();
+  });
+
+  var onEditQueue = function(e) {
+    var $this = $(this);
+    var $row = $this.parents('.queue-row');
+
+    $row.removeClass('editing');
+
+    var newName = $this.val();
+    var oldName = $row.find('.display-name').text();
+
+    if(newName && oldName !== newName) {
+      $row.find('.display-name').text(newName);
+      renameQueue($row.data('queue-id'), newName);
+    }
+  };
+
+  $('.container').on('keyup', '.edit-name', function(e) {
+    if (e.which === 13) {
+      onEditQueue.call(this, e);
+    }
+  });
+
+  $('.container').on('blur', '.edit-name', onEditQueue);
 
   $('.container').on('click', '.queue-row', function(e) {
-    if(e.target === this) {
+    if($(e.target).hasClass('view-queue')) {
       var $this = $(this);
-      var id = $this.find('a').data('queue-id');
+      var id = $this.data('queue-id');
       STATE.queuemap[id].selected = !STATE.queuemap[id].selected;
       renderView();
     }
@@ -195,6 +252,20 @@ function setEventHandlers() {
     STATE.filtermap[name].selected = selected;
     renderView();
   });
+
+
+  $('#logout').on('click', function() {
+    $.ajax({
+      url: '/logout',
+      type: 'POST'
+    });
+
+    window.location = "/signup";
+  });
+}
+
+function renameQueue() {
+  console.log('need to rename');
 }
 
 function saveFilter() {
@@ -234,7 +305,6 @@ function reorderList(sortedList, prevList, url) {
         updates.push(itemName);
       }
     });
-
     $.ajax({
       type: 'PUT',
       url: url,
@@ -271,8 +341,8 @@ function removeTask(id) {
 function addTask(task) {
   STATE.tasks.push(task.id);
   STATE.taskmap[task.id] = task;
-  if (task.queue) {
-    putTaskInQueue(task.id, task.queue);
+  if (task.queue && STATE.queuemap[task.queue]) {
+    STATE.queuemap[task.queue].tasks.push(task.id);
   }
   FilterTasks.buildTokenSets(STATE.taskmap);
   renderView();
@@ -346,26 +416,77 @@ function renderView() {
 
 
   $('#queue-list').html(queueHTML);
-
-
+  $.fn.dataTableExt.afnSortData['dom-select'] = function  ( oSettings, iColumn )
+  {
+    return $.map( oSettings.oApi._fnGetTrNodes(oSettings), function (tr, i) {
+      return $('td:eq('+iColumn+') select', tr).val();
+    } );
+  }
+  // TODO: Figure out what a better date sorting option, potentially moment.js
+  var customDateDDMMMYYYYToOrd = function (date) {
+      "use strict"; //let's avoid tom-foolery in this function
+      // Convert to a number YYYYMMDD which we can use to order
+      var dateParts = date.split(/-/);
+      return (dateParts[2] * 10000) + ($.inArray(dateParts[1].toUpperCase(), ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]) * 100) + dateParts[0];
+  };
+   
+  // This will help DataTables magic detect the "dd-MMM-yyyy" format; Unshift so that it's the first data type (so it takes priority over existing)
+  jQuery.fn.dataTableExt.aTypes.unshift(
+      function (sData) {
+          "use strict"; //let's avoid tom-foolery in this function
+          if (/^([0-2]?\d|3[0-1])-(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)-\d{4}/i.test(sData)) {
+              return 'date-dd-mmm-yyyy';
+          }
+          return null;
+      }
+  );
+   
+  // define the sorts
+  jQuery.fn.dataTableExt.oSort['date-dd-mmm-yyyy-asc'] = function (a, b) {
+      "use strict"; //let's avoid tom-foolery in this function
+      var ordA = customDateDDMMMYYYYToOrd(a),
+          ordB = customDateDDMMMYYYYToOrd(b);
+      return (ordA < ordB) ? -1 : ((ordA > ordB) ? 1 : 0);
+  };
+   
+  jQuery.fn.dataTableExt.oSort['date-dd-mmm-yyyy-desc'] = function (a, b) {
+      "use strict"; //let's avoid tom-foolery in this function
+      var ordA = customDateDDMMMYYYYToOrd(a),
+          ordB = customDateDDMMMYYYYToOrd(b);
+      return (ordA < ordB) ? 1 : ((ordA > ordB) ? -1 : 0);
+  };
   $('.tasks-table').dataTable({
+        "aoColumns": [
+                { "sSortDataType": "dom-select" },
+                null,
+                { "sSortDataType": "dom-select" },
+                { "sSortDataType": 'date' },
+                { type: 'date-dd-mmm-yyyy', targets: 0 },
+                null,
+                { "sSortDataType": "dom-select" },
+                null,
+                null
+                ],
         "bPaginate": false,
         "bLengthChange": false,
         "bFilter": false,
         "bSort": true,
+        "aaSorting": [],
         "bInfo": false,
         "bAutoWidth": false 
   });
   $('.tasks-table tbody tr').click(function(ev) {
     //Stop the details section from opening when selecting stuff
-    if ($(ev.target).is('select') ) {
+    if ($(ev.target).is('select')) {
       return false
     }
-    var tasksTable = $('.tasks-table').dataTable();
-    if (tasksTable.fnIsOpen(this)) {  
+    if ($(ev.target).hasClass('edit')) {
+      return false
+    }
+    var tasksTable = $(ev.target).parents('.tasks-table').dataTable();
+    if (tasksTable.fnIsOpen(this)) {
       tasksTable.fnClose( this );
-    }    
-    else {  
+    } else {
       var taskId = $(this).attr('id');
       tasksTable.fnOpen( this, TEMPLATES['task-details']({task: STATE.taskmap[taskId]}), 'task-details');  
     }

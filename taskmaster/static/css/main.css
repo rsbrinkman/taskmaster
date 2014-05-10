@@ -27,6 +27,25 @@ select.input-sm {
 
 .queue-row {
     cursor: pointer;
+    white-space: nowrap;
+}
+
+.queue-row.editing .display-name {
+    display: none;
+}
+
+.queue-row .edit-name {
+    display: none;
+    width: 130px;
+}
+
+.queue-row.editing .edit-name {
+    display: inline-block;
+}
+
+.edit-queue {
+    top: 2px;
+    margin-right: 7px;
 }
 
 .task-row {
@@ -116,9 +135,35 @@ table.drop-hover {
     min-width: 80px;
     text-align: center;
 }
-.sign-up {
+
+#sign-up-form, #login-form {
+    width: 50%;
+}
+
+#sign-up-form {
+    border-right: 1px solid #aaa;
+    padding-right: 20px;
+}
+
+#login-form {
+    padding-left: 20px;
+}
+
+.left {
+    float: left;
+}
+
+.right {
+    float: right;
+}
+
+.clear {
+    clear: both;
+}
+
+.authenticate {
     text-align: center;
-    width: 30%;
+    width: 70%;
     margin: 0 auto;
     padding: 10px;
     border-radius: 4px;
@@ -143,4 +188,11 @@ table.drop-hover {
 }
 .join-org {
     margin-left: 25px;
+}
+.sorting, .sorting_asc, .sorting_desc {
+    cursor: pointer;
+}
+.edit-box {
+    height: 20px;
+    margin-top: 8px;
 }

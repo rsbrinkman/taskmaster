@@ -12,26 +12,89 @@
       }
     });
   });
-  $('#create-user').click(function () {
-    var email = $('#email').val();
-    var name = $('#name').val();
+
+  $('#sign-up-form').submit(function (e) {
+    e.preventDefault();
+
+    var $this = $(this),
+        email = $this.find('input[name=email]').val(),
+        name = $this.find('input[name=name]').val(),
+        password = $this.find('input[name=password]').val(),
+        passwordConfirm = $this.find('input[name=password-confirm]').val(),
+        $error = $this.find('.error'),
+        errorMessage = '';
+
+
+    if (passwordConfirm !== password) {
+      errorMessage = "Passwords do not match";
+    }
+
+    $error.text(errorMessage);
+
+    if (!errorMessage) {
+      $.ajax({
+        type: 'POST',
+        url: '/user',
+        data:{
+          'email': email,
+          'name': name,
+          'password': password
+        },
+        success: function(token) {
+          $.cookie('user', email);
+          $.cookie('token', token);
+          window.location = "/admin";
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          $error.text(jqXHR.responseText);
+        }
+      });
+    }
+  });
+
+  $('#login-form').submit(function (e) {
+    e.preventDefault();
+
+    var $this = $(this),
+        email = $this.find('input[name=email]').val(),
+        password = $this.find('input[name=password]').val(),
+        $error = $this.find('.error');
+
     $.ajax({
       type: 'POST',
-      url: '/user',
-      data:{ 
-        'email': email, 
-        'name': name
+      url: '/authenticate',
+      data:{
+        'email': email,
+        'password': password
       },
-      success: function() {
-        window.location = "/admin?user=" + email;
+      success: function(token) {
+        $.cookie('token', token);
         $.cookie('user', email);
-        }
+        window.location = "/";
+      },
+      error: function(jqXHR, textStatus, errorThrown) {
+        $error.text(jqXHR.responseText);
+      }
     });
   });
+
   $('#add-user').click(function () {
     var email = $('#user').val();
     var org = $('#org').val();
     addUserToOrg(email, org);
+  });
+  $('.name').blur(function() {
+    var $this = $(this);
+    var name = $this.html();
+    var username = $('.username').html()
+
+    $.ajax({
+      type: 'POST',
+      url: '/user/' + username +'/name/' + name,
+      success: function() {
+        $('.updates').append('Updated!');  
+      }
+    });
   });
   $('#search').click(function () {
     var org = $('#org-search').val();
