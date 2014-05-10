@@ -1,7 +1,7 @@
 import json
 import ast
 import urllib
-from taskmaster import app, db
+from taskmaster import app, db, settings
 from flask import render_template, request, Response, g, redirect, url_for, flash
 from datetime import datetime
 from functools import wraps
@@ -96,7 +96,7 @@ def _task_state(org=None):
 
     preferences = db.get_user_preferences(default_user)
 
-    filters = db.get_saved_filters(default_user)
+    filters = db.get_saved_filters(g.user)
 
     users = list(db.get_org_users(org))
 
@@ -147,6 +147,10 @@ def create_user():
 
     try:
         token = db.create_user(email, name, password)
+
+        for example_org in settings.EXAMPLE_ORGS:
+            db.add_user_to_org(example_org, email)
+
         return Response(token, status=201)
     except db.UserConflict:
         return Response("Email address already in use", status=409)
@@ -239,7 +243,7 @@ def create_queue(name):
     return Response(json.dumps(queue_obj), content_type='application/json')
 
 @app.route('/task/<task_id>', methods=['DELETE'])
-def task_update(task_id):
+def delete_task(task_id):
     if request.method == 'DELETE':
         db.delete_task(task_id, g.org)
         return Response(status=200)
@@ -251,13 +255,13 @@ def task_tags(task_id):
     return Response(status=200)
 
 @app.route('/filter/<filtername>/', methods=['POST', 'DELETE'])
-def manage_user_filter(filtername, username=default_user):
+def manage_user_filter(filtername):
     if request.method == 'POST':
         rule = request.form['rule']
-        obj = db.create_filter(username, filtername, rule)
+        obj = db.create_filter(g.user, filtername, rule)
         return Response(json.dumps(obj), content_type='application/json')
     elif request.method == 'DELETE':
-        db.delete_filter(username, filtername)
+        db.delete_filter(g.user, filtername)
         return Response(status=200)
 
 @app.route('/order/queue/', methods=['PUT'])
@@ -272,10 +276,15 @@ def update_task_order(queue_name=''):
     return Response(status=200)
 
 @app.route('/queue/<queue_name>', methods=['DELETE'])
-def update_queue(queue_name):
+def delete_queue(queue_name):
     if request.method == 'DELETE':
         db.delete_queue(queue_name, g.org)
         return Response(status=200)
+
+@app.route('/queue/<queue_name>/update/<update_field>/<update_value>', methods=['POST'])
+def update_queue(queue_name, update_field, update_value):
+    db.update_queue(queue_name, update_field, update_value)
+    return Response(status=200)
 
 @app.route('/task/<task_id>/update/<update_field>/', methods=['POST'])
 @app.route('/task/<task_id>/update/<update_field>/<update_value>', methods=['POST'])

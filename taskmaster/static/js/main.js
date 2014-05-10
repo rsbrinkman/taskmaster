@@ -63,7 +63,8 @@ function setEventHandlers() {
 
   $('.container').on('click', '.delete-queue', function() {
     var $this = $(this);
-    var id = $(this).data('queue-id');
+    var id = $(this).parents('.queue-row').data('queue-id');
+
     $.ajax({
       url: '/queue/' + id,
       type: 'DELETE',
@@ -96,10 +97,43 @@ function setEventHandlers() {
       type: 'POST'
     });
   });
+
+  $('.container').on('click', '.rename-queue', function() {
+    var $this = $(this);
+    var name = $(this).parents('.queue-row').find('.display-name').text();
+
+    $(this).parents('.queue-row')
+      .addClass('editing')
+      .find('.edit-name').val(name).focus();
+  });
+
+  var onEditQueue = function(e) {
+    var $this = $(this);
+    var $row = $this.parents('.queue-row');
+
+    $row.removeClass('editing');
+
+    var newName = $this.val();
+    var oldName = $row.find('.display-name').text();
+
+    if(newName && oldName !== newName) {
+      $row.find('.display-name').text(newName);
+      renameQueue($row.data('queue-id'), newName);
+    }
+  };
+
+  $('.container').on('keyup', '.edit-name', function(e) {
+    if (e.which === 13) {
+      onEditQueue.call(this, e);
+    }
+  });
+
+  $('.container').on('blur', '.edit-name', onEditQueue);
+
   $('.container').on('click', '.queue-row', function(e) {
-    if(e.target === this) {
+    if($(e.target).hasClass('view-queue')) {
       var $this = $(this);
-      var id = $this.find('a').data('queue-id');
+      var id = $this.data('queue-id');
       STATE.queuemap[id].selected = !STATE.queuemap[id].selected;
       renderView();
     }
@@ -230,6 +264,10 @@ function setEventHandlers() {
   });
 }
 
+function renameQueue() {
+  console.log('need to rename');
+}
+
 function saveFilter() {
   var name = $('#save-filter-name').val();
   var rule = $('#filter-tasks').val();
@@ -303,8 +341,8 @@ function removeTask(id) {
 function addTask(task) {
   STATE.tasks.push(task.id);
   STATE.taskmap[task.id] = task;
-  if (task.queue) {
-    putTaskInQueue(task.id, task.queue);
+  if (task.queue && STATE.queuemap[task.queue]) {
+    STATE.queuemap[task.queue].tasks.push(task.id);
   }
   FilterTasks.buildTokenSets(STATE.taskmap);
   renderView();
@@ -445,11 +483,10 @@ function renderView() {
     if ($(ev.target).hasClass('edit')) {
       return false
     }
-    var tasksTable = $('.tasks-table').dataTable();
-    if (tasksTable.fnIsOpen(this)) {  
+    var tasksTable = $(ev.target).parents('.tasks-table').dataTable();
+    if (tasksTable.fnIsOpen(this)) {
       tasksTable.fnClose( this );
-    }    
-    else {  
+    } else {
       var taskId = $(this).attr('id');
       tasksTable.fnOpen( this, TEMPLATES['task-details']({task: STATE.taskmap[taskId]}), 'task-details');  
     }

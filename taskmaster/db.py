@@ -228,7 +228,7 @@ def create_user(username, name, password):
 def login_user(username, password):
     password_hash = db.hget("user>%s" % username, 'password_hash')
 
-    if custom_app_context.verify(password, password_hash):
+    if password_hash and custom_app_context.verify(password, password_hash):
         return _generate_token(username)
 
 def _generate_token(username):
@@ -306,6 +306,12 @@ def delete_task(task_id, orgname):
 
 def create_queue(name, orgname):
     db.zadd('org-queues2>%s' % orgname, _default_score(), name)
+
+def update_queue(queue_name, update_field, update_value):
+    #TODO, need to give queues unique ids like tasks rather than using
+    # the queue name, otherwise can't easily update it without breaking
+    # references
+    pass
 
 def delete_queue(name, orgname):
     db.zrem('org-queues2>%s' % orgname, name)

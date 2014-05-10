@@ -27,6 +27,25 @@ select.input-sm {
 
 .queue-row {
     cursor: pointer;
+    white-space: nowrap;
+}
+
+.queue-row.editing .display-name {
+    display: none;
+}
+
+.queue-row .edit-name {
+    display: none;
+    width: 130px;
+}
+
+.queue-row.editing .edit-name {
+    display: inline-block;
+}
+
+.edit-queue {
+    top: 2px;
+    margin-right: 7px;
 }
 
 .task-row {
