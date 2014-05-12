@@ -1,3 +1,6 @@
+body {
+    padding: 0px 5px 0px 5px;
+}
 table {
     font-size: 11px;
 }
@@ -99,7 +102,7 @@ table.drop-hover {
 
 #saved-filters {
     float: right;
-    width: 300px;
+    width: 200px;
 }
 
 #filter-tasks {
@@ -194,5 +197,14 @@ table.drop-hover {
 }
 .edit-box {
     height: 20px;
-    margin-top: 8px;
+    width: 75px;
+    top: 4px;
+    display: inline;
+}
+.filter {
+    padding-bottom: 3px;
+}
+.edit-task-name {
+    font-size: 13px;
+    float: right;
 }

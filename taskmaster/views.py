@@ -21,7 +21,7 @@ def require_user(f):
         if g.user and g.token and db.verify_token(g.user, g.token):
             return f(*args, **kwargs)
         else:
-            flash('Please login and select an org')
+            flash('Please login and select a project')
             return redirect(url_for('signup'))
 
     return decorated_function
@@ -33,7 +33,7 @@ def require_org(f):
         if g.org and g.org in db.get_user_orgs(g.user):
             return f(*args, **kwargs)
         else:
-            flash('Please select an org')
+            flash('Please select a project')
             return redirect(url_for('admin'))
 
     return decorated_function
