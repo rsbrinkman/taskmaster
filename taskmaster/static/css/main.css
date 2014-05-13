@@ -15,7 +15,7 @@ select.input-sm {
     border-left: 1px #888888 solid;
 }
 #s2id_groupSelect, .select2-input, .select2-container, .select2-search-field, .select2-choices {
-    min-width: 100px;
+    width: 100%;
 }
 .tag-column {
     max-width: 250px;
@@ -196,4 +196,16 @@ table.drop-hover {
 .edit-box {
     height: 20px;
     margin-top: 8px;
+}
+.del-task {
+    top: 7px;
+    font-size: 9pt;
+}
+.remove-filter {
+    top: 2px;
+    left: 5px;
+}
+
+.glyphicon-remove {
+    cursor: pointer;
 }
