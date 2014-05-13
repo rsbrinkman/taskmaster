@@ -75,23 +75,23 @@ function setEventHandlers() {
   });
   function editableTextBlurred() {
       var html = $(this).val();
-      var viewableText = $("<td class='edit task-name'>");
-      viewableText.html(html);
+      var viewableText = $("<span class='task-name-container'>" + html + " </span>"); 
+      viewableText.html();
       $(this).replaceWith(viewableText);
   };
-  $('.container').on('dblclick', '.edit', function (e) {
+  
+  $('.container').on('click', '.edit-task-name', function (e) {
     var $this = $(this);
-    var nameHtml = $(this).html();
+    var nameHtml = $(this).data('task-name');
     var editableText = $("<input type='text' class='form-control edit-box input-sm'/>");
     editableText.val(nameHtml);
-    $this.replaceWith(editableText);
+    $this.prev('span').replaceWith(editableText);
     editableText.focus();
-    // setup the blur event for this new textarea
     editableText.blur(editableTextBlurred);
     });
   $('.container').on('change', '.edit-box', function(e) {
     var $this = $(this);
-    var taskId = $(this).parent('tr').attr('id');
+    var taskId = $(this).next().attr('id');
     $.ajax({
       url: '/task/' + taskId  + '/update/' + 'name/' + $this.val(),
       type: 'POST'
@@ -478,8 +478,8 @@ function renderView() {
     if ($(ev.target).is('select')) {
       return false
     }
-    if ($(ev.target).hasClass('edit')) {
-      return false
+    if ($(ev.target).hasClass('edit-task-name')) {
+      return true
     }
     var tasksTable = $(ev.target).parents('.tasks-table').dataTable();
     if (tasksTable.fnIsOpen(this)) {
