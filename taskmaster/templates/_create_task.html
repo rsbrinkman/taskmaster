@@ -34,22 +34,6 @@
                 <% });  %>
             </select>
         </div>
-        
-        <label>Priority</label>
-            <% _.each([0,1,2,3,4], function (i) { %>
-                <label class="radio-inline">
-                    <input type="radio" name="task-priority" id="task-priority-<%=i%>" <% if (i===2) { %>checked<% } %> value="<%=i%>" /><%=i%>
-                </label>
-            <% }); %>
-        <div>
-        <label>Severity</label>
-            <% _.each([0,1,2,3,4], function (i) { %>
-            <label class="radio-inline">
-                <input type="radio" name="task-severity" id="task-severity-<%=i%>" <% if (i===2) { %>checked<% } %> value="<%=i%>" /><%=i%>
-            </label>
-            <% }); %>
-        </div>
-              
             <button type="submit" class="btn btn-default">Save</button>
             <button type="submit" class="btn btn-default create-task-close">Save & Close</button>
         </form>
