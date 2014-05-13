@@ -481,8 +481,7 @@ function renderView() {
       return false
     }
     if ($(ev.target).hasClass('edit-task-name')) {
-      console.log($(ev.target));
-      return false
+      return true
     }
     var tasksTable = $(ev.target).parents('.tasks-table').dataTable();
     if (tasksTable.fnIsOpen(this)) {
