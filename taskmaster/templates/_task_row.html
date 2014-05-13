@@ -17,8 +17,6 @@
       </select>
    </td>
     <td><%= created_date %></td>
-    <td><%= priority %></td>
-    <td><%= severity %></td>
     <td>
         <select class="form-control task-queues input-sm" data-task-id=<%= id %>>
             <option name='no-queue'></option>
@@ -27,6 +25,6 @@
         <% });  %>
         </select>
     <td class="tag-column"><input type="hidden" data-task-id="<%= id %>" class="task-tags" value="<%= tags %>"></input></td>
-    <td><button class="btn btn-sm del-task" data-task-id="<%= id %>">Del</button>
+    <td><span class="glyphicon glyphicon-remove del-task" data-task-id="<%= id %>"></button>
   </tr>
 </script>

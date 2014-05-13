@@ -18,7 +18,7 @@ select.input-sm {
     border-left: 1px #888888 solid;
 }
 #s2id_groupSelect, .select2-input, .select2-container, .select2-search-field, .select2-choices {
-    min-width: 100px;
+    width: 100%;
 }
 .tag-column {
     max-width: 250px;
@@ -181,7 +181,8 @@ table.drop-hover {
 }
 .message {
     border: 1px solid black;
-    background-color: rgba(255, 8, 8, 0.55);;
+    background-color: #616161;
+    color: #FFF;
     text-align: center;
     padding: 5px;
     width: 250px;
@@ -207,4 +208,16 @@ table.drop-hover {
 .edit-task-name {
     font-size: 13px;
     float: right;
+}
+.del-task {
+    top: 7px;
+    font-size: 9pt;
+}
+.remove-filter {
+    top: 2px;
+    left: 5px;
+}
+
+.glyphicon-remove {
+    cursor: pointer;
 }

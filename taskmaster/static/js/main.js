@@ -461,8 +461,6 @@ function renderView() {
                 null,
                 { "sSortDataType": "dom-select" },
                 { "sSortDataType": 'date' },
-                { type: 'date-dd-mmm-yyyy', targets: 0 },
-                null,
                 { "sSortDataType": "dom-select" },
                 null,
                 null
