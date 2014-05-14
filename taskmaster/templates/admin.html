@@ -12,12 +12,12 @@
             <div class="message">{{messages|first}}</div>
         {% endif %}
     {% endwith %}
-    <label for="org-search">Search Organizations</label>
+    <label for="org-search">Search Projects</label>
     <input type="text" name="org-search" id ="org-search">
-    <button class="btn" id="search">Search Orgs</button>
+    <button class="btn" id="search">Search Projects</button>
     <div class="search-results"></div>
     
-    <h4>My Organizations</h4>    
+    <h4>My Projects</h4>    
     <p>
     <ul class="my-org-list">
     {% if user.orgs %}
@@ -25,20 +25,20 @@
             <li>{{org}}</li>
         {% endfor %}
     {% else %}
-        <p class="no-org">Join an Organization below!</p>
+        <p class="no-org">Join a Project below!</p>
     {% endif %}
     
     </ul></p>
-    <h4>Add User to Org</h4>
-    <label for="org">Organization</label>
+    <h4>Add User to Project</h4>
+    <label for="org">Project</label>
     <input type="text" name="org" id ="org">
     <label for="user">User</label>
     <input type="text" name="user" id="user">
     <button class="btn" id="add-user">Add</button>
     <div class="user-org-results"></div>
 
-    <h4>Create an Organization</h4>
-    <label for="org-name">Organization</label>
+    <h4>Create an Project</h4>
+    <label for="org-name">Project</label>
     <input type="text" name="org-name" id ="org-name">
     <label for="users">Users</label>
     <input type="text" name="users" id="users">

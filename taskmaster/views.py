@@ -21,7 +21,7 @@ def require_user(f):
         if g.user and g.token and db.verify_token(g.user, g.token):
             return f(*args, **kwargs)
         else:
-            flash('Please login and select an org')
+            flash('Please login and select a project')
             return redirect(url_for('signup'))
 
     return decorated_function
@@ -33,7 +33,7 @@ def require_org(f):
         if g.org and g.org in db.get_user_orgs(g.user):
             return f(*args, **kwargs)
         else:
-            flash('Please select an org')
+            flash('Please select a project')
             return redirect(url_for('admin'))
 
     return decorated_function
@@ -198,11 +198,6 @@ def search_org(orgname):
     return Response(json.dumps(org), content_type='application/json')
 
 
-
-@app.route('/create_task_form', methods=['GET'])
-def show_task_form():
-    return render_template('create_tasks.html')
-
 @app.route('/task', methods=['POST'])
 def create_task():
     task = {}
@@ -211,8 +206,6 @@ def create_task():
         task['description'] = request.form['task-description']
         task['status'] = request.form['task-status']
         task['assignee'] = request.form['task-assignee']
-        task['priority'] = request.form['task-priority']
-        task['severity'] = request.form['task-severity']
         task['created_date'] = str(datetime.now().date())
         if request.form['task-queue'] == 'no-queue':
             #TODO: Use this to set a the 'null' queue in UI/UX queue
