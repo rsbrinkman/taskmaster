@@ -9,6 +9,7 @@
         $('.org-creation-results').empty()
         $('.org-creation-results').append(org + ' created!');
         $('.my-org-list').append('<li>' + org + '</li>');
+        addUserToOrg(users, org);
       }
     });
   });
