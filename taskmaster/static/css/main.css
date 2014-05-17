@@ -5,7 +5,7 @@ table {
     font-size: 11px;
 }
 select.input-sm {
-    height:20px !important;
+    height:28px !important;
     line-height: 20px;
 }
 .underline {
@@ -98,6 +98,7 @@ table.drop-hover {
 
 .header-filter-container {
     margin-top: 30px;
+    margin-bottom: 10px;
 }
 
 #saved-filters {
