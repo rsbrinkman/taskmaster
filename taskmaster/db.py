@@ -132,6 +132,7 @@ def set_tags(task_id, updated_tags):
     current_tags = set(task['tags'].split(','))
     updated_tags = set(updated_tags)
 
+
     tags_to_remove = current_tags.difference(updated_tags)
     tags_to_add = updated_tags.difference(current_tags)
 
@@ -181,10 +182,13 @@ def get_user(username):
 
     return user
 
-def create_org(orgname, followers=None, admin=None):
+def create_org(orgname, followers=None, admin=None, overwrite=False):
     if admin:
         db.sadd('org>%s' % orgname, admin)
         db.sadd('user>orgs>%s' % admin, orgname)
+
+        if overwrite:
+            db.delete('org-tasks2>%s' % orgname)
 
 def get_org(search_string):
     org = db.smembers('org>%s' % search_string)
@@ -304,8 +308,11 @@ def delete_task(task_id, orgname):
         finally:
             pipe.reset()
 
-def create_queue(name, orgname):
+def create_queue(name, orgname, overwrite=False):
     db.zadd('org-queues2>%s' % orgname, _default_score(), name)
+
+    if overwrite:
+        db.delete('queue-tasks2>%s' % name)
 
 def update_queue(queue_name, update_field, update_value):
     #TODO, need to give queues unique ids like tasks rather than using
