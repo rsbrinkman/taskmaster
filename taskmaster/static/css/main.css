@@ -101,8 +101,14 @@ table.drop-hover {
 }
 
 #saved-filters {
-    float: right;
-    width: 200px;
+    width: 350px;
+    padding: 2px 0px 5px 0px;
+}
+.filter-name {
+    margin-right: 5px;
+}
+.vertical-bar {
+    padding-left: 10px;
 }
 
 #filter-tasks {
