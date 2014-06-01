@@ -110,7 +110,7 @@
         }
         else {
             $('.search-results').empty()
-            $('.search-results').append(data + "<button data-org=" + data + " class='btn btn-sm join-org'>Join</button>");
+            $('.search-results').append(data + '<button data-org="' + data + '" class="btn btn-sm join-org">Join</button>');
         }
 
       }
@@ -124,6 +124,7 @@
   $('.container').on('click', '.join-org', function() {
     email = $.cookie('user');
     org = $(this).data('org');
+    console.log(org);
     addUserToOrg(email, org);
   });
   function addUserToOrg(email, org) {
