@@ -81,5 +81,28 @@ PROJECTS = [
             "clean": ["Recurring Chores"],
         },
         "tasks": TASKS
-    }
+    },
+
+    {
+        "name": "New House 2",
+        "queues": [
+            {
+                "name": "To Buy",
+                "tasks": ["pots", "dishes", "kitchen", "couch", "tv"],
+            },
+            {
+                "name": "Weekly Chores",
+                "tasks": ["cook", "clean"],
+            },
+        ],
+        "tags": {
+            "pots": ["kitchen"],
+            "dishes": ["kitchen"],
+            "kitchen": ["kitchen"],
+            "couch": ["living room"],
+            "tv": ["living room"],
+            "clean": ["living room"],
+        },
+        "tasks": TASKS
+    },
 ]

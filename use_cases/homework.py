@@ -43,7 +43,30 @@ PROJECTS = [
             },
         ],
         "tags": {
-            "taskid": [],
+            "psychfinal": ["psych101"],
+            "psychmidterm": ["psych101"],
+            "problem": ["stats220"],
+            "stats": ["stats220"],
+        },
+        "tasks": TASKS
+    },
+    {
+        "name": "Homework 2",
+        "queues": [
+            {
+                "name": "Psych 101",
+                "tasks": ["psychmidterm", "psychfinal"],
+            },
+            {
+                "name": "Stats 220",
+                "tasks": ["stats", "problem"],
+            },
+        ],
+        "tags": {
+            "psychfinal": ["final"],
+            "psychmidterm": ["midterm"],
+            "problem": ["weekly"],
+            "stats": ["weekly"],
         },
         "tasks": TASKS
     }

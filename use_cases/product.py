@@ -53,7 +53,38 @@ PROJECTS = [
             },
         ],
         "tags": {
+            'simple': ['investigation'],
+            'views': ['backbone', 'feature'],
+            'mocks': ['prototype'],
+            'server': ['python', 'redis'],
+            'hello': ['configuration'],
+        },
+        "tasks": TASKS
+    },
+
+    {
+        "name": "New Product 2",
+        "queues": [
+            {
+                "name": "Alpha Release",
+                "tasks": ["hello", "server", "views"],
+            },
+            {
+                "name": "V1",
+                "tasks": ["mocks"],
+            },
+            {
+                "name": "Long Term",
+                "tasks": ["simple"],
+            },
+        ],
+        "tags": {
+            'views': ['frontend'],
+            'server': ['backend'],
+            'hello': ['backend'],
+            'mocks': ['design'],
         },
         "tasks": TASKS
     }
+
 ]
