@@ -1,6 +1,10 @@
 import uuid
 from taskmaster.db.utils.redis_conn import db, execute_multi
 
+class FieldConflict(Exception):
+    def __init__(self, field, value):
+        super(FieldConflict, self).__init__("%s '%s' is already in use" % (field, value))
+
 class MissingRequiredField(Exception):
     def __init__(self, attribute):
         super(MissingRequiredField, self).__init__("Missing required attribute '%s'" % attribute)
@@ -10,7 +14,7 @@ class CRUDModel(object):
     REQUIRED_FIELDS = []
     DEFAULTS = {}
 
-    def create(self, attributes):
+    def create(self, attributes, db_pipe=None):
         for required in self.REQUIRED_FIELDS:
             if required not in attributes:
                 raise MissingRequiredField(required)
@@ -19,14 +23,20 @@ class CRUDModel(object):
         _id = uuid.uuid4().hex
 
         def m(p):
-            p.hmset(self.KEY % _id, obj)
+            self._create(p, _id, obj)
             self._post_create(p, _id, obj)
 
-        execute_multi(m)
+        if db_pipe:
+            m(db_pipe)
+        else:
+            execute_multi(m)
 
         obj['id'] = _id
 
         return obj
+
+    def _create(self, db_pipe, _id, obj):
+        db_pipe.hmset(self.KEY % _id, obj)
 
     def _post_create(self, db_pipe, _id, obj):
         pass
@@ -41,7 +51,7 @@ class CRUDModel(object):
     def _post_get(self, _id):
         return {}
 
-    def update(self, _id, field, value):
+    def update(self, _id, field, value, db_pipe=None):
         def m(p):
             p.hset(self.KEY % _id, field, value)
             try:
@@ -49,15 +59,21 @@ class CRUDModel(object):
             except AttributeError:
                 pass
 
-        execute_multi(m)
+        if db_pipe:
+            m(db_pipe)
+        else:
+            execute_multi(m)
 
-    def delete(self, _id):
+    def delete(self, _id, db_pipe=None):
         obj = self.get(_id)
         def m(p):
             p.delete(self.KEY % _id)
             self._post_delete(p, _id, obj)
 
-        execute_multi(m)
+        if db_pipe:
+            m(db_pipe)
+        else:
+            execute_multi(m)
 
     def _post_delete(self, db_pipe, _id, obj):
         pass

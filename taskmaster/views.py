@@ -2,7 +2,7 @@ import json
 import ast
 import urllib
 from taskmaster import app, db, settings
-from taskmaster.db import task_model, org_model, test_redis_db
+from taskmaster.db import task_model, org_model, user_model, test_redis_db, FieldConflict
 from flask import render_template, request, Response, g, redirect, url_for, flash
 from datetime import datetime
 from functools import wraps
@@ -12,7 +12,7 @@ default_user = 'Joe'
 def require_user(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if g.user and g.token and db.verify_token(g.user, g.token):
+        if g.user and g.token and user_model.verify_token(g.user, g.token):
             return f(*args, **kwargs)
         else:
             flash('Please login and select a project')
@@ -122,7 +122,7 @@ def test_db():
 @app.route('/admin')
 @require_user
 def admin():
-    user = db.get_user(g.user)
+    user = user_model.get(g.user)
     return render_template('admin.html', user=user)
 
 @app.route('/signup')
@@ -131,41 +131,41 @@ def signup():
 
 @app.route('/user', methods=['POST'])
 def create_user():
-    email = request.form['email']
-    name = request.form['name']
-    password = request.form['password']
+    user_dict = {
+        'email': request.form['email'],
+        'name': request.form['name'],
+        'password': request.form['password'],
+    }
 
     try:
-        token = db.create_user(email, name, password)
-
+        user = user_model.create(user_dict)
         for example_org_name in settings.EXAMPLE_ORGS:
             org_id = org_model.id_from_name(example_org_name)
             if org_id:
-                org_model.add_user(org_id, email)
+                org_model.add_user(org_id, user['email'])
 
-        return Response(token, status=201)
-    except db.UserConflict:
-        return Response("Email address already in use", status=409)
+        return Response(json.dumps(user), status=201, content_type='application/json')
+    except FieldConflict, e:
+        return Response(e.message, status=409)
 
 @app.route('/authenticate', methods=['POST'])
 def authenticate():
-    token = db.login_user(request.form['email'], request.form['password'])
+    user = user_model.login(request.form['email'], request.form['password'])
 
-    if token:
-        return Response(token, status=200)
+    if user:
+        return Response(json.dumps(user), status=200, content_type='application/json')
     else:
         return Response('Email address and password do not match any user', status=400)
 
 @app.route('/logout', methods=['POST'])
 @require_user
 def logout():
-    db.logout_user(g.user)
+    user_model.logout(g.user)
     return Response(status=200)
 
-@app.route('/user/<username>/<update_field>/<update_value>', methods=['POST'])
-def update_user(username, update_field, update_value):
-    db.update_user(username, update_field, update_value)
-
+@app.route('/user/<user_id>/<update_field>/<update_value>', methods=['POST'])
+def update_user(user_id, update_field, update_value):
+    user_model.update(user_id, update_field, update_value)
     return Response(status=200)
 
 @app.route('/org/<orgname>', methods=['POST'])
@@ -179,13 +179,13 @@ def create_org(orgname):
 
     return Response(json.dumps(org), status=201, content_type='application/json')
 
-@app.route('/org/<org_id>/user/<username>', methods=['POST'])
-def add_user_to_org(org_id, username):
+@app.route('/org/<orgname>/user/<username>', methods=['POST'])
+def add_user_to_org(orgname, username):
     if request.method == 'POST':
-        if request.form.get('by_name'):
-            org_id = org_model.id_from_name(org_id)
+        org_id = org_model.id_from_name(orgname)
+        user_id = user_model.id_from_email(username)
 
-        org_model.add_user(org_id, username)
+        org_model.add_user(org_id, user_id)
         org = org_model.get(org_id)
 
     return Response(json.dumps(org), status=200, content_type='application/json')

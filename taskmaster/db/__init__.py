@@ -6,13 +6,12 @@ from taskmaster import settings
 from taskmaster.db.utils.redis_conn import db, execute_multi, test as test_redis_db
 from taskmaster.db.models.task import TaskModel
 from taskmaster.db.models.org import OrgModel
-from passlib.apps import custom_app_context
+from taskmaster.db.models.user import UserModel
+from taskmaster.db.utils.base_models import FieldConflict
 
 task_model = TaskModel()
 org_model = OrgModel()
-
-class UserConflict(Exception):
-    pass
+user_model = UserModel()
 
 def get_user_preferences(username):
     '''
@@ -111,55 +110,6 @@ def set_tags(task_id, updated_tags):
 
 def get_used_tags():
     return db.smembers('used-tags')
-
-def get_user(username):
-    user = db.hgetall('user>%s' % username)
-    user['orgs'] = list(org_model.get_for_user(username))
-
-    return user
-
-def create_user(username, name, password):
-    key = 'user>%s' % username
-
-    if db.exists(key):
-        raise UserConflict
-
-    user = {
-        'name': name,
-        'username': username,
-        'password_hash': custom_app_context.encrypt(password)
-    }
-
-    db.hmset(key, user)
-
-    return _generate_token(username)
-
-def login_user(username, password):
-    password_hash = db.hget("user>%s" % username, 'password_hash')
-
-    if password_hash and custom_app_context.verify(password, password_hash):
-        return _generate_token(username)
-
-def _generate_token(username):
-    # TODO to do this properly we'll need to
-    #   1. set a timeout on the auth token
-    #   2. probably reset the timeout every verification
-    #   3. do everything over https
-    auth_token = uuid.uuid4().hex
-    db.hset("user>%s" % username, 'token', auth_token)
-
-    return auth_token
-
-def logout_user(username):
-    db.hdel("user>%s" % username, 'token')
-
-def verify_token(username, provided_token):
-    stored_token = db.hget("user>%s" % username, 'token')
-    return stored_token and stored_token == provided_token
-
-def update_user(username, update_field, update_value):
-    if update_field == 'name':
-        db.hset('user>%s' % username, 'name', update_value)
 
 def create_queue(name, orgname, overwrite=False):
     db.zadd('org-queues2>%s' % orgname, _default_score(), name)

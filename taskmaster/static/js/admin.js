@@ -9,7 +9,7 @@
         $('.org-creation-results').empty()
         $('.org-creation-results').append(org.name + ' created!');
         $('.my-org-list').append('<li data-org-id="' + org.id + '">' + org.name + '</li>');
-        addUserToOrg(users, org.id);
+        addUserToOrg(users, org.name);
       }
     });
   });
@@ -41,9 +41,9 @@
           'name': name,
           'password': password
         },
-        success: function(token) {
-          $.cookie('user', email);
-          $.cookie('token', token);
+        success: function(user) {
+          $.cookie('user', user.id);
+          $.cookie('token', user.token);
           window.location = "/admin";
         },
         error: function(jqXHR, textStatus, errorThrown) {
@@ -68,9 +68,9 @@
         'email': email,
         'password': password
       },
-      success: function(token) {
-        $.cookie('token', token);
-        $.cookie('user', email);
+      success: function(user) {
+        $.cookie('token', user.token);
+        $.cookie('user', user.id);
         window.location = "/";
       },
       error: function(jqXHR, textStatus, errorThrown) {
@@ -82,17 +82,16 @@
   $('#add-user').click(function () {
     var email = $('#user').val();
     var orgname = $('#org').val();
-    addUserToOrg(email, orgname, true);
+    addUserToOrg(email, orgname);
   });
 
   $('.name').blur(function() {
     var $this = $(this);
     var name = $this.html();
-    var username = $('.username').html()
 
     $.ajax({
       type: 'POST',
-      url: '/user/' + username +'/name/' + name,
+      url: '/user/' + $.cookie('user') +'/name/' + name,
       success: function() {
         $('.updates').append('Updated!');  
       }
@@ -111,7 +110,7 @@
         }
         else {
             $('.search-results').empty()
-            $('.search-results').append(data.name + '<button data-org-id="' + data.id + '" class="btn btn-sm join-org">Join</button>');
+            $('.search-results').append(data.name + '<button data-org-id="' + data.id + '" data-org-name="' + data.name + '" class="btn btn-sm join-org">Join</button>');
         }
 
       }
@@ -123,21 +122,14 @@
     window.location.href = '/';
   });
   $('.container').on('click', '.join-org', function() {
-    email = $.cookie('user');
-    org_id = $(this).data('org-id');
-    addUserToOrg(email, org_id);
+    email = $('.username').text();
+    orgname = $(this).data('org-name');
+    addUserToOrg(email, orgname);
   });
-  function addUserToOrg(email, org_id, by_name) {
-    var data = {};
-
-    if (by_name) {
-      data.by_name = true;
-    }
-
+  function addUserToOrg(email, orgname) {
     $.ajax({
       type: 'POST',
-      url: '/org/' + org_id + '/user/' + email,
-      data: data,
+      url: '/org/' + orgname + '/user/' + email,
       success: function(org) {
         $('.user-org-results').empty()
         $('.user-org-results').append(email + ' added to ' + org.name + ' successfully!');
