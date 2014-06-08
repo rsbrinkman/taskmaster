@@ -203,10 +203,6 @@ def create_task():
         task['status'] = request.form['task-status']
         task['assignee'] = request.form['task-assignee']
         task['created_date'] = str(datetime.now().date())
-        if request.form['task-queue'] == 'no-queue':
-            #TODO: Use this to set a the 'null' queue in UI/UX queue
-            #TODO: This is a good opportunity to link to a task.
-            task['queue'] = ''
         task['queue'] = request.form['task-queue']
 
         task = task_model.create(task)

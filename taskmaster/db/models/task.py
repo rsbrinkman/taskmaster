@@ -6,9 +6,10 @@ class TaskModel(CRUDModel):
     QUEUE_TASKS_KEY = 'queue-tasks2>%s'
     ORG_TASKS_KEY = 'org-tasks2>%s'
 
-    REQUIRED_FIELDS = ['org']
+    REQUIRED_FIELDS = ['name', 'org']
     DEFAULTS = {
-        'tags': ''
+        'queue': '',
+        'tags': '',
     }
 
     def _post_create(self, db_pipe, task_id, task):
