@@ -5,11 +5,11 @@
       type: 'POST',
       url: '/org/' + org,
       data:{ 'users': users },
-      success: function() {
+      success: function(org) {
         $('.org-creation-results').empty()
-        $('.org-creation-results').append(org + ' created!');
-        $('.my-org-list').append('<li>' + org + '</li>');
-        addUserToOrg(users, org);
+        $('.org-creation-results').append(org.name + ' created!');
+        $('.my-org-list').append('<li data-org-id="' + org.id + '">' + org.name + '</li>');
+        addUserToOrg(users, org.id);
       }
     });
   });
@@ -81,9 +81,10 @@
 
   $('#add-user').click(function () {
     var email = $('#user').val();
-    var org = $('#org').val();
-    addUserToOrg(email, org);
+    var orgname = $('#org').val();
+    addUserToOrg(email, orgname, true);
   });
+
   $('.name').blur(function() {
     var $this = $(this);
     var name = $this.html();
@@ -110,7 +111,7 @@
         }
         else {
             $('.search-results').empty()
-            $('.search-results').append(data + '<button data-org="' + data + '" class="btn btn-sm join-org">Join</button>');
+            $('.search-results').append(data.name + '<button data-org-id="' + data.id + '" class="btn btn-sm join-org">Join</button>');
         }
 
       }
@@ -123,20 +124,26 @@
   });
   $('.container').on('click', '.join-org', function() {
     email = $.cookie('user');
-    org = $(this).data('org');
-    console.log(org);
-    addUserToOrg(email, org);
+    org_id = $(this).data('org-id');
+    addUserToOrg(email, org_id);
   });
-  function addUserToOrg(email, org) {
+  function addUserToOrg(email, org_id, by_name) {
+    var data = {};
+
+    if (by_name) {
+      data.by_name = true;
+    }
+
     $.ajax({
       type: 'POST',
-      url: '/org/' + org + '/user/' + email,
-      success: function() {
+      url: '/org/' + org_id + '/user/' + email,
+      data: data,
+      success: function(org) {
         $('.user-org-results').empty()
-        $('.user-org-results').append(email + ' added to ' + org + ' successfully!');
+        $('.user-org-results').append(email + ' added to ' + org.name + ' successfully!');
         $('.no-org').empty()
-        $('.my-org-list').append('<li>' + org + '</li>');
-        $('.org-list').append('<option name=' + org + '>' + org + '</option>');
+        $('.my-org-list').append('<li data-org-id="' + org.id + '">' + org.name + '</li>');
+        $('.org-list').append('<option name="' + org.name + '" + value="' + org.id + '" >' + org.name + '</option>');
         $('.task-home').removeAttr('disabled');
       }
     });

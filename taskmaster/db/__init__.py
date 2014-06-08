@@ -5,9 +5,11 @@ import datetime, time
 from taskmaster import settings
 from taskmaster.db.utils.redis_conn import db, execute_multi, test as test_redis_db
 from taskmaster.db.models.task import TaskModel
+from taskmaster.db.models.org import OrgModel
 from passlib.apps import custom_app_context
 
 task_model = TaskModel()
+org_model = OrgModel()
 
 class UserConflict(Exception):
     pass
@@ -57,26 +59,6 @@ def delete_filter(username, filter_name):
         p.srem('user-filters>%s' % username, filter_name)
 
     execute_multi(m)
-
-def update_queue_order(orgname, updates):
-    db.zadd('org-queues2>%s' % orgname, *updates)
-
-def get_org_queues(orgname):
-    queues = db.zrange('org-queues2>%s' % orgname, 0, -1)
-
-    with db.pipeline() as pipe:
-        try:
-            pipe.multi()
-            for queue in queues:
-                pipe.zrange('queue-tasks2>%s' % queue, 0, -1)
-            queue_tasks = pipe.execute()
-        except:
-            if settings.DEBUG:
-                raise
-        finally:
-            pipe.reset()
-
-    return zip(queues, (list(tasks) for tasks in queue_tasks))
 
 def get_tasks_from_tag(tagname):
     return db.smembers('tag-tasks>%s>' % tagname)
@@ -132,40 +114,9 @@ def get_used_tags():
 
 def get_user(username):
     user = db.hgetall('user>%s' % username)
-    user['orgs'] = list(get_user_orgs(username))
+    user['orgs'] = list(org_model.get_for_user(username))
 
     return user
-
-def create_org(orgname, followers=None, admin=None, overwrite=False):
-    if admin:
-        db.sadd('org>%s' % orgname, admin)
-        db.sadd('user>orgs>%s' % admin, orgname)
-
-        if overwrite:
-            db.delete('org-tasks2>%s' % orgname)
-
-def get_org(search_string):
-    org = db.smembers('org>%s' % search_string)
-    if org:
-        return search_string
-    else:
-        return None
-def add_user_to_org(orgname, user, level='admin'):
-    if level == 'admin':
-        db.sadd('org>%s' % orgname, user)
-
-    # Also update user object
-    db.sadd('user>orgs>%s' % user, orgname)
-
-def get_org_users(orgname, level='admin'):
-    if level == 'admin':
-
-        return db.smembers('org>%s' % orgname)
-
-def get_user_orgs(user, level='admin'):
-    if level == 'admin':
-
-        return db.smembers('user>orgs>%s' % user)
 
 def create_user(username, name, password):
     key = 'user>%s' % username

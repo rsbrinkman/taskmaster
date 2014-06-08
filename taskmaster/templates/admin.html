@@ -22,7 +22,7 @@
     <ul class="my-org-list">
     {% if user.orgs %}
         {% for org in user.orgs %}
-            <li>{{org}}</li>
+            <li data-org-id="{{org.id}}">{{org.name}}</li>
         {% endfor %}
     {% else %}
         <p class="no-org">Join a Project below!</p>
@@ -60,7 +60,7 @@
         <div class="col-md-2">
             <select class="form-control org-list">
                 {% for org in user.orgs %}
-                    <option name="{{org}}">{{org}}</option>
+                    <option name="{{org.name}}" value="{{org.id}}">{{org.name}}</option>
                 {% endfor %}
             </select>
         </div>

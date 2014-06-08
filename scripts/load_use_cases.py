@@ -1,21 +1,24 @@
 import datetime
 from taskmaster import db
-from taskmaster.db import task_model
+from taskmaster.db import task_model, org_model
 from use_cases import PROJECTS
 
 try:
     for project in PROJECTS:
-        db.create_org(project['name'], admin="AUTO_GENERATED", overwrite=True)
+        org = org_model.create({
+            'name': project['name'],
+            'owner': "AUTO_GENERATED",
+        })
 
         for queue in project['queues']:
-            db.create_queue(queue['name'], project['name'], overwrite=True)
+            db.create_queue(queue['name'], org['id'], overwrite=True)
 
             for task_id in queue['tasks']:
                 task = project['tasks'][task_id]
 
                 task_obj = {
                     "name": task['name'],
-                    "org": project['name'],
+                    "org": org['id'],
                     "tags": ','.join(project['tags'].get(task['name'], [])),
                     "status": task.get('status', "Not Started"),
                     "assignee": "",
