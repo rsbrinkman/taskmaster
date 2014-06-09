@@ -2,7 +2,7 @@ import uuid
 import json
 import redis
 import datetime, time
-from taskmaster import settings
+from taskmaster import settings, events
 from passlib.apps import custom_app_context
 
 db = redis.StrictRedis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
@@ -273,6 +273,9 @@ def create_task(task, orgname):
 def update_task(task_id, update_field, update_value):
     if update_field == 'status':
         db.hset('task>%s' % task_id, 'status', update_value)
+        current_assignee = db.hget('task>%s' % task_id, 'assignee')
+        if current_assignee == urllib.unquote(request.cookies.get('user', '')):
+            events.mediator('status_update', current_assignee, status=update_value, task=db.hget('task>%s' % task_id, 'name'))
     elif update_field == 'description':
         db.hset('task>%s' % task_id, 'description', update_value)
     elif update_field == 'queue':
@@ -282,6 +285,7 @@ def update_task(task_id, update_field, update_value):
     elif update_field == 'assignee':
         current_assignee = db.hget('task>%s' % task_id, 'assignee')
         db.hset('task>%s' % task_id, 'assignee', update_value)
+        events.mediator('assigned', update_value, task=db.hget('task>%s' % task_id, 'name'))
     elif update_field == 'name':
         db.hset('task>%s' % task_id, 'name', update_value)
 
