@@ -198,7 +198,12 @@ def get_org(search_string):
         return None
 def add_user_to_org(orgname, user, level='admin'):
     if level == 'admin':
-        db.sadd('org>%s' % orgname, user)
+        # Check if user exists
+        if db.exists('user>%s' % username):
+            db.sadd('org>%s' % orgname, user)
+        else:
+            # Invite user to join TM
+            events.mediator('invite', email=user, project=orgname)
 
     # Also update user object
     db.sadd('user>orgs>%s' % user, orgname)
@@ -277,9 +282,7 @@ def create_task(task, orgname):
 def update_task(task_id, update_field, update_value):
     if update_field == 'status':
         db.hset('task>%s' % task_id, 'status', update_value)
-        current_assignee = db.hget('task>%s' % task_id, 'assignee')
-        if current_assignee == urllib.unquote(request.cookies.get('user', '')):
-            events.mediator('status_update', current_assignee, status=update_value, task=db.hget('task>%s' % task_id, 'name'))
+        events.mediator('status_update', task_id=task_id)
     elif update_field == 'description':
         db.hset('task>%s' % task_id, 'description', update_value)
     elif update_field == 'queue':
@@ -289,7 +292,7 @@ def update_task(task_id, update_field, update_value):
     elif update_field == 'assignee':
         current_assignee = db.hget('task>%s' % task_id, 'assignee')
         db.hset('task>%s' % task_id, 'assignee', update_value)
-        events.mediator('assigned', update_value, task=db.hget('task>%s' % task_id, 'name'))
+        events.mediator('assigned', email=update_value, task_id=task_id)
     elif update_field == 'name':
         db.hset('task>%s' % task_id, 'name', update_value)
 

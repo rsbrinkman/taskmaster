@@ -147,7 +147,7 @@ def create_user():
         for example_org in settings.EXAMPLE_ORGS:
             db.add_user_to_org(example_org, email)
 
-        events.mediator('signed_up', email, name=name)
+        events.mediator('signed_up', email=email, name=name)
 
         return Response(token, status=201)
     except db.UserConflict:
@@ -186,7 +186,7 @@ def create_org(orgname):
 def add_user_to_org(orgname, username):
     if request.method == 'POST':
         db.add_user_to_org(orgname, username)
-        events.mediator('added_to_project', username, project=orgname)
+        events.mediator('added_to_project', email=username, project=orgname)
 
     return Response(status=200)
 
