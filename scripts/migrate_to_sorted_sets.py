@@ -1,5 +1,5 @@
 import redis
-import settings
+from taskmaster import settings
 
 db = redis.StrictRedis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
 
