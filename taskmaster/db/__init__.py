@@ -7,11 +7,13 @@ from taskmaster.db.utils.redis_conn import db, execute_multi, test as test_redis
 from taskmaster.db.models.task import TaskModel
 from taskmaster.db.models.org import OrgModel
 from taskmaster.db.models.user import UserModel
+from taskmaster.db.models.queue import QueueModel
 from taskmaster.db.utils.base_models import FieldConflict
 
 task_model = TaskModel()
 org_model = OrgModel()
 user_model = UserModel()
+queue_model = QueueModel()
 
 def get_user_preferences(username):
     '''
@@ -110,23 +112,3 @@ def set_tags(task_id, updated_tags):
 
 def get_used_tags():
     return db.smembers('used-tags')
-
-def create_queue(name, orgname, overwrite=False):
-    db.zadd('org-queues2>%s' % orgname, _default_score(), name)
-
-    if overwrite:
-        db.delete('queue-tasks2>%s' % name)
-
-def update_queue(queue_name, update_field, update_value):
-    #TODO, need to give queues unique ids like tasks rather than using
-    # the queue name, otherwise can't easily update it without breaking
-    # references
-    pass
-
-def delete_queue(name, orgname):
-    db.zrem('org-queues2>%s' % orgname, name)
-
-def _default_score():
-    # Use current epoch time as the score for the sorted set,
-    # guarantees that newly added members will be at the end
-    return time.mktime(datetime.datetime.now().timetuple()) * 1000

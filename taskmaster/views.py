@@ -1,8 +1,7 @@
 import json
-import ast
 import urllib
 from taskmaster import app, db, settings
-from taskmaster.db import task_model, org_model, user_model, test_redis_db, FieldConflict
+from taskmaster.db import task_model, org_model, user_model, queue_model, test_redis_db, FieldConflict
 from flask import render_template, request, Response, g, redirect, url_for, flash
 from datetime import datetime
 from functools import wraps
@@ -72,15 +71,8 @@ def _task_state(org_id=None):
         else:
             task_model.remove_from_org(org_id, task)
 
-    # (queuename, queuetasks)
-    queue_tasks = org_model.get_queues(org_id)
-    queuemap = {}
-    for queue in queue_tasks:
-        queuemap[queue[0]] = {
-            'id': queue[0],
-            'tasks': queue[1]
-        }
-    queues = [queue[0] for queue in queue_tasks]
+    queues = queue_model.get_for_org(org_id)
+    queuemap = {queue['id']:queue for queue in queues}
 
     tags = list(db.get_used_tags())
 
@@ -221,16 +213,13 @@ def show_queue_form():
 
 @app.route('/queue/<name>', methods=['POST'])
 def create_queue(name):
-    db.create_queue(name, g.org)
-
-    #TODO unified way to get json from queue, duplicated in _get_state
     queue_obj = {
-        'id': name,
-        'tasks': [],
-        'selected': False,
+        'name': name,
+        'org': g.org,
     }
 
-    return Response(json.dumps(queue_obj), content_type='application/json')
+    queue = queue_model.create(queue_obj)
+    return Response(json.dumps(queue), status=201, content_type='application/json')
 
 @app.route('/task/<task_id>', methods=['DELETE'])
 def delete_task(task_id):
@@ -256,7 +245,7 @@ def manage_user_filter(filtername):
 
 @app.route('/order/queue/', methods=['PUT'])
 def update_queue_order():
-    org_model.update_queue_order(g.org, json.loads(request.form['updates']))
+    queue_model.update_order(g.org, json.loads(request.form['updates']))
     return Response(status=200)
 
 @app.route('/order/task/', methods=['PUT'])
@@ -265,20 +254,19 @@ def update_task_order(queue_name=''):
     task_model.update_order(g.org, json.loads(request.form['updates']), queue_name=queue_name)
     return Response(status=200)
 
-@app.route('/queue/<queue_name>', methods=['DELETE'])
-def delete_queue(queue_name):
+@app.route('/queue/<queue_id>', methods=['DELETE'])
+def delete_queue(queue_id):
     if request.method == 'DELETE':
-        db.delete_queue(queue_name, g.org)
+        queue_model.delete(queue_id)
         return Response(status=200)
 
-@app.route('/queue/<queue_name>/update/<update_field>/<update_value>', methods=['POST'])
-def update_queue(queue_name, update_field, update_value):
-    db.update_queue(queue_name, update_field, update_value)
+@app.route('/queue/<queue_id>/update/<update_field>/<update_value>', methods=['POST'])
+def update_queue(queue_id, update_field, update_value):
+    queue_model.update(queue_id, update_field, update_value)
     return Response(status=200)
 
 @app.route('/task/<task_id>/update/<update_field>/', methods=['POST'])
 @app.route('/task/<task_id>/update/<update_field>/<update_value>', methods=['POST'])
 def update_task(task_id, update_field, update_value=''):
     task_model.update(task_id, update_field, update_value)
-
     return Response(status=200)

@@ -18,20 +18,6 @@ class OrgModel(CRUDModel):
         #TODO duplicate name check?
         db_pipe.set(self.ORG_NAMES_KEY % org['name'], org_id)
 
-    def update_queue_order(self, org_id, updates, db_pipe=db):
-        db_pipe.zadd(self.ORG_QUEUES_KEY % org_id, *updates)
-
-    def get_queues(self, org_id):
-        queues = db.zrange(self.ORG_QUEUES_KEY % org_id, 0, -1)
-
-        def m(p):
-            for queue in queues:
-                task_model.get_for_queue(queue, db_pipe=p)
-
-        queue_tasks = execute_multi(m)
-
-        return zip(queues, (list(tasks) for tasks in queue_tasks))
-
     def add_user(self, org_id, user_id, level='admin', db_pipe=db):
         if level == 'admin':
             db_pipe.sadd(self.ADMINS_KEY % org_id, user_id)
