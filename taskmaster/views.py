@@ -2,18 +2,12 @@ import json
 import ast
 import urllib
 from taskmaster import app, db, settings
+from taskmaster.db import task_model, test_redis_db
 from flask import render_template, request, Response, g, redirect, url_for, flash
 from datetime import datetime
 from functools import wraps
 
-#TODO: Create login interface.
-#org = 'Taskmaster'
 default_user = 'Joe'
-
-users = [
-    'Scott Brinkman',
-    'Jon Munz',
-]
 
 def require_user(f):
     @wraps(f)
@@ -69,18 +63,18 @@ def _task_state(org=None):
         # this is dumb, but easy until we build a 'primary' org concept
         org = orgs[0]
     # Get set of assigned tasks
-    org_tasks = list(db.get_org_tasks(org))
+    org_tasks = list(task_model.get_for_org(org))
 
     # Iterate over assigned tasks and build tasks object
     taskmap = {}
     for task in org_tasks:
-        retrieved_task = db.get_task(task)
+        retrieved_task = task_model.get(task)
         if retrieved_task:
             tags = ','.join(sorted(retrieved_task['tags'].split(',')))
             retrieved_task['tags'] = tags
             taskmap[retrieved_task['id']] = retrieved_task
         else:
-            db.remove_org_task(org, task)
+            task_model.remove_from_org(org, task)
 
     # (queuename, queuetasks)
     queue_tasks = db.get_org_queues(org)
@@ -127,7 +121,7 @@ def index():
 
 @app.route('/test_db/')
 def test_db():
-    return db.test()
+    return test_redis_db()
 
 @app.route('/admin')
 @require_user
@@ -203,17 +197,15 @@ def create_task():
     task = {}
     if request.method == 'POST':
         task['name'] = request.form['task-name']
+        # Grab the org from the cookie
+        task['org'] = g.org
         task['description'] = request.form['task-description']
         task['status'] = request.form['task-status']
         task['assignee'] = request.form['task-assignee']
         task['created_date'] = str(datetime.now().date())
-        if request.form['task-queue'] == 'no-queue':
-            #TODO: Use this to set a the 'null' queue in UI/UX queue
-            #TODO: This is a good opportunity to link to a task.
-            task['queue'] = ''
         task['queue'] = request.form['task-queue']
-        # Grab the org from the cookie
-        task = db.create_task(task, g.org)
+
+        task = task_model.create(task)
 
     return Response(json.dumps(task), content_type='application/json')
 
@@ -238,7 +230,7 @@ def create_queue(name):
 @app.route('/task/<task_id>', methods=['DELETE'])
 def delete_task(task_id):
     if request.method == 'DELETE':
-        db.delete_task(task_id, g.org)
+        task_model.delete(task_id)
         return Response(status=200)
 
 @app.route('/task/<task_id>/tags/', methods=['POST'])
@@ -265,7 +257,7 @@ def update_queue_order():
 @app.route('/order/task/', methods=['PUT'])
 @app.route('/order/task/<queue_name>', methods=['PUT'])
 def update_task_order(queue_name=''):
-    db.update_task_order(g.org, json.loads(request.form['updates']), queue_name=queue_name)
+    task_model.update_order(g.org, json.loads(request.form['updates']), queue_name=queue_name)
     return Response(status=200)
 
 @app.route('/queue/<queue_name>', methods=['DELETE'])
@@ -282,6 +274,6 @@ def update_queue(queue_name, update_field, update_value):
 @app.route('/task/<task_id>/update/<update_field>/', methods=['POST'])
 @app.route('/task/<task_id>/update/<update_field>/<update_value>', methods=['POST'])
 def update_task(task_id, update_field, update_value=''):
-    db.update_task(task_id, update_field, update_value)
+    task_model.update(task_id, update_field, update_value)
 
     return Response(status=200)
