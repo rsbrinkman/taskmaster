@@ -207,7 +207,7 @@ def create_task():
         task['org'] = g.org
         task['description'] = request.form['task-description']
         task['status'] = request.form['task-status']
-        task['assignee'] = request.form['task-assignee']
+        task['assignee'] = request.form['new-task-assignee']
         task['created_date'] = str(datetime.now().date())
         task['queue'] = request.form['task-queue']
 
