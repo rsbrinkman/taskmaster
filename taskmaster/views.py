@@ -1,9 +1,11 @@
 import json
 import ast
 import urllib
-from taskmaster import app, db, settings
+from taskmaster import app, db, settings, emails, events
 from taskmaster.db import task_model, test_redis_db
 from flask import render_template, request, Response, g, redirect, url_for, flash
+from flask_mail import Message
+from flask_mail import Mail
 from datetime import datetime
 from functools import wraps
 
@@ -117,6 +119,7 @@ def get_user_info():
 @app.route('/', methods=['GET'])
 @require_org
 def index():
+
     return render_template('index.html', state=json.dumps(_task_state(g.org)))
 
 @app.route('/test_db/')
@@ -144,6 +147,8 @@ def create_user():
 
         for example_org in settings.EXAMPLE_ORGS:
             db.add_user_to_org(example_org, email)
+
+        events.mediator('signed_up', email=email, name=name)
 
         return Response(token, status=201)
     except db.UserConflict:
@@ -182,6 +187,7 @@ def create_org(orgname):
 def add_user_to_org(orgname, username):
     if request.method == 'POST':
         db.add_user_to_org(orgname, username)
+        events.mediator('added_to_project', email=username, project=orgname)
 
     return Response(status=200)
 
@@ -201,7 +207,7 @@ def create_task():
         task['org'] = g.org
         task['description'] = request.form['task-description']
         task['status'] = request.form['task-status']
-        task['assignee'] = request.form['task-assignee']
+        task['assignee'] = request.form['new-task-assignee']
         task['created_date'] = str(datetime.now().date())
         task['queue'] = request.form['task-queue']
 

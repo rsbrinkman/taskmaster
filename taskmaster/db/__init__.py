@@ -2,7 +2,7 @@ import uuid
 import json
 import redis
 import datetime, time
-from taskmaster import settings
+from taskmaster import settings, events
 from taskmaster.db.utils.redis_conn import db, execute_multi, test as test_redis_db
 from taskmaster.db.models.task import TaskModel
 from passlib.apps import custom_app_context
@@ -152,7 +152,12 @@ def get_org(search_string):
         return None
 def add_user_to_org(orgname, user, level='admin'):
     if level == 'admin':
-        db.sadd('org>%s' % orgname, user)
+        # Check if user exists
+        if db.exists('user>%s' % username):
+            db.sadd('org>%s' % orgname, user)
+        else:
+            # Invite user to join TM
+            events.mediator('invite', email=user, project=orgname)
 
     # Also update user object
     db.sadd('user>orgs>%s' % user, orgname)
@@ -205,6 +210,45 @@ def logout_user(username):
 def verify_token(username, provided_token):
     stored_token = db.hget("user>%s" % username, 'token')
     return stored_token and stored_token == provided_token
+
+def create_task(task, orgname):
+    # Create the hashmap task object
+    task_id = uuid.uuid4().hex
+    with db.pipeline() as pipe:
+        try:
+            pipe.multi()
+            task['org'] = orgname
+            task['id'] = task_id
+            task['tags'] = ''
+            pipe.hmset('task>%s' % task_id, task)
+            pipe.zadd('org-tasks2>%s' % orgname,  _default_score(), task_id)
+            if task['queue']:
+                add_task_to_queue(task_id, task['queue'])
+            pipe.execute()
+        except:
+            if settings.DEBUG:
+                raise
+        finally:
+            pipe.reset()
+
+    return task
+
+def update_task(task_id, update_field, update_value):
+    if update_field == 'status':
+        db.hset('task>%s' % task_id, 'status', update_value)
+        events.mediator('status_update', task_id=task_id)
+    elif update_field == 'description':
+        db.hset('task>%s' % task_id, 'description', update_value)
+    elif update_field == 'queue':
+        current_queue = db.hget('task>%s' % task_id, 'queue')
+        move_task(task_id, current_queue, update_value)
+        db.hset('task>%s' % task_id, 'queue', update_value)
+    elif update_field == 'assignee':
+        current_assignee = db.hget('task>%s' % task_id, 'assignee')
+        db.hset('task>%s' % task_id, 'assignee', update_value)
+        events.mediator('assigned', email=update_value, task_id=task_id)
+    elif update_field == 'name':
+        db.hset('task>%s' % task_id, 'name', update_value)
 
 def update_user(username, update_field, update_value):
     if update_field == 'name':
