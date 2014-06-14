@@ -1,5 +1,6 @@
 import datetime
 from taskmaster import db
+from taskmaster.db import task_model
 from use_cases import PROJECTS
 
 try:
@@ -23,7 +24,7 @@ try:
                     "description": task['description'],
                 }
 
-                created = db.create_task(task_obj, project['name'])
+                created = task_model.create(task_obj)
                 db.set_tags(created['id'], project['tags'].get(task_id, []))
 except:
     print "Failed on project: %s, queue: %s, task: %s" % (project['name'], queue['name'], task['name'])

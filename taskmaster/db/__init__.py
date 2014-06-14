@@ -3,30 +3,14 @@ import json
 import redis
 import datetime, time
 from taskmaster import settings, events
+from taskmaster.db.utils.redis_conn import db, execute_multi, test as test_redis_db
+from taskmaster.db.models.task import TaskModel
 from passlib.apps import custom_app_context
 
-db = redis.StrictRedis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
+task_model = TaskModel()
 
-
-class UserConflict(Exception): pass
-
-def test():
-    db.set('test_key', 'test_successful')
-    result = db.get('test_key')
-    db.delete('test_key')
-    return result
-
-def execute_multi(func):
-    with db.pipeline() as pipe:
-        try:
-            pipe.multi()
-            func(pipe)
-            return pipe.execute()
-        except:
-            if settings.DEBUG:
-                raise
-        finally:
-            pipe.reset()
+class UserConflict(Exception):
+    pass
 
 def get_user_preferences(username):
     '''
@@ -74,17 +58,8 @@ def delete_filter(username, filter_name):
 
     execute_multi(m)
 
-def get_task(taskname):
-    return db.hgetall('task>%s' % taskname)
-
 def update_queue_order(orgname, updates):
     db.zadd('org-queues2>%s' % orgname, *updates)
-
-def update_task_order(orgname, updates, queue_name=''):
-    if queue_name:
-        db.zadd('queue-tasks2>%s' % queue_name, *updates)
-    else:
-        db.zadd('org-tasks2>%s' % orgname, *updates)
 
 def get_org_queues(orgname):
     queues = db.zrange('org-queues2>%s' % orgname, 0, -1)
@@ -103,32 +78,11 @@ def get_org_queues(orgname):
 
     return zip(queues, (list(tasks) for tasks in queue_tasks))
 
-def get_org_tasks(orgname):
-    return db.zrange('org-tasks2>%s' % orgname, 0, -1)
-
-def remove_org_task(orgname, task):
-    db.zrem('org-tasks2>%s' % orgname, task)
-
 def get_tasks_from_tag(tagname):
     return db.smembers('tag-tasks>%s>' % tagname)
 
-def add_task_to_queue(taskname, queuename):
-    db.zadd('queue-tasks2>%s' % queuename,  _default_score(), taskname)
-
-def remove_from_queue(taskname, queuename):
-    db.zrem('queue-tasks2>%s' % queuename, taskname)
-
-def move_task(taskname, from_queuename=None, to_queuename=None):
-    if from_queuename and to_queuename:
-        add_task_to_queue(taskname, to_queuename)
-        remove_from_queue(taskname, from_queuename)
-    elif not from_queuename:
-        add_task_to_queue(taskname, to_queuename)
-    elif not to_queuename:
-        remove_from_queue(taskname, from_queuename)
-
 def set_tags(task_id, updated_tags):
-    task = get_task(task_id)
+    task = task_model.get(task_id)
     current_tags = set(task['tags'].split(','))
     updated_tags = set(updated_tags)
 
@@ -299,21 +253,6 @@ def update_task(task_id, update_field, update_value):
 def update_user(username, update_field, update_value):
     if update_field == 'name':
         db.hset('user>%s' % username, 'name', update_value)
-
-def delete_task(task_id, orgname):
-    set_tags(task_id, [])
-    task = get_task(task_id)
-    with db.pipeline() as pipe:
-        try:
-            pipe.multi()
-            pipe.delete('task>%s' % task_id)
-            pipe.zrem('org-tasks2>%s' % orgname, task_id)
-            pipe.execute()
-        except:
-            if settings.DEBUG:
-                raise
-        finally:
-            pipe.reset()
 
 def create_queue(name, orgname, overwrite=False):
     db.zadd('org-queues2>%s' % orgname, _default_score(), name)
