@@ -6,28 +6,16 @@ from taskmaster import settings
 from taskmaster.db.utils.redis_conn import db, execute_multi, test as test_redis_db
 from taskmaster.db.models.task import TaskModel
 from taskmaster.db.models.org import OrgModel
+from taskmaster.db.models.style_rules import StyleRules
 from taskmaster.db.models.user import UserModel
 from taskmaster.db.models.queue import QueueModel
 from taskmaster.db.utils.base_models import FieldConflict, NotFound
 
 task_model = TaskModel()
 org_model = OrgModel()
+style_rules = StyleRules()
 user_model = UserModel()
 queue_model = QueueModel()
-
-def get_user_preferences(username):
-    '''
-    Various user level preferences, hard-coded for now
-    '''
-
-    return {
-        'style_rules': [
-            {
-                'rule': 'status:done',
-                'class': 'striked',
-            }
-        ]
-    }
 
 def get_saved_filters(username):
     filter_names = db.smembers('user-filters>%s' % username)

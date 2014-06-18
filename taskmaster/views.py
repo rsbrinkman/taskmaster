@@ -1,7 +1,7 @@
 import json
 import urllib
 from taskmaster import app, db, settings
-from taskmaster.db import task_model, org_model, user_model, queue_model, test_redis_db, FieldConflict, NotFound
+from taskmaster.db import task_model, org_model, user_model, queue_model, style_rules, test_redis_db, FieldConflict, NotFound
 from flask import render_template, request, Response, g, redirect, url_for, flash
 from datetime import datetime
 from functools import wraps
@@ -75,8 +75,6 @@ def _task_state(org_id=None):
 
     tags = list(db.get_used_tags())
 
-    preferences = db.get_user_preferences(default_user)
-
     filters = db.get_saved_filters(g.user)
 
     org_users = list(org_model.get_users(org_id))
@@ -88,7 +86,7 @@ def _task_state(org_id=None):
         'tags': tags,
         'taskmap': taskmap,
         'users': users,
-        'preferences': preferences,
+        'preferences': style_rules.get(org_id),
         'filtermap': filters,
         'user' : g.user,
         'orgs': orgs,
