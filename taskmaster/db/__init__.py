@@ -5,12 +5,15 @@ import datetime, time
 from taskmaster import settings
 from taskmaster.db.utils.redis_conn import db, execute_multi, test as test_redis_db
 from taskmaster.db.models.task import TaskModel
-from passlib.apps import custom_app_context
+from taskmaster.db.models.org import OrgModel
+from taskmaster.db.models.user import UserModel
+from taskmaster.db.models.queue import QueueModel
+from taskmaster.db.utils.base_models import FieldConflict, NotFound
 
 task_model = TaskModel()
-
-class UserConflict(Exception):
-    pass
+org_model = OrgModel()
+user_model = UserModel()
+queue_model = QueueModel()
 
 def get_user_preferences(username):
     '''
@@ -57,26 +60,6 @@ def delete_filter(username, filter_name):
         p.srem('user-filters>%s' % username, filter_name)
 
     execute_multi(m)
-
-def update_queue_order(orgname, updates):
-    db.zadd('org-queues2>%s' % orgname, *updates)
-
-def get_org_queues(orgname):
-    queues = db.zrange('org-queues2>%s' % orgname, 0, -1)
-
-    with db.pipeline() as pipe:
-        try:
-            pipe.multi()
-            for queue in queues:
-                pipe.zrange('queue-tasks2>%s' % queue, 0, -1)
-            queue_tasks = pipe.execute()
-        except:
-            if settings.DEBUG:
-                raise
-        finally:
-            pipe.reset()
-
-    return zip(queues, (list(tasks) for tasks in queue_tasks))
 
 def get_tasks_from_tag(tagname):
     return db.smembers('tag-tasks>%s>' % tagname)
@@ -129,103 +112,3 @@ def set_tags(task_id, updated_tags):
 
 def get_used_tags():
     return db.smembers('used-tags')
-
-def get_user(username):
-    user = db.hgetall('user>%s' % username)
-    user['orgs'] = list(get_user_orgs(username))
-
-    return user
-
-def create_org(orgname, followers=None, admin=None, overwrite=False):
-    if admin:
-        db.sadd('org>%s' % orgname, admin)
-        db.sadd('user>orgs>%s' % admin, orgname)
-
-        if overwrite:
-            db.delete('org-tasks2>%s' % orgname)
-
-def get_org(search_string):
-    org = db.smembers('org>%s' % search_string)
-    if org:
-        return search_string
-    else:
-        return None
-def add_user_to_org(orgname, user, level='admin'):
-    if level == 'admin':
-        db.sadd('org>%s' % orgname, user)
-
-    # Also update user object
-    db.sadd('user>orgs>%s' % user, orgname)
-
-def get_org_users(orgname, level='admin'):
-    if level == 'admin':
-
-        return db.smembers('org>%s' % orgname)
-
-def get_user_orgs(user, level='admin'):
-    if level == 'admin':
-
-        return db.smembers('user>orgs>%s' % user)
-
-def create_user(username, name, password):
-    key = 'user>%s' % username
-
-    if db.exists(key):
-        raise UserConflict
-
-    user = {
-        'name': name,
-        'username': username,
-        'password_hash': custom_app_context.encrypt(password)
-    }
-
-    db.hmset(key, user)
-
-    return _generate_token(username)
-
-def login_user(username, password):
-    password_hash = db.hget("user>%s" % username, 'password_hash')
-
-    if password_hash and custom_app_context.verify(password, password_hash):
-        return _generate_token(username)
-
-def _generate_token(username):
-    # TODO to do this properly we'll need to
-    #   1. set a timeout on the auth token
-    #   2. probably reset the timeout every verification
-    #   3. do everything over https
-    auth_token = uuid.uuid4().hex
-    db.hset("user>%s" % username, 'token', auth_token)
-
-    return auth_token
-
-def logout_user(username):
-    db.hdel("user>%s" % username, 'token')
-
-def verify_token(username, provided_token):
-    stored_token = db.hget("user>%s" % username, 'token')
-    return stored_token and stored_token == provided_token
-
-def update_user(username, update_field, update_value):
-    if update_field == 'name':
-        db.hset('user>%s' % username, 'name', update_value)
-
-def create_queue(name, orgname, overwrite=False):
-    db.zadd('org-queues2>%s' % orgname, _default_score(), name)
-
-    if overwrite:
-        db.delete('queue-tasks2>%s' % name)
-
-def update_queue(queue_name, update_field, update_value):
-    #TODO, need to give queues unique ids like tasks rather than using
-    # the queue name, otherwise can't easily update it without breaking
-    # references
-    pass
-
-def delete_queue(name, orgname):
-    db.zrem('org-queues2>%s' % orgname, name)
-
-def _default_score():
-    # Use current epoch time as the score for the sorted set,
-    # guarantees that newly added members will be at the end
-    return time.mktime(datetime.datetime.now().timetuple()) * 1000

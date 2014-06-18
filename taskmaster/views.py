@@ -1,8 +1,7 @@
 import json
-import ast
 import urllib
 from taskmaster import app, db, settings
-from taskmaster.db import task_model, test_redis_db
+from taskmaster.db import task_model, org_model, user_model, queue_model, test_redis_db, FieldConflict, NotFound
 from flask import render_template, request, Response, g, redirect, url_for, flash
 from datetime import datetime
 from functools import wraps
@@ -12,7 +11,7 @@ default_user = 'Joe'
 def require_user(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if g.user and g.token and db.verify_token(g.user, g.token):
+        if g.user and g.token and user_model.verify_token(g.user, g.token):
             return f(*args, **kwargs)
         else:
             flash('Please login and select a project')
@@ -24,7 +23,7 @@ def require_org(f):
     @wraps(f)
     @require_user
     def decorated_function(*args, **kwargs):
-        if g.org and g.org in db.get_user_orgs(g.user):
+        if g.org and org_model.has_user(g.org, g.user):
             return f(*args, **kwargs)
         else:
             flash('Please select a project')
@@ -32,7 +31,7 @@ def require_org(f):
 
     return decorated_function
 
-def _task_state(org=None):
+def _task_state(org_id=None):
     '''
     Returns a JSON representation of the user's current tasks and queues, used to
     render the client-side DOM.
@@ -56,14 +55,10 @@ def _task_state(org=None):
     }
     '''
     # Get the user's orgs
-    orgs = list(db.get_user_orgs(g.user))
+    orgs = list(org_model.get_for_user(g.user))
 
-    # Get a chosen or default org
-    if not org:
-        # this is dumb, but easy until we build a 'primary' org concept
-        org = orgs[0]
     # Get set of assigned tasks
-    org_tasks = list(task_model.get_for_org(org))
+    org_tasks = list(task_model.get_for_org(org_id))
 
     # Iterate over assigned tasks and build tasks object
     taskmap = {}
@@ -74,17 +69,9 @@ def _task_state(org=None):
             retrieved_task['tags'] = tags
             taskmap[retrieved_task['id']] = retrieved_task
         else:
-            task_model.remove_from_org(org, task)
+            task_model.remove_from_org(org_id, task)
 
-    # (queuename, queuetasks)
-    queue_tasks = db.get_org_queues(org)
-    queuemap = {}
-    for queue in queue_tasks:
-        queuemap[queue[0]] = {
-            'id': queue[0],
-            'tasks': queue[1]
-        }
-    queues = [queue[0] for queue in queue_tasks]
+    queues = queue_model.get_for_org(org_id)
 
     tags = list(db.get_used_tags())
 
@@ -92,20 +79,20 @@ def _task_state(org=None):
 
     filters = db.get_saved_filters(g.user)
 
-    users = list(db.get_org_users(org))
+    org_users = list(org_model.get_users(org_id))
+    users = [user_model.get(user_id, include=['name', 'id']) for user_id in org_users]
 
     return {
         'tasks': org_tasks,
         'queues': queues,
         'tags': tags,
         'taskmap': taskmap,
-        'queuemap': queuemap,
         'users': users,
         'preferences': preferences,
         'filtermap': filters,
         'user' : g.user,
         'orgs': orgs,
-        'org': org
+        'org': org_model.get(org_id)
     }
 
 @app.before_request
@@ -126,7 +113,7 @@ def test_db():
 @app.route('/admin')
 @require_user
 def admin():
-    user = db.get_user(g.user)
+    user = user_model.get(g.user)
     return render_template('admin.html', user=user)
 
 @app.route('/signup')
@@ -135,79 +122,91 @@ def signup():
 
 @app.route('/user', methods=['POST'])
 def create_user():
-    email = request.form['email']
-    name = request.form['name']
-    password = request.form['password']
+    user_dict = {
+        'email': request.form['email'],
+        'name': request.form['name'],
+        'password': request.form['password'],
+    }
 
     try:
-        token = db.create_user(email, name, password)
+        user = user_model.create(user_dict)
+        for example_org_name in settings.EXAMPLE_ORGS:
+            org_id = org_model.id_from_name(example_org_name)
+            if org_id:
+                org_model.add_user(org_id, user['id'])
 
-        for example_org in settings.EXAMPLE_ORGS:
-            db.add_user_to_org(example_org, email)
-
-        return Response(token, status=201)
-    except db.UserConflict:
-        return Response("Email address already in use", status=409)
+        return Response(json.dumps(user), status=201, content_type='application/json')
+    except FieldConflict, e:
+        return Response(e.message, status=409)
 
 @app.route('/authenticate', methods=['POST'])
 def authenticate():
-    token = db.login_user(request.form['email'], request.form['password'])
+    try:
+        user = user_model.login(request.form['email'], request.form['password'])
+    except NotFound:
+        user = None
 
-    if token:
-        return Response(token, status=200)
+    if user:
+        return Response(json.dumps(user), status=200, content_type='application/json')
     else:
         return Response('Email address and password do not match any user', status=400)
 
 @app.route('/logout', methods=['POST'])
 @require_user
 def logout():
-    db.logout_user(g.user)
+    user_model.logout(g.user)
     return Response(status=200)
 
-@app.route('/user/<username>/<update_field>/<update_value>', methods=['POST'])
-def update_user(username, update_field, update_value):
-    db.update_user(username, update_field, update_value)
-
+@app.route('/user/<user_id>/<update_field>/<update_value>', methods=['POST'])
+def update_user(user_id, update_field, update_value):
+    user_model.update(user_id, update_field, update_value)
     return Response(status=200)
 
 @app.route('/org/<orgname>', methods=['POST'])
 def create_org(orgname):
-    if request.method == 'POST':
-        users = request.form['users']
-        db.create_org(orgname, admin=users)
+    org = {
+        'owner': g.user,
+        'name': orgname,
+    }
 
-    return Response(status=200)
+    org = org_model.create(org)
+
+    return Response(json.dumps(org), status=201, content_type='application/json')
 
 @app.route('/org/<orgname>/user/<username>', methods=['POST'])
 def add_user_to_org(orgname, username):
     if request.method == 'POST':
-        db.add_user_to_org(orgname, username)
+        org_id = org_model.id_from_name(orgname)
+        user_id = user_model.id_from_email(username)
 
-    return Response(status=200)
+        org_model.add_user(org_id, user_id)
+        org = org_model.get(org_id)
+
+    return Response(json.dumps(org), status=200, content_type='application/json')
 
 @app.route('/orgs/<orgname>', methods=['POST'])
 def search_org(orgname):
     if request.method == 'POST':
-        org = db.get_org(orgname)
-    return Response(json.dumps(org), content_type='application/json')
+        org_id = org_model.id_from_name(orgname)
+        org = org_model.get(org_id)
 
+    return Response(json.dumps(org), content_type='application/json')
 
 @app.route('/task', methods=['POST'])
 def create_task():
-    task = {}
-    if request.method == 'POST':
-        task['name'] = request.form['task-name']
-        # Grab the org from the cookie
-        task['org'] = g.org
-        task['description'] = request.form['task-description']
-        task['status'] = request.form['task-status']
-        task['assignee'] = request.form['task-assignee']
-        task['created_date'] = str(datetime.now().date())
-        task['queue'] = request.form['task-queue']
+    task = {
+        'name': request.form['task-name'],
+        'org': g.org,
+        'description': request.form['task-description'],
+        'status': request.form['task-status'],
+        'assignee': request.form['task-assignee'],
+        'created_date': str(datetime.now().date()),
+        'queue': request.form['task-queue'],
+    }
 
-        task = task_model.create(task)
+    task = task_model.create(task)
 
-    return Response(json.dumps(task), content_type='application/json')
+    return Response(json.dumps(task), status=201, content_type='application/json')
 
 @app.route('/queue_form', methods=['GET'])
 def show_queue_form():
@@ -216,16 +215,13 @@ def show_queue_form():
 
 @app.route('/queue/<name>', methods=['POST'])
 def create_queue(name):
-    db.create_queue(name, g.org)
-
-    #TODO unified way to get json from queue, duplicated in _get_state
     queue_obj = {
-        'id': name,
-        'tasks': [],
-        'selected': False,
+        'name': name,
+        'org': g.org,
     }
 
-    return Response(json.dumps(queue_obj), content_type='application/json')
+    queue = queue_model.create(queue_obj)
+    return Response(json.dumps(queue), status=201, content_type='application/json')
 
 @app.route('/task/<task_id>', methods=['DELETE'])
 def delete_task(task_id):
@@ -251,7 +247,7 @@ def manage_user_filter(filtername):
 
 @app.route('/order/queue/', methods=['PUT'])
 def update_queue_order():
-    db.update_queue_order(g.org, json.loads(request.form['updates']))
+    queue_model.update_order(g.org, json.loads(request.form['updates']))
     return Response(status=200)
 
 @app.route('/order/task/', methods=['PUT'])
@@ -260,20 +256,19 @@ def update_task_order(queue_name=''):
     task_model.update_order(g.org, json.loads(request.form['updates']), queue_name=queue_name)
     return Response(status=200)
 
-@app.route('/queue/<queue_name>', methods=['DELETE'])
-def delete_queue(queue_name):
+@app.route('/queue/<queue_id>', methods=['DELETE'])
+def delete_queue(queue_id):
     if request.method == 'DELETE':
-        db.delete_queue(queue_name, g.org)
+        queue_model.delete(queue_id)
         return Response(status=200)
 
-@app.route('/queue/<queue_name>/update/<update_field>/<update_value>', methods=['POST'])
-def update_queue(queue_name, update_field, update_value):
-    db.update_queue(queue_name, update_field, update_value)
+@app.route('/queue/<queue_id>/update/<update_field>/<update_value>', methods=['POST'])
+def update_queue(queue_id, update_field, update_value):
+    queue_model.update(queue_id, update_field, update_value)
     return Response(status=200)
 
 @app.route('/task/<task_id>/update/<update_field>/', methods=['POST'])
 @app.route('/task/<task_id>/update/<update_field>/<update_value>', methods=['POST'])
 def update_task(task_id, update_field, update_value=''):
     task_model.update(task_id, update_field, update_value)
-
     return Response(status=200)

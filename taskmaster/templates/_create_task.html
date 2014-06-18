@@ -29,8 +29,8 @@
             <label for="new-task-queue">Queue</label>
             <select class="form-control new-task-queues" name="task-queue">
                 <option name='no-queue'></option>
-                <% _.each(STATE.queues, function(queueName) { %>
-                    <option name='<%= queueName %>' data-queue-id='<%= queueName %>' value='<%= queueName %>'><%= queueName %></option>
+                <% _.each(STATE.queues, function(queue) { %>
+                    <option name='<%= queue.name %>' data-queue-id='<%= queue.id %>' value='<%= queue.id %>'><%= queue.name %></option>
                 <% });  %>
             </select>
         </div>
