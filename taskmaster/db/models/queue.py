@@ -1,4 +1,4 @@
-from taskmaster.db.utils.redis_conn import db, execute_multi, default_score
+from taskmaster.db.utils.redis_conn import db, default_score
 from taskmaster.db.utils.base_models import CRUDModel
 from taskmaster.db.models.task import TaskModel
 
@@ -7,15 +7,11 @@ task_model = TaskModel()
 class QueueModel(CRUDModel):
     KEY = 'task>%s'
     ORG_QUEUES_KEY = 'org-queues2>%s'
-
     REQUIRED_FIELDS = ['org', 'name']
-
-    DEFAULTS = {
-        'selected': False,
-    }
 
     def _post_create(self, db_pipe, queue_id, queue):
         db_pipe.zadd(self.ORG_QUEUES_KEY % queue['org'], default_score(), queue_id)
+        queue['tasks'] = []
 
     def _post_delete(self, db_pipe, queue_id, queue):
         db_pipe.zrem(self.ORG_QUEUES_KEY % queue['org'], queue_id)

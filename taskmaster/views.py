@@ -1,7 +1,7 @@
 import json
 import urllib
 from taskmaster import app, db, settings
-from taskmaster.db import task_model, org_model, user_model, queue_model, test_redis_db, FieldConflict
+from taskmaster.db import task_model, org_model, user_model, queue_model, test_redis_db, FieldConflict, NotFound
 from flask import render_template, request, Response, g, redirect, url_for, flash
 from datetime import datetime
 from functools import wraps
@@ -72,7 +72,6 @@ def _task_state(org_id=None):
             task_model.remove_from_org(org_id, task)
 
     queues = queue_model.get_for_org(org_id)
-    queuemap = {queue['id']:queue for queue in queues}
 
     tags = list(db.get_used_tags())
 
@@ -80,14 +79,14 @@ def _task_state(org_id=None):
 
     filters = db.get_saved_filters(g.user)
 
-    users = list(org_model.get_users(org_id))
+    org_users = list(org_model.get_users(org_id))
+    users = [user_model.get(user_id, include=['name', 'id']) for user_id in org_users]
 
     return {
         'tasks': org_tasks,
         'queues': queues,
         'tags': tags,
         'taskmap': taskmap,
-        'queuemap': queuemap,
         'users': users,
         'preferences': preferences,
         'filtermap': filters,
@@ -134,7 +133,7 @@ def create_user():
         for example_org_name in settings.EXAMPLE_ORGS:
             org_id = org_model.id_from_name(example_org_name)
             if org_id:
-                org_model.add_user(org_id, user['email'])
+                org_model.add_user(org_id, user['id'])
 
         return Response(json.dumps(user), status=201, content_type='application/json')
     except FieldConflict, e:
@@ -142,7 +141,10 @@ def create_user():
 
 @app.route('/authenticate', methods=['POST'])
 def authenticate():
-    user = user_model.login(request.form['email'], request.form['password'])
+    try:
+        user = user_model.login(request.form['email'], request.form['password'])
+    except NotFound:
+        user = None
 
     if user:
         return Response(json.dumps(user), status=200, content_type='application/json')
@@ -163,7 +165,7 @@ def update_user(user_id, update_field, update_value):
 @app.route('/org/<orgname>', methods=['POST'])
 def create_org(orgname):
     org = {
-        'owner': request.form['users'],
+        'owner': g.user,
         'name': orgname,
     }
 

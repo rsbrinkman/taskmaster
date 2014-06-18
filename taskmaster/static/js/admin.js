@@ -1,15 +1,12 @@
   $('#create-org').click(function () {
     var org = $('#org-name').val();
-    var users = $('#users').val();
     $.ajax({
       type: 'POST',
       url: '/org/' + org,
-      data:{ 'users': users },
       success: function(org) {
         $('.org-creation-results').empty()
         $('.org-creation-results').append(org.name + ' created!');
         $('.my-org-list').append('<li data-org-id="' + org.id + '">' + org.name + '</li>');
-        addUserToOrg(users, org.name);
       }
     });
   });

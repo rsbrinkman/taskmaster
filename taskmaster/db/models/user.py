@@ -1,7 +1,7 @@
 import uuid
 from passlib.apps import custom_app_context
 from taskmaster.db.utils.redis_conn import db
-from taskmaster.db.utils.base_models import CRUDModel, FieldConflict
+from taskmaster.db.utils.base_models import CRUDModel, FieldConflict, NotFound
 from taskmaster.db.models.org import OrgModel
 
 org_model = OrgModel()
@@ -23,7 +23,7 @@ class UserModel(CRUDModel):
             raise FieldConflict("E-mail address", user['email'])
 
         db_pipe.set(self.ADDRESSES_KEY % user['email'], user_id)
-        self._generate_token(user_id, db_pipe=db_pipe)
+        user['token'] = self._generate_token(user_id, db_pipe=db_pipe)
 
     def _post_get(self, user_id):
         return {
@@ -42,11 +42,17 @@ class UserModel(CRUDModel):
 
     def login(self, email, password):
         user_id = self.id_from_email(email)
+
+        if not user_id:
+            raise NotFound
+
         user = self.get(user_id)
         password_hash = user['password_hash']
         valid_password = password_hash and custom_app_context.verify(password, password_hash)
 
-        if valid_password and self._generate_token(user_id):
+        if valid_password:
+            auth_token = self._generate_token(user_id)
+            user['token'] = auth_token
             return user
 
     def logout(self, user_id):

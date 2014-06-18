@@ -11,10 +11,13 @@ class OrgModel(CRUDModel):
     USER_ORGS_KEY = 'user>orgs>%s'
     ORG_NAMES_KEY  = 'org-names>%s'
 
-    REQUIRED_FIELDS = ['owner', 'name']
+    # TODO Temporarily allow orgs to be created without owners
+    # switch back after properly sandboxed example orgs
+    REQUIRED_FIELDS = ['name']
 
     def _post_create(self, db_pipe, org_id, org):
-        self.add_user(org_id, org['owner'], level='admin', db_pipe=db_pipe)
+        if 'owner' in org:
+            self.add_user(org_id, org['owner'], level='admin', db_pipe=db_pipe)
         #TODO duplicate name check?
         db_pipe.set(self.ORG_NAMES_KEY % org['name'], org_id)
 

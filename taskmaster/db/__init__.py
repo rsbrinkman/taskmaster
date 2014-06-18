@@ -8,7 +8,7 @@ from taskmaster.db.models.task import TaskModel
 from taskmaster.db.models.org import OrgModel
 from taskmaster.db.models.user import UserModel
 from taskmaster.db.models.queue import QueueModel
-from taskmaster.db.utils.base_models import FieldConflict
+from taskmaster.db.utils.base_models import FieldConflict, NotFound
 
 task_model = TaskModel()
 org_model = OrgModel()

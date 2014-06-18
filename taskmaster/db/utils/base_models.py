@@ -1,5 +1,9 @@
+import json
 import uuid
 from taskmaster.db.utils.redis_conn import db, execute_multi
+
+class NotFound(Exception):
+    pass
 
 class FieldConflict(Exception):
     def __init__(self, field, value):
@@ -13,6 +17,7 @@ class CRUDModel(object):
     KEY = ''
     REQUIRED_FIELDS = []
     DEFAULTS = {}
+    PARAMS_TO_ENCODE = set([])
 
     def create(self, attributes, db_pipe=None):
         for required in self.REQUIRED_FIELDS:
@@ -21,6 +26,9 @@ class CRUDModel(object):
 
         obj = dict(self.DEFAULTS.items() + attributes.items())
         _id = uuid.uuid4().hex
+
+        for p in self.PARAMS_TO_ENCODE:
+            obj[p] = json.dumps(obj[p])
 
         def m(p):
             self._create(p, _id, obj)
@@ -33,6 +41,7 @@ class CRUDModel(object):
 
         obj['id'] = _id
 
+
         return obj
 
     def _create(self, db_pipe, _id, obj):
@@ -41,17 +50,28 @@ class CRUDModel(object):
     def _post_create(self, db_pipe, _id, obj):
         pass
 
-    def get(self, _id):
+    def get(self, _id, include=None):
         obj = db.hgetall(self.KEY % _id)
-        obj['id'] = _id
-        obj.update(self._post_get(_id))
-        return obj
+        if obj:
+            obj['id'] = _id
+            obj.update(self._post_get(_id))
+
+            for p in self.PARAMS_TO_ENCODE:
+                obj[p] = json.loads(obj[p])
+
+            if include:
+                obj = { k: obj[k] for k in include }
+
+            return obj
 
     # pylint: disable-msg=W0613
     def _post_get(self, _id):
         return {}
 
     def update(self, _id, field, value, db_pipe=None):
+        if value in self.PARAMS_TO_ENCODE:
+            value = json.dumps(value)
+
         def m(p):
             p.hset(self.KEY % _id, field, value)
             try:
