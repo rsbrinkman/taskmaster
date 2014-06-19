@@ -9,6 +9,7 @@ from taskmaster.db.models.org import OrgModel
 from taskmaster.db.models.style_rules import StyleRules
 from taskmaster.db.models.user import UserModel
 from taskmaster.db.models.queue import QueueModel
+from taskmaster.db.models.tags import Tags
 from taskmaster.db.utils.base_models import FieldConflict, NotFound
 
 task_model = TaskModel()
@@ -16,6 +17,7 @@ org_model = OrgModel()
 style_rules = StyleRules()
 user_model = UserModel()
 queue_model = QueueModel()
+tags_model = Tags()
 
 def get_saved_filters(username):
     filter_names = db.smembers('user-filters>%s' % username)
@@ -48,55 +50,3 @@ def delete_filter(username, filter_name):
         p.srem('user-filters>%s' % username, filter_name)
 
     execute_multi(m)
-
-def get_tasks_from_tag(tagname):
-    return db.smembers('tag-tasks>%s>' % tagname)
-
-def set_tags(task_id, updated_tags):
-    task = task_model.get(task_id)
-    current_tags = set(task['tags'].split(','))
-    updated_tags = set(updated_tags)
-
-
-    tags_to_remove = current_tags.difference(updated_tags)
-    tags_to_add = updated_tags.difference(current_tags)
-
-    task['tags'] = ','.join(updated_tags)
-
-    with db.pipeline() as pipe:
-        try:
-            pipe.multi()
-            for tag in tags_to_remove:
-                pipe.srem('tag-tasks>%s' % tag, task_id)
-            for tag in tags_to_add:
-                pipe.sadd('tag-tasks>%s' % tag, task_id)
-                pipe.sadd('used-tags', tag)
-            pipe.hmset('task>%s' % task_id, task)
-            pipe.execute()
-        except:
-            if settings.DEBUG:
-                raise
-        finally:
-            pipe.reset()
-
-    # Remove any tags that are no longer used
-    with db.pipeline() as pipe:
-        try:
-            pipe.multi()
-            for tag in tags_to_remove:
-                pipe.scard('tag-tasks>%s' % tag)
-            tag_uses = pipe.execute()
-
-            pipe.multi()
-            for tag, uses in zip(tags_to_remove, tag_uses):
-                if not uses:
-                    pipe.srem('used-tags', tag)
-            pipe.execute()
-        except:
-            if settings.DEBUG:
-                raise
-        finally:
-            pipe.reset()
-
-def get_used_tags():
-    return db.smembers('used-tags')

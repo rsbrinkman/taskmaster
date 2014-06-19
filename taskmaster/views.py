@@ -1,12 +1,10 @@
 import json
 import urllib
 from taskmaster import app, db, settings
-from taskmaster.db import task_model, org_model, user_model, queue_model, style_rules, test_redis_db, FieldConflict, NotFound
+from taskmaster.db import task_model, org_model, user_model, queue_model, style_rules, tags_model, test_redis_db, FieldConflict, NotFound
 from flask import render_template, request, Response, g, redirect, url_for, flash
 from datetime import datetime
 from functools import wraps
-
-default_user = 'Joe'
 
 def require_user(f):
     @wraps(f)
@@ -73,7 +71,7 @@ def _task_state(org_id=None):
 
     queues = queue_model.get_for_org(org_id)
 
-    tags = list(db.get_used_tags())
+    tags = list(tags_model.get_for_org(org_id))
 
     filters = db.get_saved_filters(g.user)
 
@@ -229,8 +227,7 @@ def delete_task(task_id):
 
 @app.route('/task/<task_id>/tags/', methods=['POST'])
 def task_tags(task_id):
-    db.set_tags(task_id, json.loads(request.form['tags']))
-
+    tags_model.set(task_id, json.loads(request.form['tags']))
     return Response(status=200)
 
 @app.route('/filter/<filtername>/', methods=['POST', 'DELETE'])

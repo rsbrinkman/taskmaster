@@ -1,9 +1,4 @@
-from taskmaster.db.utils.base_models import CRUDModel
-from taskmaster.db.models.task import TaskModel
-
-task_model = TaskModel()
-
-class StyleRules(CRUDModel):
+class StyleRules(object):
     def get(self, org_id):
         return {
             'style_rules': [
