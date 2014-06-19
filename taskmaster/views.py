@@ -1,7 +1,7 @@
 import json
 import urllib
-from taskmaster import app, db, settings
-from taskmaster.db import task_model, org_model, user_model, queue_model, style_rules, tags_model, test_redis_db, FieldConflict, NotFound
+from taskmaster import app, settings
+from taskmaster.db import task_model, org_model, user_model, queue_model, style_rules, tags_model, filter_model, test_redis_db, FieldConflict, NotFound
 from flask import render_template, request, Response, g, redirect, url_for, flash
 from datetime import datetime
 from functools import wraps
@@ -73,7 +73,7 @@ def _task_state(org_id=None):
 
     tags = list(tags_model.get_for_org(org_id))
 
-    filters = db.get_saved_filters(g.user)
+    filtermap = {filter_id: filter_model.get(filter_id) for filter_id in filter_model.get_for_org(org_id)}
 
     org_users = list(org_model.get_users(org_id))
     users = [user_model.get(user_id, include=['name', 'id']) for user_id in org_users]
@@ -85,7 +85,7 @@ def _task_state(org_id=None):
         'taskmap': taskmap,
         'users': users,
         'preferences': style_rules.get(org_id),
-        'filtermap': filters,
+        'filtermap': filtermap,
         'user' : g.user,
         'orgs': orgs,
         'org': org_model.get(org_id)
@@ -233,11 +233,14 @@ def task_tags(task_id):
 @app.route('/filter/<filtername>/', methods=['POST', 'DELETE'])
 def manage_user_filter(filtername):
     if request.method == 'POST':
-        rule = request.form['rule']
-        obj = db.create_filter(g.user, filtername, rule)
+        obj = filter_model.create({
+            'name': filtername,
+            'rule': request.form['rule'],
+            'org': g.org,
+        })
         return Response(json.dumps(obj), content_type='application/json')
     elif request.method == 'DELETE':
-        db.delete_filter(g.user, filtername)
+        filter_model.delete(filtername)
         return Response(status=200)
 
 @app.route('/order/queue/', methods=['PUT'])

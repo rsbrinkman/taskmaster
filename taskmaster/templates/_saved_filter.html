@@ -1,7 +1,7 @@
 <script data-template-name="saved-filter" type="underscore">
   <span class="filter-name" title="<%= rule %>">
-  <input type="checkbox" <% if (selected) { %> checked <% } %> data-name="<%= name %>"><%= name %></input>
-  <span class="glyphicon glyphicon-remove remove-filter" data-name="<%= name %>"></span>
+  <input type="checkbox" <% if (selected) { %> checked <% } %> data-filter-id="<%= id %>"><%= name %></input>
+  <span class="glyphicon glyphicon-remove remove-filter" data-filter-id="<%= id %>"></span>
   <span class="vertical-bar"> | </span>
   </span>
 </script>

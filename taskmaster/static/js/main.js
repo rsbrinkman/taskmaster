@@ -231,7 +231,9 @@ function setEventHandlers() {
     }
   });
 
-  $('#save-filter').click(function() {
+  $('#save-filter').click(function(ev) {
+    ev.stopPropagation();
+    ev.preventDefault();
     saveFilter();
   });
 
@@ -242,13 +244,13 @@ function setEventHandlers() {
   });
 
   $('#saved-filters').on('click', '.remove-filter', function(ev) {
-    var name = $(this).data('name');
+    var filterId = $(this).data('filter-id');
     $.ajax({
-      url: '/filter/' + name + '/',
+      url: '/filter/' + filterId + '/',
       type: 'DELETE'
     });
 
-    delete STATE.filtermap[name];
+    delete STATE.filtermap[filterId];
     renderView();
   });
 
@@ -256,9 +258,9 @@ function setEventHandlers() {
     var $this = $(this);
 
     var selected = $this.prop('checked');
-    var name = $this.data('name');
+    var filterId = $this.data('filter-id');
 
-    STATE.filtermap[name].selected = selected;
+    STATE.filtermap[filterId].selected = selected;
     renderView();
   });
 
@@ -287,19 +289,17 @@ function saveFilter() {
       type: 'POST',
       data: {
         rule: rule
+      },
+      success: function(filter) {
+        filter.selected = true;
+        STATE.filtermap[filter.id] = filter;
+
+        $('#save-filter-name, #filter-tasks').val('');
+        STATE.searchString = '';
+        compileFilters();
+        renderView();
       }
     });
-
-    STATE.filtermap[name] = {
-      name: name,
-      rule: rule,
-      selected: true
-    }
-
-    $('#save-filter-name, #filter-tasks').val('');
-    STATE.searchString = '';
-    compileFilters();
-    renderView();
   }
 }
 
@@ -655,12 +655,8 @@ function renderQueueTasks(queue) {
 }
 
 function renderSavedFilters() {
-
-  var filter_names = _.keys(STATE.filtermap);
-  filter_names.sort();
-
-  var filterHTML =_.map(filter_names, function(name) {
-    var filter = _.clone(STATE.filtermap[name]);
+  var sortedFilters = _.sortBy(_.values(STATE.filtermap), 'name');
+  var filterHTML =_.map(sortedFilters, function(filter) {
     filter.rule = filter.rule.replace(/"/g, '&quot;');
     return TEMPLATES['saved-filter'](filter);
   });
@@ -682,7 +678,7 @@ function saveCookies() {
   var selectedFilters = [];
   _.each(STATE.filtermap, function(filter) {
     if (filter.selected) {
-      selectedFilters.push(filter.name);
+      selectedFilters.push(filter.id);
     }
   });
 
@@ -707,8 +703,8 @@ function loadCookies() {
         }
       });
 
-      _.each(view.selectedFilters, function(filterName) {
-        var filter = STATE.filtermap[filterName];
+      _.each(view.selectedFilters, function(filterId) {
+        var filter = STATE.filtermap[filterId];
         if (filter) {
           filter.selected = true;
         }
