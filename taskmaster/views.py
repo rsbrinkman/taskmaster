@@ -117,7 +117,8 @@ def admin():
 
 @app.route('/signup')
 def signup():
-    return render_template('sign_up.html')
+    user = request.args.get('email', '')
+    return render_template('sign_up.html', user=user)
 
 @app.route('/user', methods=['POST'])
 def create_user():
@@ -134,7 +135,7 @@ def create_user():
             if org_id:
                 org_model.add_user(org_id, user['id'])
 
-        events.mediator('signed_up', email=email, name=name)
+        #events.mediator('signed_up', email=email, name=name)
 
         return Response(json.dumps(user), status=201, content_type='application/json')
     except FieldConflict, e:
@@ -179,9 +180,14 @@ def add_user_to_org(orgname, username):
     if request.method == 'POST':
         org_id = org_model.id_from_name(orgname)
         user_id = user_model.id_from_email(username)
-        events.mediator('added_to_project', email=username, project=orgname)
-
-        org_model.add_user(org_id, user_id)
+        if user_model.id_from_email(user_id):
+            org_model.add_user(org_id, user_id)
+            print 'old user'
+            events.mediator('added_to_project', email=user_id, project=org_id)
+        else:
+            org_model.add_user(org_id, user_id)
+            print 'new user'
+            events.mediator('invite', email=user_id, project=org_id)
         org = org_model.get(org_id)
 
     return Response(json.dumps(org), status=200, content_type='application/json')
@@ -275,4 +281,9 @@ def update_queue(queue_id, update_field, update_value):
 @app.route('/task/<task_id>/update/<update_field>/<update_value>', methods=['POST'])
 def update_task(task_id, update_field, update_value=''):
     task_model.update(task_id, update_field, update_value)
+    if update_field == 'assignee':
+        events.mediator('assigned', task_id=task_id, email=update_value)
+    if update_field == 'status':
+        events.mediator('status_update', task_id=task_id)
+
     return Response(status=200)

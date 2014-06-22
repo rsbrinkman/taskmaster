@@ -1,12 +1,16 @@
-from taskmaster import app, emails, settings, listener
+from taskmaster import app, emails, settings
 from flask import request
 import db
+from taskmaster.db.models.user import UserModel
+from taskmaster.db.models.org import OrgModel
 import redis
 import urllib
 from flask_mail import Message
 from flask_mail import Mail
 
 mail = Mail(app)
+user_model = UserModel()
+org_model = OrgModel()
 BASE_URL = 'taskmaster.jpmunz.com/'
 FROM_EMAIL = 'hello@taskmaster.jpmunz.com'
 
@@ -26,17 +30,19 @@ def mediator(event, **kwargs):
     if event == 'assigned':
         task_name = db.hget('task>%s' % kwargs['task_id'], 'name')
         msg = Message("Assigned to Task", sender=FROM_EMAIL,
-                      recipients=[kwargs['email']], html=emails.ASSIGNED_TASK % {'base_url': BASE_URL, 'task': task_name})
+                      recipients=["rsbrinkman@gmail.com"], html=emails.ASSIGNED_TASK % {'base_url': BASE_URL, 'task': task_name})
         mail.send(msg)
     if event == 'status_update':
         task = db.hgetall('task>%s' % kwargs['task_id'])
         if task['assignee'] == urllib.unquote(request.cookies.get('user', '')):
             msg = Message("Task Status Updated", sender=FROM_EMAIL,
-                          recipients=[kwargs['email']], html=emails.TASK_STATUS_CHANGE % {
+                          recipients=['rsbrinkman@gmail.com'], html=emails.TASK_STATUS_CHANGE % {
                                 'base_url': BASE_URL, 'task': task['name'], 'status': task['status']})
             mail.send(msg)
-    if event == 'invited':
+    if event == 'invite':
+        org_name = org_model.get(org_id)
         msg = Message("You've Been Invited to Join Taskmaster!", sender=FROM_EMAIL,
-                      recipients=[kwargs['email']], html=emails.INVITED % {
-                        'base_url': BASE_URL, 'project': kwargs['org']})
+                      recipients=['rsbrinkman@gmail.com'], html=emails.INVITED % {
+                        'base_url': BASE_URL, 'project': kwargs['project'], 'email': kwargs['email']})
+        print msg
         mail.send(msg)

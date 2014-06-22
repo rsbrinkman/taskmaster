@@ -27,7 +27,7 @@ ASSIGNED_TASK = """
 """
 
 TASK_STATUS_CHANGE = """
-    <p>Your task %(task)s's status has been updated to %(status)s</p>
+    <p>The status of <strong>%(task)s</strong> has been updated to <strong>%(status)s</strong></p>
     <p>Thanks, <br>
     Taskmaster</p>
 """
@@ -38,7 +38,7 @@ INVITED = """
     <p>Taskmaster is social project management and someone wants you to join!</p>
     <p>To get started:<br>
     <ul>
-        <li><a href="%(base_url)s/signup" target="_blank">Sign Up</li>
+        <li><a href="%(base_url)s/signup&email=%(email)s" target="_blank">Sign Up</li>
         <li>Check out %(project)s, the project you were added to!</li>
         <li>Explore other example projects</li>
         <li>Create your own projects</li>

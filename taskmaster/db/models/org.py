@@ -1,6 +1,7 @@
 from taskmaster.db.utils.redis_conn import db, execute_multi
 from taskmaster.db.utils.base_models import CRUDModel
 from taskmaster.db.models.task import TaskModel
+from taskmaster import app, emails
 
 task_model = TaskModel()
 
@@ -23,7 +24,8 @@ class OrgModel(CRUDModel):
 
     def add_user(self, org_id, user_id, level='admin', db_pipe=db):
         if level == 'admin':
-            db_pipe.sadd(self.ADMINS_KEY % org_id, user_id)
+                db_pipe.sadd(self.ADMINS_KEY % org_id, user_id)
+
         db_pipe.sadd(self.USER_ORGS_KEY % user_id, org_id)
 
     def get_users(self, org_id, level='admin'):
@@ -39,3 +41,6 @@ class OrgModel(CRUDModel):
 
     def id_from_name(self, name):
         return db.get(self.ORG_NAMES_KEY % name)
+
+    def name_from_id(self, org_id):
+        return db.get(self.ORG_KEY % org_id)
