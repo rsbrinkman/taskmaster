@@ -1,4 +1,4 @@
-from taskmaster import app, emails, settings
+from taskmaster import app, emails, settings, listener
 from flask import request
 import db
 import redis
