@@ -58,6 +58,7 @@ def _task_state(org_id=None):
     # Get set of assigned tasks
     org_tasks = list(task_model.get_for_org(org_id))
 
+
     # Iterate over assigned tasks and build tasks object
     taskmap = {}
     for task in org_tasks:
@@ -227,7 +228,7 @@ def delete_task(task_id):
 
 @app.route('/task/<task_id>/tags/', methods=['POST'])
 def task_tags(task_id):
-    tags_model.set(task_id, json.loads(request.form['tags']))
+    tags_model.set(task_id, g.user, json.loads(request.form['tags']))
     return Response(status=200)
 
 @app.route('/filter/<filtername>/', methods=['POST', 'DELETE'])

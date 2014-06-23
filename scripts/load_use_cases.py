@@ -33,6 +33,6 @@ try:
                 }
 
                 created = task_model.create(task_obj)
-                tags_model.set(created['id'], project['tags'].get(task_id, []))
+                tags_model.set(created['id'], 'fake_user_id', project['tags'].get(task_id, []))
 except:
     print "Failed on project: %s, queue: %s, task: %s" % (project['name'], queue['name'], task['name'])
