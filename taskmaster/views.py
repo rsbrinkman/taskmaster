@@ -134,6 +134,10 @@ def create_user():
             org_id = org_model.id_from_name(example_org_name)
             if org_id:
                 org_model.add_user(org_id, user['id'])
+        # Add user to waiting list orgs
+        waiting_list = db.smembers('waiting_list>%s' % email)
+        for org_id in waiting_list:
+            org_model.add_user(org_id, user['id'])
 
         #events.mediator('signed_up', email=email, name=name)
 
@@ -182,11 +186,10 @@ def add_user_to_org(orgname, username):
         user_id = user_model.id_from_email(username)
         if user_model.id_from_email(user_id):
             org_model.add_user(org_id, user_id)
-            print 'old user'
             events.mediator('added_to_project', email=user_id, project=org_id)
         else:
-            org_model.add_user(org_id, user_id)
-            print 'new user'
+            # Add user to waiting list
+            org_model.add_to_waiting_list(username, org_id)
             events.mediator('invite', email=user_id, project=org_id)
         org = org_model.get(org_id)
 

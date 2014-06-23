@@ -24,8 +24,12 @@ def mediator(event, **kwargs):
         mail.send(msg)
 
     if event == 'added_to_project':
+        org_name = org_model.get(kwargs['project'])
+        org_name = org_name['name']
+        print org_name
         msg = Message("Added to Project", sender=FROM_EMAIL,
-                      recipients=[kwargs['email']], html=emails.ADDED_TO_PROJECT % {'base_url': BASE_URL, 'project': kwargs['project']})
+                      recipients=[kwargs['email']], html=emails.ADDED_TO_PROJECT % {'base_url': BASE_URL, 'project': org_name})
+        print msg
         mail.send(msg)
     if event == 'assigned':
         task_name = db.hget('task>%s' % kwargs['task_id'], 'name')
