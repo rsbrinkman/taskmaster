@@ -60,7 +60,7 @@ class UserModel(CRUDModel):
 
     def verify_token(self, user_id, provided_token):
         user = self.get(user_id)
-        return provided_token and user['token'] == provided_token
+        return provided_token and user and user['token'] == provided_token
 
     def id_from_email(self, email):
         return db.get(self.ADDRESSES_KEY % email)
