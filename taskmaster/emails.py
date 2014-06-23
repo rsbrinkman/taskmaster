@@ -14,7 +14,7 @@ WELCOME = """
 """
 
 ADDED_TO_PROJECT = """
-    <p>You've been added to a project! Check it out <a href="%(base_url)s" target="_blank">here</a> to get started</p>
+    <p>You've been added to project <strong>%(project)s</strong>! Check it out <a href="%(base_url)s" target="_blank">here</a> to get started</p>
 
     <p>Thanks, <br>
     Taskmaster</p>
@@ -38,7 +38,7 @@ INVITED = """
     <p>Taskmaster is social project management and someone wants you to join!</p>
     <p>To get started:<br>
     <ul>
-        <li><a href="%(base_url)s/signup&email=%(email)s" target="_blank">Sign Up</li>
+        <li><a href="%(base_url)ssignup?email=%(email)s" target="_blank">Sign Up</li>
         <li>Check out %(project)s, the project you were added to!</li>
         <li>Explore other example projects</li>
         <li>Create your own projects</li>

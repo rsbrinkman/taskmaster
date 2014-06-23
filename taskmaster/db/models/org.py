@@ -43,3 +43,6 @@ class OrgModel(CRUDModel):
 
     def add_to_waiting_list(self, email, org_id):
         db.sadd('waiting_list>%s' % email, org_id)
+
+    def get_waiting_list(self, email):
+        return db.smembers('waiting_list>%s' % email)
