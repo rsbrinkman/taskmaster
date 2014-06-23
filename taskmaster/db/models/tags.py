@@ -5,8 +5,9 @@ task_model = TaskModel()
 
 class Tags(object):
     ORG_TAGS = "org-tags>%s"
+    USER_TAGS = "user-tags>%s"
 
-    def set(self, task_id, updated_tags):
+    def set(self, task_id, user_id, updated_tags):
         task = task_model.get(task_id)
         current_tags = set(task['tags'].split(','))
         updated_tags = set(updated_tags)
@@ -19,8 +20,10 @@ class Tags(object):
 
             for tag in tags_to_add:
                 p.zincrby(self.ORG_TAGS % task['org'], tag, amount=1)
+                p.zincrby(self.USER_TAGS % user_id, tag, amount=1)
             for tag in tags_to_remove:
                 p.zincrby(self.ORG_TAGS % task['org'], tag, amount=-1)
+                p.zincrby(self.USER_TAGS % user_id, tag, amount=-1)
 
         execute_multi(m)
 

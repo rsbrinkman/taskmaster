@@ -5,7 +5,7 @@ from taskmaster.db.models.task import TaskModel
 task_model = TaskModel()
 
 class QueueModel(CRUDModel):
-    KEY = 'task>%s'
+    KEY = 'queue>%s'
     ORG_QUEUES_KEY = 'org-queues2>%s'
     REQUIRED_FIELDS = ['org', 'name']
 

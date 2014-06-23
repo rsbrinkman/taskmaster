@@ -1,4 +1,4 @@
-from taskmaster.db.utils.redis_conn import db, execute_multi
+from taskmaster.db.utils.redis_conn import db
 from taskmaster.db.utils.base_models import CRUDModel
 from taskmaster.db.models.task import TaskModel
 from taskmaster import app, emails
@@ -6,8 +6,7 @@ from taskmaster import app, emails
 task_model = TaskModel()
 
 class OrgModel(CRUDModel):
-    KEY = 'task>%s'
-    ORG_QUEUES_KEY = 'org-queues2>%s'
+    KEY = 'org>%s'
     ADMINS_KEY = 'org-admins>%s'
     USER_ORGS_KEY = 'user>orgs>%s'
     ORG_NAMES_KEY  = 'org-names>%s'
