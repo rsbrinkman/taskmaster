@@ -1,10 +1,8 @@
 import json
 import urllib
-from taskmaster import app, db, settings, emails, events
+from taskmaster import app, settings, events
 from taskmaster.db import task_model, org_model, user_model, queue_model, style_rules, tags_model, filter_model, test_redis_db, FieldConflict, NotFound
 from flask import render_template, request, Response, g, redirect, url_for, flash
-from flask_mail import Message
-from flask_mail import Mail
 from datetime import datetime
 from functools import wraps
 
@@ -140,8 +138,8 @@ def create_user():
         if waiting_list:
             for org_id in waiting_list:
                 org_model.add_user(org_id, user['id'])
-
-        events.mediator('signed_up', email=user['email'], name=user['name'])
+        else:
+            events.mediator('signed_up', email=user['email'], name=user['name'])
 
         return Response(json.dumps(user), status=201, content_type='application/json')
     except FieldConflict, e:
@@ -186,9 +184,9 @@ def add_user_to_org(orgname, username):
     if request.method == 'POST':
         org_id = org_model.id_from_name(orgname)
         user_id = user_model.id_from_email(username)
-        if user_model.id_from_email(username):
+        if user_id:
             org_model.add_user(org_id, user_id)
-            events.mediator('added_to_project', email=user_id, project=org_id)
+            events.mediator('added_to_project', email=username, project=org_id)
         else:
             # Add user to waiting list
             org_model.add_to_waiting_list(username, org_id)

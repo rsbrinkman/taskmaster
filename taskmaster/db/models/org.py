@@ -23,7 +23,7 @@ class OrgModel(CRUDModel):
 
     def add_user(self, org_id, user_id, level='admin', db_pipe=db):
         if level == 'admin':
-                db_pipe.sadd(self.ADMINS_KEY % org_id, user_id)
+            db_pipe.sadd(self.ADMINS_KEY % org_id, user_id)
 
         db_pipe.sadd(self.USER_ORGS_KEY % user_id, org_id)
 
