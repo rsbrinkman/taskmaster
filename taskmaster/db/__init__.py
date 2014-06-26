@@ -2,7 +2,7 @@ import uuid
 import json
 import redis
 import datetime, time
-from taskmaster import settings, events
+from taskmaster import settings
 from taskmaster.db.utils.redis_conn import db, execute_multi, test as test_redis_db
 from taskmaster.db.models.task import TaskModel
 from taskmaster.db.models.org import OrgModel

@@ -134,7 +134,7 @@ def create_user():
             if org_id:
                 org_model.add_user(org_id, user['id'])
         # Add user to waiting list orgs
-        waiting_list = org_model.get_waiting_list(user['email'])
+        waiting_list = user_model.get_waiting_list(user['email'])
         if waiting_list:
             for org_id in waiting_list:
                 org_model.add_user(org_id, user['id'])
@@ -189,7 +189,7 @@ def add_user_to_org(orgname, username):
             events.mediator('added_to_project', email=username, project=org_id)
         else:
             # Add user to waiting list
-            org_model.add_to_waiting_list(username, org_id)
+            user_model.add_to_waiting_list(username, org_id)
             events.mediator('invite', email=username, org_id=org_id)
 
         org = org_model.get(org_id)
@@ -215,7 +215,6 @@ def create_task():
         'created_date': str(datetime.now().date()),
         'queue': request.form['task-queue'],
     }
-
     task = task_model.create(task)
 
     return Response(json.dumps(task), status=201, content_type='application/json')
@@ -286,7 +285,7 @@ def update_queue(queue_id, update_field, update_value):
 def update_task(task_id, update_field, update_value=''):
     task_model.update(task_id, update_field, update_value)
     if update_field == 'assignee':
-        events.mediator('assigned', task_id=task_id, email=update_value)
+        events.mediator('assigned', task_id=task_id, user_id=update_value)
     if update_field == 'status':
         events.mediator('status_update', task_id=task_id)
 

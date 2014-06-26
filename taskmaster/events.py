@@ -1,21 +1,18 @@
 from taskmaster import app, emails, settings
-from flask import request
-import db
+from flask import g
 from taskmaster.db.models.user import UserModel
 from taskmaster.db.models.org import OrgModel
-import redis
-import urllib
+from taskmaster.db.models.task import TaskModel
+from taskmaster.db.utils.redis_conn import db
 from flask_mail import Message
 from flask_mail import Mail
 
 mail = Mail(app)
 user_model = UserModel()
 org_model = OrgModel()
+task_model = TaskModel()
 BASE_URL = 'taskmaster.jpmunz.com/'
 FROM_EMAIL = 'hello@taskmaster.jpmunz.com'
-TO_EMAIL = "kwargs['email']"
-
-db = redis.StrictRedis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
 
 def mediator(event, **kwargs):
     if event == 'signed_up':
@@ -23,7 +20,6 @@ def mediator(event, **kwargs):
             "Welcome to Taskmaster", sender=FROM_EMAIL, recipients=[kwargs['email']], html=emails.WELCOME % {
                 'base_url': BASE_URL, 'name': kwargs['name']})
         mail.send(msg)
-
     if event == 'added_to_project':
         org_name = org_model.get(kwargs['project'])
         org_name = org_name['name']
@@ -31,15 +27,17 @@ def mediator(event, **kwargs):
                       recipients=[kwargs['email']], html=emails.ADDED_TO_PROJECT % {'base_url': BASE_URL, 'project': org_name})
         mail.send(msg)
     if event == 'assigned':
-        task_name = db.hget('task>%s' % kwargs['task_id'], 'name')
+        task_name = task_model.get(kwargs['task_id'])
+        user = user_model.get(kwargs['user_id'])
         msg = Message("Assigned to Task", sender=FROM_EMAIL,
-                      recipients=[kwargs['email']], html=emails.ASSIGNED_TASK % {'base_url': BASE_URL, 'task': task_name})
+                      recipients=[user['email']], html=emails.ASSIGNED_TASK % {'base_url': BASE_URL, 'task': task_name['name']})
         mail.send(msg)
     if event == 'status_update':
-        task = db.hgetall('task>%s' % kwargs['task_id'])
-        if task['assignee'] == urllib.unquote(request.cookies.get('user', '')):
+        task = task_model.get(kwargs['task_id'])
+        user = user_model.get(task['assignee'])
+        if task['assignee'] == g.user:
             msg = Message("Task Status Updated", sender=FROM_EMAIL,
-                          recipients=[kwargs['email']], html=emails.TASK_STATUS_CHANGE % {
+                          recipients=[user['email']], html=emails.TASK_STATUS_CHANGE % {
                                 'base_url': BASE_URL, 'task': task['name'], 'status': task['status']})
             mail.send(msg)
     if event == 'invite':

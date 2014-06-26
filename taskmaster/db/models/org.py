@@ -39,10 +39,5 @@ class OrgModel(CRUDModel):
         return [self.get(org_id) for org_id in org_ids]
 
     def id_from_name(self, name):
+        print self.ORG_NAMES_KEY % name
         return db.get(self.ORG_NAMES_KEY % name)
-
-    def add_to_waiting_list(self, email, org_id):
-        db.sadd('waiting_list>%s' % email, org_id)
-
-    def get_waiting_list(self, email):
-        return db.smembers('waiting_list>%s' % email)

@@ -64,3 +64,9 @@ class UserModel(CRUDModel):
 
     def id_from_email(self, email):
         return db.get(self.ADDRESSES_KEY % email)
+
+    def add_to_waiting_list(self, username, org_id):
+        db.sadd('waiting_list>%s' % username, org_id)
+
+    def get_waiting_list(self, email):
+        return db.smembers('waiting_list>%s' % email)
