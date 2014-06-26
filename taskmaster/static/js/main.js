@@ -407,7 +407,7 @@ function renderView() {
   /*
    * Render HTML from the state and put on the DOM
    */
-  $('#org-selector').html(TEMPLATES['org-selector'](STATE.orgs, STATE.org));
+  $('#org-selector').html(TEMPLATES['org-selector'](STATE.orgs, STATE.org, STATE.user, STATE.users));
   var selectedQueues = _.filter(STATE.queues, function(queue) {
     return queue.selected;
   });

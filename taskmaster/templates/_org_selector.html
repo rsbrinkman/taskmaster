@@ -1,8 +1,19 @@
 <script data-template-name="org-selector" type="underscore">
-    <label for="org-dropdown">Project</label>
-    <select id="org-dropdown" class="form-control">
-        <% _.each(STATE.orgs, function(org) { %>
-            <option <% if (STATE.org.id===org.id) { %>selected<% } %> name="<%= org.name %>" value="<%= org.id %>"><%= org.name %></option>
+    <div class="admin-panel">
+    <form class="form-inline">    
+        <% _.each(STATE.users, function(user) { %>
+            <% if (STATE.user == user.id) { %>
+                <a href="/admin" class="btn btn-default btn-sm user-button" role="button"><%= user.name %></a>
+            <% } %>
         <% });  %>
-    </select>
+        <span class="on">on</span>
+        <select id="org-dropdown" class="form-control">
+            <% _.each(STATE.orgs, function(org) { %>
+                <option <% if (STATE.org.id===org.id) { %>selected<% } %> name="<%= org.name %>" value="<%= org.id %>"><%= org.name %></option>
+            <% });  %>
+        </select>
+        <span class=""><a id="logout" class="logout" href="javascript:void(0)"><span class="glyphicon glyphicon-export"></span></a></span>
+    </form>
+    </div>
+
 </script>

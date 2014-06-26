@@ -228,3 +228,19 @@ table.drop-hover {
 .glyphicon-remove {
     cursor: pointer;
 }
+
+.admin-panel {
+    border: 1px solid lightgray;
+    margin-top: 15px;
+    padding: 10px 15px 10px 15px;
+}
+.on {
+    padding: 10px 10px;
+}
+.logout {
+    font-size:20px;
+    margin-left: 5px;
+}
+.user-button {
+    background-color: rgba(236, 236, 236, 0.6);
+}
