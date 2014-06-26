@@ -39,5 +39,4 @@ class OrgModel(CRUDModel):
         return [self.get(org_id) for org_id in org_ids]
 
     def id_from_name(self, name):
-        print self.ORG_NAMES_KEY % name
         return db.get(self.ORG_NAMES_KEY % name)
