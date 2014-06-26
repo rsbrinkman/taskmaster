@@ -1,7 +1,6 @@
 from taskmaster.db.utils.redis_conn import db
 from taskmaster.db.utils.base_models import CRUDModel
 from taskmaster.db.models.task import TaskModel
-from taskmaster import app, emails
 
 task_model = TaskModel()
 
