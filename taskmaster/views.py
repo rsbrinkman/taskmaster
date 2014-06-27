@@ -144,7 +144,7 @@ def create_user():
     })
 
     for example_org_name in settings.EXAMPLE_ORGS:
-        org_id = org_model.id_from_name(example_org_name)
+        org_id = org_model.id_from('name', example_org_name)
         if org_id:
             org_model.add_user(org_id, user['id'])
 
@@ -201,11 +201,11 @@ def create_org():
 @app.route('/org/<orgname>/user/<username>', methods=['POST'])
 @logged_in
 def add_user_to_org(orgname, username):
-    org_id = org_model.id_from_name(orgname)
+    org_id = org_model.id_from('name', orgname)
     if not org_model.has_permission(org_id, g.user, 'add_user'):
         raise InsufficientPermission()
 
-    user_id = user_model.id_from_email(username)
+    user_id = user_model.id_from('email', username)
     if user_id:
         org_model.add_user(org_id, user_id)
         events.mediator('added_to_project', email=username, project=org_id)
@@ -220,7 +220,7 @@ def add_user_to_org(orgname, username):
 @app.route('/search/orgs/')
 @logged_in
 def search_org():
-    org_id = org_model.id_from_name(request.args.get('term'))
+    org_id = org_model.id_from('name', request.args.get('term'))
 
     if org_model.has_permission(org_id, g.user, 'search'):
         org = org_model.get(org_id)
