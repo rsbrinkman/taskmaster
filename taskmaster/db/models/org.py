@@ -12,7 +12,8 @@ class OrgModel(CRUDModel):
 
     # TODO Temporarily allow orgs to be created without owners
     # switch back after properly sandboxed example orgs
-    REQUIRED_FIELDS = ['name']
+    REQUIRED_FIELDS = {'name'}
+    UPDATABLE_FIELDS = {'name'}
 
     def _post_create(self, db_pipe, org_id, org):
         if 'owner' in org:
@@ -39,3 +40,6 @@ class OrgModel(CRUDModel):
 
     def id_from_name(self, name):
         return db.get(self.ORG_NAMES_KEY % name)
+
+    def has_permission(self, org_id, user_id, tag):
+        return True

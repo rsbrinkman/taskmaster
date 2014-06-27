@@ -7,7 +7,8 @@ task_model = TaskModel()
 class QueueModel(CRUDModel):
     KEY = 'queue>%s'
     ORG_QUEUES_KEY = 'org-queues2>%s'
-    REQUIRED_FIELDS = ['org', 'name']
+    REQUIRED_FIELDS = {'org', 'name'}
+    UPDATABLE_FIELDS = {'name'}
 
     def _post_create(self, db_pipe, queue_id, queue):
         db_pipe.zadd(self.ORG_QUEUES_KEY % queue['org'], default_score(), queue_id)
