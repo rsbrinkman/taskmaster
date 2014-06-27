@@ -1,12 +1,20 @@
 import json
 import urllib
 from taskmaster import app, settings
-from taskmaster.db import task_model, org_model, user_model, queue_model, style_rules, tags_model, filter_model, test_redis_db, FieldConflict, NotFound
+from taskmaster.db import (
+    task_model, org_model, user_model, queue_model, style_rules, tags_model, filter_model,
+    test_redis_db, FieldConflict, NotFound, UpdateNotPermitted, InsufficientPermission)
 from flask import render_template, request, Response, g, redirect, url_for, flash
 from datetime import datetime
 from functools import wraps
 
-def require_user(f):
+@app.before_request
+def get_user_info():
+    g.token = urllib.unquote(request.cookies.get('token', ''))
+    g.user = urllib.unquote(request.cookies.get('user', ''))
+    g.org = urllib.unquote(request.cookies.get('org', ''))
+
+def logged_in(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if g.user and g.token and user_model.verify_token(g.user, g.token):
@@ -17,17 +25,22 @@ def require_user(f):
 
     return decorated_function
 
-def require_org(f):
-    @wraps(f)
-    @require_user
-    def decorated_function(*args, **kwargs):
-        if g.org and org_model.has_user(g.org, g.user):
-            return f(*args, **kwargs)
-        else:
-            flash('Please select a project')
-            return redirect(url_for('admin'))
+def require_permission(tag):
+    def require_permission_decorator(f):
+        @wraps(f)
+        @logged_in
+        def decorated_function(*args, **kwargs):
+            if g.org and org_model.has_permission(g.org, g.user, tag):
+                return f(*args, **kwargs)
+            elif not g.org:
+                flash('Please select a project')
+                return redirect(url_for('admin'))
+            else:
+                raise InsufficientPermission()
 
-    return decorated_function
+        return decorated_function
+    return require_permission_decorator
+
 
 def _task_state(org_id=None):
     '''
@@ -92,23 +105,22 @@ def _task_state(org_id=None):
         'org': org_model.get(org_id)
     }
 
-@app.before_request
-def get_user_info():
-    g.token = urllib.unquote(request.cookies.get('token', ''))
-    g.user = urllib.unquote(request.cookies.get('user', ''))
-    g.org = urllib.unquote(request.cookies.get('org', ''))
-
-@app.route('/', methods=['GET'])
-@require_org
-def index():
-    return render_template('index.html', state=json.dumps(_task_state(g.org)))
-
 @app.route('/test_db/')
 def test_db():
     return test_redis_db()
 
+
+#
+# HTML Pages
+#
+
+@app.route('/')
+@require_permission('view')
+def index():
+    return render_template('index.html', state=json.dumps(_task_state(g.org)))
+
 @app.route('/admin')
-@require_user
+@logged_in
 def admin():
     user = user_model.get(g.user)
     return render_template('admin.html', user=user)
@@ -117,24 +129,33 @@ def admin():
 def signup():
     return render_template('sign_up.html')
 
-@app.route('/user', methods=['POST'])
+#
+# USER
+#
+
+@app.route('/user/', methods=['POST'])
 def create_user():
-    user_dict = {
+    user = user_model.create({
         'email': request.form['email'],
         'name': request.form['name'],
         'password': request.form['password'],
-    }
+    })
 
-    try:
-        user = user_model.create(user_dict)
-        for example_org_name in settings.EXAMPLE_ORGS:
-            org_id = org_model.id_from_name(example_org_name)
-            if org_id:
-                org_model.add_user(org_id, user['id'])
+    for example_org_name in settings.EXAMPLE_ORGS:
+        org_id = org_model.id_from_name(example_org_name)
+        if org_id:
+            org_model.add_user(org_id, user['id'])
 
-        return Response(json.dumps(user), status=201, content_type='application/json')
-    except FieldConflict, e:
-        return Response(e.message, status=409)
+    return Response(json.dumps(user), status=201, content_type='application/json')
+
+@app.route('/user/<_id>/<field>', methods=['PUT'])
+@logged_in
+def update_user(_id, field):
+    if g.user != _id:
+        raise UpdateNotPermitted(field)
+
+    user_model.update(_id, field, request.form['value'])
+    return Response(status=200)
 
 @app.route('/authenticate', methods=['POST'])
 def authenticate():
@@ -146,52 +167,61 @@ def authenticate():
     if user:
         return Response(json.dumps(user), status=200, content_type='application/json')
     else:
-        return Response('Email address and password do not match any user', status=400)
+        return Response('Email address and password do not match any user', status=401)
 
 @app.route('/logout', methods=['POST'])
-@require_user
+@logged_in
 def logout():
     user_model.logout(g.user)
     return Response(status=200)
 
-@app.route('/user/<user_id>/<update_field>/<update_value>', methods=['POST'])
-def update_user(user_id, update_field, update_value):
-    user_model.update(user_id, update_field, update_value)
-    return Response(status=200)
+#
+# ORG
+#
 
-@app.route('/org/<orgname>', methods=['POST'])
-def create_org(orgname):
-    org = {
+@app.route('/org/', methods=['POST'])
+@logged_in
+def create_org():
+    org = org_model.create({
         'owner': g.user,
-        'name': orgname,
-    }
-
-    org = org_model.create(org)
-
+        'name': request.form['name'],
+    })
     return Response(json.dumps(org), status=201, content_type='application/json')
 
 @app.route('/org/<orgname>/user/<username>', methods=['POST'])
+@logged_in
 def add_user_to_org(orgname, username):
-    if request.method == 'POST':
-        org_id = org_model.id_from_name(orgname)
-        user_id = user_model.id_from_email(username)
+    org_id = org_model.id_from_name(orgname)
+    user_id = user_model.id_from_email(username)
 
-        org_model.add_user(org_id, user_id)
-        org = org_model.get(org_id)
+    if not org_model.has_permission(org_id, g.user, 'add_user'):
+        raise InsufficientPermission()
+
+    org_model.add_user(org_id, user_id)
+    org = org_model.get(org_id)
 
     return Response(json.dumps(org), status=200, content_type='application/json')
 
-@app.route('/orgs/<orgname>', methods=['POST'])
-def search_org(orgname):
-    if request.method == 'POST':
-        org_id = org_model.id_from_name(orgname)
+@app.route('/search/orgs/')
+@logged_in
+def search_org():
+    org_id = org_model.id_from_name(request.args.get('term'))
+
+    if org_model.has_permission(org_id, g.user, 'search'):
         org = org_model.get(org_id)
+    else:
+        org = {}
 
     return Response(json.dumps(org), content_type='application/json')
 
-@app.route('/task', methods=['POST'])
+#
+# TASK
+#
+
+@app.route('/task/', methods=['POST'])
+@require_permission('edit_task')
 def create_task():
-    task = {
+    task = task_model.create({
         'name': request.form['task-name'],
         'org': g.org,
         'description': request.form['task-description'],
@@ -199,75 +229,99 @@ def create_task():
         'assignee': request.form['task-assignee'],
         'created_date': str(datetime.now().date()),
         'queue': request.form['task-queue'],
-    }
-
-    task = task_model.create(task)
-
+    })
     return Response(json.dumps(task), status=201, content_type='application/json')
 
-@app.route('/queue_form', methods=['GET'])
-def show_queue_form():
-    return render_template('create_queue.html')
-
-
-@app.route('/queue/<name>', methods=['POST'])
-def create_queue(name):
-    queue_obj = {
-        'name': name,
-        'org': g.org,
-    }
-
-    queue = queue_model.create(queue_obj)
-    return Response(json.dumps(queue), status=201, content_type='application/json')
-
-@app.route('/task/<task_id>', methods=['DELETE'])
-def delete_task(task_id):
-    if request.method == 'DELETE':
-        task_model.delete(task_id)
-        return Response(status=200)
-
-@app.route('/task/<task_id>/tags/', methods=['POST'])
-def task_tags(task_id):
-    tags_model.set(task_id, g.user, json.loads(request.form['tags']))
+@app.route('/task/<_id>/<field>', methods=['PUT'])
+@require_permission('edit_task')
+def update_task(_id, field):
+    if field == 'tags':
+        tags_model.set(_id, g.user, json.loads(request.form['value']))
+    else:
+        task_model.update(_id, field, request.form['value'])
     return Response(status=200)
 
-@app.route('/filter/<filtername>/', methods=['POST', 'DELETE'])
-def manage_user_filter(filtername):
-    if request.method == 'POST':
-        obj = filter_model.create({
-            'name': filtername,
-            'rule': request.form['rule'],
-            'org': g.org,
-        })
-        return Response(json.dumps(obj), content_type='application/json')
-    elif request.method == 'DELETE':
-        filter_model.delete(filtername)
-        return Response(status=200)
+@app.route('/order/task', methods=['PUT'])
+@app.route('/order/task/<queue_id>', methods=['PUT'])
+@require_permission('edit_task')
+def update_task_order(queue_id):
+    task_model.update_order(g.org, json.loads(request.form['updates']), queue_id=queue_id)
+    return Response(status=200)
 
-@app.route('/order/queue/', methods=['PUT'])
+@app.route('/task/<_id>', methods=['DELETE'])
+@require_permission('edit_task')
+def delete_task(_id):
+    task_model.delete(_id)
+    return Response(status=204)
+
+#
+# QUEUE
+#
+
+@app.route('/queue/', methods=['POST'])
+@require_permission('edit_queue')
+def create_queue():
+    queue = queue_model.create({
+        'name': request.form['name'],
+        'org': g.org,
+    })
+    return Response(json.dumps(queue), status=201, content_type='application/json')
+
+@app.route('/queue/<_id>/update/<field>', methods=['PUT'])
+@require_permission('edit_queue')
+def update_queue(_id, field):
+    queue_model.update(_id, field, request.form['value'])
+    return Response(status=200)
+
+@app.route('/order/queue', methods=['PUT'])
+@require_permission('edit_queue')
 def update_queue_order():
     queue_model.update_order(g.org, json.loads(request.form['updates']))
     return Response(status=200)
 
-@app.route('/order/task/', methods=['PUT'])
-@app.route('/order/task/<queue_name>', methods=['PUT'])
-def update_task_order(queue_name=''):
-    task_model.update_order(g.org, json.loads(request.form['updates']), queue_name=queue_name)
-    return Response(status=200)
+@app.route('/queue/<_id>', methods=['DELETE'])
+@require_permission('edit_queue')
+def delete_queue(_id):
+    queue_model.delete(_id)
+    return Response(status=204)
 
-@app.route('/queue/<queue_id>', methods=['DELETE'])
-def delete_queue(queue_id):
-    if request.method == 'DELETE':
-        queue_model.delete(queue_id)
-        return Response(status=200)
+#
+# FILTER
+#
 
-@app.route('/queue/<queue_id>/update/<update_field>/<update_value>', methods=['POST'])
-def update_queue(queue_id, update_field, update_value):
-    queue_model.update(queue_id, update_field, update_value)
-    return Response(status=200)
+@app.route('/filter/', methods=['POST'])
+@require_permission('edit_filter')
+def create_filter():
+    obj = filter_model.create({
+        'name': request.form['name'],
+        'rule': request.form['rule'],
+        'org': g.org,
+    })
 
-@app.route('/task/<task_id>/update/<update_field>/', methods=['POST'])
-@app.route('/task/<task_id>/update/<update_field>/<update_value>', methods=['POST'])
-def update_task(task_id, update_field, update_value=''):
-    task_model.update(task_id, update_field, update_value)
-    return Response(status=200)
+    return Response(json.dumps(obj), status=201, content_type='application/json')
+
+@app.route('/filter/<_id>', methods=['DELETE'])
+@require_permission('edit_filter')
+def delete_filter(_id):
+    filter_model.delete(_id)
+    return Response(status=204)
+
+#
+# ERROR HANDLERS
+#
+
+@app.errorhandler(FieldConflict)
+def handle_field_conflict(e):
+    return Response(e.message, status=409)
+
+@app.errorhandler(UpdateNotPermitted)
+def handle_update_not_permitted(e):
+    return Response(e.message, status=403)
+
+@app.errorhandler(NotFound)
+def handle_not_found(e):
+    return Response(e.message, status=404)
+
+@app.errorhandler(InsufficientPermission)
+def handle_insufficent_permission(e):
+    return Response(e.message, status=403)

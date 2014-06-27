@@ -1,8 +1,10 @@
   $('#create-org').click(function () {
-    var org = $('#org-name').val();
     $.ajax({
       type: 'POST',
-      url: '/org/' + org,
+      url: '/org/',
+      data: {
+        name: $('#org-name').val()
+      },
       success: function(org) {
         $('.org-creation-results').empty()
         $('.org-creation-results').append(org.name + ' created!');
@@ -32,7 +34,7 @@
     if (!errorMessage) {
       $.ajax({
         type: 'POST',
-        url: '/user',
+        url: '/user/',
         data:{
           'email': email,
           'name': name,
@@ -87,18 +89,23 @@
     var name = $this.html();
 
     $.ajax({
-      type: 'POST',
-      url: '/user/' + $.cookie('user') +'/name/' + name,
+      type: 'PUT',
+      url: '/user/' + $.cookie('user') +'/name',
+      data: {
+        name: name
+      },
       success: function() {
         $('.updates').append('Updated!');  
       }
     });
   });
   $('#search').click(function () {
-    var org = $('#org-search').val();
     $.ajax({
-      type: 'POST',
-      url: '/orgs/' + org,
+      type: 'GET',
+      url: '/search/orgs/',
+      data: {
+        term: $('#org-search').val()
+      },
       success: function(data) {
         // display the results
         if (!data) {

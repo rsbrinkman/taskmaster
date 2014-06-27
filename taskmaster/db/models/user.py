@@ -9,9 +9,9 @@ org_model = OrgModel()
 class UserModel(CRUDModel):
     KEY = 'user>%s'
     ADDRESSES_KEY = 'user-emails>%s'
-
-    REQUIRED_FIELDS = ['name', 'email', 'password']
     DEFAULTS = {}
+    REQUIRED_FIELDS = {'name', 'email', 'password'}
+    UPDATABLE_FIELDS = {'name', 'email'}
 
     def _create(self, db_pipe, user_id, user):
         user['password_hash'] = custom_app_context.encrypt(user['password'])
@@ -36,7 +36,7 @@ class UserModel(CRUDModel):
         #   2. probably reset the timeout every verification
         #   3. do everything over https
         auth_token = uuid.uuid4().hex
-        self.update(user_id, 'token', auth_token, db_pipe=db_pipe)
+        self.update(user_id, 'token', auth_token, db_pipe=db_pipe, internal=True)
 
         return auth_token
 
@@ -56,7 +56,7 @@ class UserModel(CRUDModel):
             return user
 
     def logout(self, user_id):
-        self.update(user_id, 'token', None)
+        self.update(user_id, 'token', None, internal=True)
 
     def verify_token(self, user_id, provided_token):
         user = self.get(user_id)
