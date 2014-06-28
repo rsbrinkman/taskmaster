@@ -142,7 +142,7 @@ def create_user():
     })
 
     for example_org_name in settings.EXAMPLE_ORGS:
-        org_id = org_model.id_from_name(example_org_name)
+        org_id = org_model.id_from('name', example_org_name)
         if org_id:
             org_model.add_user(org_id, user['id'])
 
@@ -156,6 +156,15 @@ def update_user(_id, field):
 
     user_model.update(_id, field, request.form['value'])
     return Response(status=200)
+
+@app.route('/user/<_id>', methods=['DELETE'])
+@require_permission('edit_task')
+def delete_user(_id):
+    if g.user != _id:
+        raise InsufficientPermission()
+
+    user_model.delete(_id)
+    return Response(status=204)
 
 @app.route('/authenticate', methods=['POST'])
 def authenticate():
@@ -191,8 +200,8 @@ def create_org():
 @app.route('/org/<orgname>/user/<username>', methods=['POST'])
 @logged_in
 def add_user_to_org(orgname, username):
-    org_id = org_model.id_from_name(orgname)
-    user_id = user_model.id_from_email(username)
+    org_id = org_model.id_from('name', orgname)
+    user_id = user_model.id_from('email', username)
 
     if not org_model.has_permission(org_id, g.user, 'add_user'):
         raise InsufficientPermission()
@@ -205,7 +214,7 @@ def add_user_to_org(orgname, username):
 @app.route('/search/orgs/')
 @logged_in
 def search_org():
-    org_id = org_model.id_from_name(request.args.get('term'))
+    org_id = org_model.id_from('name', request.args.get('term'))
 
     if org_model.has_permission(org_id, g.user, 'search'):
         org = org_model.get(org_id)
@@ -267,7 +276,7 @@ def create_queue():
     })
     return Response(json.dumps(queue), status=201, content_type='application/json')
 
-@app.route('/queue/<_id>/update/<field>', methods=['PUT'])
+@app.route('/queue/<_id>/<field>', methods=['PUT'])
 @require_permission('edit_queue')
 def update_queue(_id, field):
     queue_model.update(_id, field, request.form['value'])

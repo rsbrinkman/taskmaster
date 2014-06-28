@@ -8,18 +8,16 @@ class OrgModel(CRUDModel):
     KEY = 'org>%s'
     ADMINS_KEY = 'org-admins>%s'
     USER_ORGS_KEY = 'user>orgs>%s'
-    ORG_NAMES_KEY  = 'org-names>%s'
 
     # TODO Temporarily allow orgs to be created without owners
     # switch back after properly sandboxed example orgs
     REQUIRED_FIELDS = {'name'}
     UPDATABLE_FIELDS = {'name'}
+    REVERSE_LOOKUPS = {'name'}
 
     def _post_create(self, db_pipe, org_id, org):
         if 'owner' in org:
             self.add_user(org_id, org['owner'], level='admin', db_pipe=db_pipe)
-        #TODO duplicate name check?
-        db_pipe.set(self.ORG_NAMES_KEY % org['name'], org_id)
 
     def add_user(self, org_id, user_id, level='admin', db_pipe=db):
         if level == 'admin':
@@ -36,9 +34,6 @@ class OrgModel(CRUDModel):
     def get_for_user(self, user_id):
         org_ids = db.smembers(self.USER_ORGS_KEY % user_id)
         return [self.get(org_id) for org_id in org_ids]
-
-    def id_from_name(self, name):
-        return db.get(self.ORG_NAMES_KEY % name)
 
     def has_permission(self, org_id, user_id, tag):
         return True
