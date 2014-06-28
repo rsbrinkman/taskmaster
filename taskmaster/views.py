@@ -167,6 +167,15 @@ def update_user(_id, field):
     user_model.update(_id, field, request.form['value'])
     return Response(status=200)
 
+@app.route('/user/<_id>', methods=['DELETE'])
+@require_permission('edit_task')
+def delete_user(_id):
+    if g.user != _id:
+        raise InsufficientPermission()
+
+    user_model.delete(_id)
+    return Response(status=204)
+
 @app.route('/authenticate', methods=['POST'])
 def authenticate():
     try:
@@ -288,7 +297,7 @@ def create_queue():
     })
     return Response(json.dumps(queue), status=201, content_type='application/json')
 
-@app.route('/queue/<_id>/update/<field>', methods=['PUT'])
+@app.route('/queue/<_id>/<field>', methods=['PUT'])
 @require_permission('edit_queue')
 def update_queue(_id, field):
     queue_model.update(_id, field, request.form['value'])

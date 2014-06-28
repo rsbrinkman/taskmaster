@@ -291,8 +291,14 @@ function setEventHandlers() {
   });
 }
 
-function renameQueue() {
-  console.log('need to rename');
+function renameQueue(queueId, newName) {
+  $.ajax({
+    url: '/queue/' + queueId + '/name',
+    type: 'PUT',
+    data: {
+      value: newName
+    }
+  });
 }
 
 function saveFilter() {

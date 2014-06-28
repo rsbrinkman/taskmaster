@@ -54,7 +54,7 @@ for orgname in orgnames:
     # Add users
     org_member_emails = db.smembers('org>%s' % orgname)
     for email in org_member_emails:
-        user_id = user_model.id_from_email(email)
+        user_id = user_model.id_from('email', email)
         if user_id:
             org_model.add_user(org['id'], user_id, level='admin')
 
