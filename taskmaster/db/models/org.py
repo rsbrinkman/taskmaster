@@ -1,40 +1,38 @@
 from taskmaster.db.utils.redis_conn import db
 from taskmaster.db.utils.base_models import CRUDModel
 from taskmaster.db.models.task import TaskModel
+from taskmaster.db.models.permission import PermissionModel, ProjectLevels, UserRoles
 
 task_model = TaskModel()
+permission_model = PermissionModel()
 
 class OrgModel(CRUDModel):
     KEY = 'org>%s'
-    ADMINS_KEY = 'org-admins>%s'
+    USERS_KEY = 'org-users>%s'
     USER_ORGS_KEY = 'user>orgs>%s'
-
-    # TODO Temporarily allow orgs to be created without owners
-    # switch back after properly sandboxed example orgs
+    ROLE_KEY = 'user-role>%s>%s'
     REQUIRED_FIELDS = {'name'}
-    UPDATABLE_FIELDS = {'name'}
+    UPDATABLE_FIELDS = {'name', 'level'}
     REVERSE_LOOKUPS = {'name'}
+    DEFAULTS = {
+        'level': ProjectLevels.PRIVATE
+    }
 
     def _post_create(self, db_pipe, org_id, org):
-        if 'owner' in org:
-            self.add_user(org_id, org['owner'], level='admin', db_pipe=db_pipe)
+        self.add_user(org_id, org['owner'], role=UserRoles.OWNER, db_pipe=db_pipe)
+        del org['owner']
 
-    def add_user(self, org_id, user_id, level='admin', db_pipe=db):
-        if level == 'admin':
-            db_pipe.sadd(self.ADMINS_KEY % org_id, user_id)
-
+    def add_user(self, org_id, user_id, role=UserRoles.EDITOR, db_pipe=db):
+        db_pipe.sadd(self.USERS_KEY % org_id, user_id)
         db_pipe.sadd(self.USER_ORGS_KEY % user_id, org_id)
+        permission_model.set_role(user_id, org_id, role)
 
-    def get_users(self, org_id, level='admin'):
-        if level == 'admin':
-            return db.smembers(self.ADMINS_KEY % org_id)
+    def get_users(self, org_id):
+        db.smembers(self.USERS_KEY % org_id)
 
     def has_user(self, org_id, user_id):
-        return db.sismember(self.ADMINS_KEY % org_id, user_id)
+        return db.sismember(self.USERS_KEY % org_id, user_id)
 
     def get_for_user(self, user_id):
         org_ids = db.smembers(self.USER_ORGS_KEY % user_id)
         return [self.get(org_id) for org_id in org_ids]
-
-    def has_permission(self, org_id, user_id, tag):
-        return True

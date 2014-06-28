@@ -11,7 +11,9 @@ from taskmaster.db.models.user import UserModel
 from taskmaster.db.models.queue import QueueModel
 from taskmaster.db.models.tags import Tags
 from taskmaster.db.models.filters import FilterModel
-from taskmaster.db.utils.base_models import FieldConflict, NotFound, UpdateNotPermitted, InsufficientPermission
+from taskmaster.db.models.permission import PermissionModel, PermissionTags, ProjectLevels
+from taskmaster.db.utils.base_models import (FieldConflict, NotFound, UpdateNotPermitted,
+    InsufficientPermission)
 
 task_model = TaskModel()
 org_model = OrgModel()
@@ -20,3 +22,4 @@ user_model = UserModel()
 queue_model = QueueModel()
 tags_model = Tags()
 filter_model = FilterModel()
+permission_model = PermissionModel()
