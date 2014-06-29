@@ -12,7 +12,7 @@
                 <option <% if (STATE.org.id===org.id) { %>selected<% } %> name="<%= org.name %>" value="<%= org.id %>"><%= org.name %></option>
             <% });  %>
         </select>
-        <span class=""><a id="logout" class="logout" href="javascript:void(0)"><span class="glyphicon glyphicon-export"></span></a></span>
+        <a id="logout" class="logout" href="javascript:void(0)"><span class="glyphicon glyphicon-export logout-icon" title="logout"></span></a>
     </form>
     </div>
 
