@@ -5,6 +5,14 @@ from taskmaster.db.utils.redis_conn import db, execute_multi
 class NotFound(Exception):
     pass
 
+class InsufficientPermission(Exception):
+    def __init__(self):
+        super(InsufficientPermission, self).__init__('You are not authorized to perform this action')
+
+class UpdateNotPermitted(Exception):
+    def __init__(self, field):
+        super(UpdateNotPermitted, self).__init__('%s cannot be updated externally' % field)
+
 class FieldConflict(Exception):
     def __init__(self, field, value):
         super(FieldConflict, self).__init__("%s '%s' is already in use" % (field, value))
@@ -18,6 +26,7 @@ class CRUDModel(object):
     REQUIRED_FIELDS = []
     DEFAULTS = {}
     PARAMS_TO_ENCODE = set([])
+    UPDATABLE_FIELDS = set([])
 
     def create(self, attributes, db_pipe=None):
         for required in self.REQUIRED_FIELDS:
@@ -68,7 +77,10 @@ class CRUDModel(object):
     def _post_get(self, _id):
         return {}
 
-    def update(self, _id, field, value, db_pipe=None):
+    def update(self, _id, field, value, db_pipe=None, internal=False):
+        if not (internal or field in self.UPDATABLE_FIELDS):
+            raise UpdateNotPermitted(field)
+
         if value in self.PARAMS_TO_ENCODE:
             value = json.dumps(value)
 
