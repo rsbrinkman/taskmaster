@@ -11,8 +11,8 @@
     <td>
        <select class="form-control task-assignee input-sm" data-task-id=<%= id %>>
          <option name='no-user'></option>
-         <% _.each(STATE.users, function(userName) { %>
-           <option <% if (assignee===userName) { %>selected<% } %> value='<%= userName %>'><%= userName %></option>
+         <% _.each(STATE.users, function(user) { %>
+           <option <% if (assignee===user.id) { %>selected<% } %> value='<%= user.id %>'><%= user.name %></option>
         <% });  %>
       </select>
    </td>
@@ -20,8 +20,8 @@
     <td>
         <select class="form-control task-queues input-sm" data-task-id=<%= id %>>
             <option name='no-queue'></option>
-        <% _.each(STATE.queues, function(queueName) { %>
-            <option name='<%= queueName %>' data-queue-id='<%= queueName %>' <% if (queue===queueName) { %>selected<% } %> value='<%= queueName %>'><%= queueName %></option>
+        <% _.each(STATE.queues, function(otherQueue) { %>
+            <option name='<%= otherQueue.id %>' data-queue-id='<%= otherQueue.id %>' <% if (otherQueue.id===queue) { %>selected<% } %> value='<%= otherQueue.id %>'><%= otherQueue.name %></option>
         <% });  %>
         </select>
     <td class="tag-column"><input type="hidden" data-task-id="<%= id %>" class="task-tags" value="<%= tags %>"></input></td>

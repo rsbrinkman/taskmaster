@@ -24,6 +24,9 @@ class TaskModel(CRUDModel):
     def _post_delete(self, db_pipe, task_id, task):
         self.remove_from_org(task['org'], task_id, db_pipe=db_pipe)
 
+    def get_for_queue(self, queue, db_pipe=db):
+        return db_pipe.zrange(self.QUEUE_TASKS_KEY % queue, 0, -1)
+
     def move(self, task_id, from_queue=None, to_queue=None, db_pipe=db):
         if from_queue:
             self.remove_from_queue(task_id, from_queue, db_pipe=db_pipe)
@@ -42,8 +45,8 @@ class TaskModel(CRUDModel):
         else:
             db_pipe.zadd(self.ORG_TASKS_KEY % org, *updates)
 
-    def get_for_org(self, org):
-        return db.zrange(self.ORG_TASKS_KEY % org, 0, -1)
+    def get_for_org(self, org, db_pipe=db):
+        return db_pipe.zrange(self.ORG_TASKS_KEY % org, 0, -1)
 
     def add_to_org(self, org, task_id, db_pipe=db):
         db_pipe.zadd(self.ORG_TASKS_KEY % org, default_score(), task_id)

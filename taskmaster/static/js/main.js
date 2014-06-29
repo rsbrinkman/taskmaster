@@ -11,6 +11,11 @@ $(function() {
   // Used for quick filtering, need to call everytime we add/remove tokens to a task
   FilterTasks.buildTokenSets(STATE.taskmap);
 
+  STATE.queuemap = {};
+  _.each(STATE.queues, function(queue) {
+    STATE.queuemap[queue.id] = queue;
+  });
+
   // Initialize these so the underscore template doesn't complain
   _.each(STATE.queuemap, function(queue) {
     queue.selected = false;
@@ -134,15 +139,17 @@ function setEventHandlers() {
     if($(e.target).hasClass('view-queue')) {
       var $this = $(this);
       var id = $this.data('queue-id');
+
       STATE.queuemap[id].selected = !STATE.queuemap[id].selected;
+
       renderView();
     }
   });
   
   $('.container').on('change', '.task-queues', function(e) {
-    var queue = $(this).val();
+    var queueId = $(this).val();
     var taskId = $(this).data('task-id');
-    putTaskInQueue(taskId, queue);
+    putTaskInQueue(taskId, queueId);
   });
   
   $('body').on('change', '#org-dropdown', function(e) {
@@ -216,13 +223,17 @@ function setEventHandlers() {
 
   $('#queue-list').sortable({
     stop: function(e, ui) {
-      var queues = $(this).sortable('toArray', {attribute: 'data-queue-id'});
-      reorderList(queues, STATE.queues, '/order/queue/');
-      STATE.queues = queues;
+      var queueIds = $(this).sortable('toArray', {attribute: 'data-queue-id'});
+      reorderList(queueIds, _.pluck(STATE.queues, 'id'), '/order/queue/');
+      STATE.queues = _.map(queueIds, function(id) {
+        return STATE.queuemap[id];
+      });
     }
   });
 
-  $('#save-filter').click(function() {
+  $('#save-filter').click(function(ev) {
+    ev.stopPropagation();
+    ev.preventDefault();
     saveFilter();
   });
 
@@ -233,13 +244,13 @@ function setEventHandlers() {
   });
 
   $('#saved-filters').on('click', '.remove-filter', function(ev) {
-    var name = $(this).data('name');
+    var filterId = $(this).data('filter-id');
     $.ajax({
-      url: '/filter/' + name + '/',
+      url: '/filter/' + filterId + '/',
       type: 'DELETE'
     });
 
-    delete STATE.filtermap[name];
+    delete STATE.filtermap[filterId];
     renderView();
   });
 
@@ -247,9 +258,9 @@ function setEventHandlers() {
     var $this = $(this);
 
     var selected = $this.prop('checked');
-    var name = $this.data('name');
+    var filterId = $this.data('filter-id');
 
-    STATE.filtermap[name].selected = selected;
+    STATE.filtermap[filterId].selected = selected;
     renderView();
   });
 
@@ -278,19 +289,17 @@ function saveFilter() {
       type: 'POST',
       data: {
         rule: rule
+      },
+      success: function(filter) {
+        filter.selected = true;
+        STATE.filtermap[filter.id] = filter;
+
+        $('#save-filter-name, #filter-tasks').val('');
+        STATE.searchString = '';
+        compileFilters();
+        renderView();
       }
     });
-
-    STATE.filtermap[name] = {
-      name: name,
-      rule: rule,
-      selected: true
-    }
-
-    $('#save-filter-name, #filter-tasks').val('');
-    STATE.searchString = '';
-    compileFilters();
-    renderView();
   }
 }
 
@@ -315,9 +324,9 @@ function reorderList(sortedList, prevList, url) {
   }
 }
 
-function createQueue(queue) {
+function createQueue(name) {
   $.ajax({
-    url: '/queue/' + queue,
+    url: '/queue/' + name,
     type: 'POST',
     success: function(queue) {
       addQueue(queue);
@@ -350,12 +359,21 @@ function addTask(task) {
 
 function removeQueue(id) {
   delete STATE.queuemap[id];
-  removeEle(STATE.queues, id);
+
+  var index
+  _.each(STATE.queues, function(queue, i) {
+    if(queue.id === id) {
+      index = i;
+    }
+  });
+  STATE.queues.splice(index, 1);
+
   renderView();
 }
 
 function addQueue(queue) {
-  STATE.queues.push(queue.id);
+  queue.selected = false;
+  STATE.queues.push(queue);
   STATE.queuemap[queue.id] = queue;
   renderView();
 }
@@ -367,20 +385,20 @@ function removeEle(list, ele) {
   }
 }
 
-function putTaskInQueue(taskId, queueName) {
+function putTaskInQueue(taskId, queueId) {
   var currentQueue = STATE.taskmap[taskId].queue
 
   if (currentQueue && STATE.queuemap[currentQueue]) {
     removeEle(STATE.queuemap[currentQueue].tasks, taskId)
-    }
-  STATE.taskmap[taskId].queue = queueName;
-  if (queueName && STATE.queuemap[queueName]) {
-    STATE.queuemap[queueName].tasks.push(taskId);
+  }
+  STATE.taskmap[taskId].queue = queueId;
+  if (queueId && STATE.queuemap[queueId]) {
+    STATE.queuemap[queueId].tasks.push(taskId);
   }
   renderView();
 
   $.ajax({
-    url: '/task/' + taskId  + '/update/' + 'queue/' + queueName,
+    url: '/task/' + taskId  + '/update/' + 'queue/' + queueId,
     type: 'POST'
   });
 }
@@ -390,23 +408,22 @@ function renderView() {
    * Render HTML from the state and put on the DOM
    */
   $('#org-selector').html(TEMPLATES['org-selector'](STATE.orgs, STATE.org));
-  var selectedQueues = _.filter(STATE.queues, function(queueId) {
-    return STATE.queuemap[queueId].selected;
+  var selectedQueues = _.filter(STATE.queues, function(queue) {
+    return queue.selected;
   });
-
 
   renderSavedFilters();
 
   var taskViewHTML = '';
   if (selectedQueues.length) {
-    _.each(selectedQueues, function(queueId) {
-      taskViewHTML += renderQueueTasks(queueId);
+    _.each(selectedQueues, function(queue) {
+      taskViewHTML += renderQueueTasks(queue);
     });
   } else {
     taskViewHTML = renderQueueTasks();
   }
-  var queueHTML = _.map(STATE.queues, function(queueId) {
-    return TEMPLATES['queue-row'](STATE.queuemap[queueId]);
+  var queueHTML = _.map(STATE.queues, function(queue) {
+    return TEMPLATES['queue-row'](queue);
   });
   queueHTML = queueHTML.join('');
 
@@ -594,9 +611,9 @@ function renderView() {
   saveCookies();
 }
 
-function renderQueueTasks(queueId) {
+function renderQueueTasks(queue) {
   // Default to ALL if no queueId given
-  var tasks = queueId ? STATE.queuemap[queueId].tasks : STATE.tasks;
+  var tasks = queue ? queue.tasks : STATE.tasks;
   var searchString = STATE.searchString;
 
   var selectedFilters = [];
@@ -634,16 +651,12 @@ function renderQueueTasks(queueId) {
   });
   taskHTML = taskHTML.join('');
 
-  return TEMPLATES['task-list']({queueName: queueId, tasks: taskHTML});
+  return TEMPLATES['task-list']({queue: queue, tasks: taskHTML});
 }
 
 function renderSavedFilters() {
-
-  var filter_names = _.keys(STATE.filtermap);
-  filter_names.sort();
-
-  var filterHTML =_.map(filter_names, function(name) {
-    var filter = _.clone(STATE.filtermap[name]);
+  var sortedFilters = _.sortBy(_.values(STATE.filtermap), 'name');
+  var filterHTML =_.map(sortedFilters, function(filter) {
     filter.rule = filter.rule.replace(/"/g, '&quot;');
     return TEMPLATES['saved-filter'](filter);
   });
@@ -665,7 +678,7 @@ function saveCookies() {
   var selectedFilters = [];
   _.each(STATE.filtermap, function(filter) {
     if (filter.selected) {
-      selectedFilters.push(filter.name);
+      selectedFilters.push(filter.id);
     }
   });
 
@@ -690,8 +703,8 @@ function loadCookies() {
         }
       });
 
-      _.each(view.selectedFilters, function(filterName) {
-        var filter = STATE.filtermap[filterName];
+      _.each(view.selectedFilters, function(filterId) {
+        var filter = STATE.filtermap[filterId];
         if (filter) {
           filter.selected = true;
         }

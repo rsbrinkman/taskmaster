@@ -1,15 +1,12 @@
   $('#create-org').click(function () {
     var org = $('#org-name').val();
-    var users = $('#users').val();
     $.ajax({
       type: 'POST',
       url: '/org/' + org,
-      data:{ 'users': users },
-      success: function() {
+      success: function(org) {
         $('.org-creation-results').empty()
-        $('.org-creation-results').append(org + ' created!');
-        $('.my-org-list').append('<li>' + org + '</li>');
-        addUserToOrg(users, org);
+        $('.org-creation-results').append(org.name + ' created!');
+        $('.my-org-list').append('<li data-org-id="' + org.id + '">' + org.name + '</li>');
       }
     });
   });
@@ -41,9 +38,9 @@
           'name': name,
           'password': password
         },
-        success: function(token) {
-          $.cookie('user', email);
-          $.cookie('token', token);
+        success: function(user) {
+          $.cookie('user', user.id);
+          $.cookie('token', user.token);
           window.location = "/admin";
         },
         error: function(jqXHR, textStatus, errorThrown) {
@@ -68,9 +65,9 @@
         'email': email,
         'password': password
       },
-      success: function(token) {
-        $.cookie('token', token);
-        $.cookie('user', email);
+      success: function(user) {
+        $.cookie('token', user.token);
+        $.cookie('user', user.id);
         window.location = "/";
       },
       error: function(jqXHR, textStatus, errorThrown) {
@@ -81,17 +78,17 @@
 
   $('#add-user').click(function () {
     var email = $('#user').val();
-    var org = $('#org').val();
-    addUserToOrg(email, org);
+    var orgname = $('#org').val();
+    addUserToOrg(email, orgname);
   });
+
   $('.name').blur(function() {
     var $this = $(this);
     var name = $this.html();
-    var username = $('.username').html()
 
     $.ajax({
       type: 'POST',
-      url: '/user/' + username +'/name/' + name,
+      url: '/user/' + $.cookie('user') +'/name/' + name,
       success: function() {
         $('.updates').append('Updated!');  
       }
@@ -110,7 +107,7 @@
         }
         else {
             $('.search-results').empty()
-            $('.search-results').append(data + '<button data-org="' + data + '" class="btn btn-sm join-org">Join</button>');
+            $('.search-results').append(data.name + '<button data-org-id="' + data.id + '" data-org-name="' + data.name + '" class="btn btn-sm join-org">Join</button>');
         }
 
       }
@@ -122,21 +119,20 @@
     window.location.href = '/';
   });
   $('.container').on('click', '.join-org', function() {
-    email = $.cookie('user');
-    org = $(this).data('org');
-    console.log(org);
-    addUserToOrg(email, org);
+    email = $('.username').text();
+    orgname = $(this).data('org-name');
+    addUserToOrg(email, orgname);
   });
-  function addUserToOrg(email, org) {
+  function addUserToOrg(email, orgname) {
     $.ajax({
       type: 'POST',
-      url: '/org/' + org + '/user/' + email,
-      success: function() {
+      url: '/org/' + orgname + '/user/' + email,
+      success: function(org) {
         $('.user-org-results').empty()
-        $('.user-org-results').append(email + ' added to ' + org + ' successfully!');
+        $('.user-org-results').append(email + ' added to ' + org.name + ' successfully!');
         $('.no-org').empty()
-        $('.my-org-list').append('<li>' + org + '</li>');
-        $('.org-list').append('<option name=' + org + '>' + org + '</option>');
+        $('.my-org-list').append('<li data-org-id="' + org.id + '">' + org.name + '</li>');
+        $('.org-list').append('<option name="' + org.name + '" + value="' + org.id + '" >' + org.name + '</option>');
         $('.task-home').removeAttr('disabled');
       }
     });

@@ -1,31 +1,38 @@
 import datetime
-from taskmaster import db
-from taskmaster.db import task_model
+from taskmaster.db import task_model, org_model, queue_model, tags_model
 from use_cases import PROJECTS
+
+org = {'name': ''}
+queue = {'name': ''}
+task = {'name': ''}
 
 try:
     for project in PROJECTS:
-        db.create_org(project['name'], admin="AUTO_GENERATED", overwrite=True)
+        org = org_model.create({
+            'name': project['name'],
+        })
 
-        for queue in project['queues']:
-            db.create_queue(queue['name'], project['name'], overwrite=True)
+        for queue_definition in project['queues']:
+            queue = queue_model.create({
+                'name': queue_definition['name'],
+                'org': org['id'],
+            })
 
-            for task_id in queue['tasks']:
+            for task_id in queue_definition['tasks']:
                 task = project['tasks'][task_id]
 
                 task_obj = {
                     "name": task['name'],
-                    "org": project['name'],
+                    "org": org['id'],
                     "tags": ','.join(project['tags'].get(task['name'], [])),
                     "status": task.get('status', "Not Started"),
                     "assignee": "",
                     "created_date": datetime.datetime.now().strftime("%Y-%m-%d"),
-                    "queue": queue['name'],
+                    "queue": queue['id'],
                     "description": task['description'],
                 }
 
                 created = task_model.create(task_obj)
-                db.set_tags(created['id'], project['tags'].get(task_id, []))
+                tags_model.set(created['id'], 'fake_user_id', project['tags'].get(task_id, []))
 except:
     print "Failed on project: %s, queue: %s, task: %s" % (project['name'], queue['name'], task['name'])
-

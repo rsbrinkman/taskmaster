@@ -23,14 +23,18 @@
         </div>
         <div class="form-group">
             <label for="task-assignee">Task Assignee</label>
-            <input type="text" class="form-control" name="task-assignee" />
+            <select class="form-control task-assignee" name="task-assignee">  
+                <% _.each(STATE.users, function(user) { %>
+                    <option name='task-assignee' data-queue-id='<%= user.id %>' value='<%= user.id %>'><%= user.name %></option>
+                <% });  %>
+            </select>
         </div>
         <div class="form-group">    
             <label for="new-task-queue">Queue</label>
             <select class="form-control new-task-queues" name="task-queue">
                 <option name='no-queue'></option>
-                <% _.each(STATE.queues, function(queueName) { %>
-                    <option name='<%= queueName %>' data-queue-id='<%= queueName %>' value='<%= queueName %>'><%= queueName %></option>
+                <% _.each(STATE.queues, function(queue) { %>
+                    <option name='<%= queue.name %>' data-queue-id='<%= queue.id %>' value='<%= queue.id %>'><%= queue.name %></option>
                 <% });  %>
             </select>
         </div>

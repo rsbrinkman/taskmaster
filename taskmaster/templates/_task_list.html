@@ -1,8 +1,8 @@
 <script data-template-name="task-list" type="underscore">
-  <% if (queueName) { %>
-    <h1><%= queueName %></h1>
+  <% if (queue) { %>
+    <h1><%= queue.name %></h1>
   <% } %>
-  <table data-queue-name="<%= queueName %>" class="table table-striped tasks-table">
+  <table data-queue-name="<% if (queue) { %><%= queue.id %><% } %>" class="table table-striped tasks-table">
     <thead>
       <tr>
         <th>Status</th>
@@ -17,7 +17,7 @@
     <%= tasks %>
   </table>
   <h4 id="no-task-message" <% if (tasks) { %>style="display:none"<% } %>>
-    <% if (queueName) { %>
+    <% if (queue) { %>
       This queue has no tasks, add one <button class="btn btn-primary create-tasks">here</button>
     <% } else { %>
       No tasks found for you, time to get to <button class="btn btn-primary create-tasks">work</button>
