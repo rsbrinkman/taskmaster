@@ -72,7 +72,9 @@ def _task_state(org_id=None):
 
     queues = queue_model.get_for_org(org_id)
 
-    tags = list(tags_model.get_for_org(org_id))
+    org_tags = set(tags_model.get_for_org(org_id))
+    user_tags = set(tags_model.get_for_user(g.user))
+    tags = list(org_tags.union(user_tags))
 
     filtermap = {filter_id: filter_model.get(filter_id) for filter_id in filter_model.get_for_org(org_id)}
 

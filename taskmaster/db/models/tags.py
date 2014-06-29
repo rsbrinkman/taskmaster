@@ -29,3 +29,6 @@ class Tags(object):
 
     def get_for_org(self, org_id):
         return db.zrangebyscore(self.ORG_TAGS % org_id, 1, '+inf')
+
+    def get_for_user(self, user_id):
+        return db.zrangebyscore(self.USER_TAGS % user_id, 1, '+inf')
