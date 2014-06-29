@@ -54,7 +54,7 @@ for orgname in orgnames:
     # Add users
     org_member_emails = db.smembers('org>%s' % orgname)
     for email in org_member_emails:
-        user_id = user_model.id_from_email(email)
+        user_id = user_model.id_from('email', email)
         if user_id:
             org_model.add_user(org['id'], user_id, level='admin')
 
@@ -80,7 +80,7 @@ for orgname in orgnames:
             print "Queue rename failed on %s" % queue_name
 
         for task_id in db.zrange('queue-tasks2>%s' % queue['id'], 0, -1):
-            task_model.update(task_id, 'queue', queue['id'])
+            task_model.update(task_id, 'queue', queue['id'], internal=True)
 
     # Have tasks reference org id instead of org name
     try:
@@ -88,16 +88,16 @@ for orgname in orgnames:
     except:
         print "Org rename failed on %s" % orgname
     for task_id in db.zrange('org-tasks2>%s' % org['id'], 0, -1):
-        task_model.update(task_id, 'org', org['id'])
+        task_model.update(task_id, 'org', org['id'], internal=True)
 
         task = task_model.get(task_id)
 
         # Reset assignee
         if 'assignee' in task and task['assignee'] and task['assignee'] in user_name_to_id:
             user_id = user_name_to_id[task['assignee']]
-            task_model.update(task_id, 'assignee', user_id)
+            task_model.update(task_id, 'assignee', user_id, internal=True)
         else:
-            task_model.update(task_id, 'assignee', '')
+            task_model.update(task_id, 'assignee', '', internal=True)
 
 
         # Reset tags

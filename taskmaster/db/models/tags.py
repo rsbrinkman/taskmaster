@@ -16,7 +16,7 @@ class Tags(object):
         tags_to_add = updated_tags.difference(current_tags)
 
         def m(p):
-            task_model.update(task_id, 'tags', ','.join(updated_tags), db_pipe=p)
+            task_model.update(task_id, 'tags', ','.join(updated_tags), db_pipe=p, internal=True)
 
             for tag in tags_to_add:
                 p.zincrby(self.ORG_TAGS % task['org'], tag, amount=1)
@@ -29,3 +29,6 @@ class Tags(object):
 
     def get_for_org(self, org_id):
         return db.zrangebyscore(self.ORG_TAGS % org_id, 1, '+inf')
+
+    def get_for_user(self, user_id):
+        return db.zrangebyscore(self.USER_TAGS % user_id, 1, '+inf')

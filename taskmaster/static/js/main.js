@@ -84,7 +84,7 @@ function setEventHandlers() {
       viewableText.html();
       $(this).replaceWith(viewableText);
   };
-  
+
   $('.container').on('click', '.edit-task-name', function (e) {
     var $this = $(this);
     var nameHtml = $(this).data('task-name');
@@ -93,13 +93,17 @@ function setEventHandlers() {
     $this.prev('span').replaceWith(editableText);
     editableText.focus();
     editableText.blur(editableTextBlurred);
-    });
+  });
+
   $('.container').on('change', '.edit-box', function(e) {
     var $this = $(this);
     var taskId = $(this).next().attr('id');
     $.ajax({
-      url: '/task/' + taskId  + '/update/' + 'name/' + $this.val(),
-      type: 'POST'
+      url: '/task/' + taskId  + '/name',
+      type: 'PUT',
+      data: {
+        value: $this.val()
+      }
     });
   });
 
@@ -145,25 +149,28 @@ function setEventHandlers() {
       renderView();
     }
   });
-  
+
   $('.container').on('change', '.task-queues', function(e) {
     var queueId = $(this).val();
     var taskId = $(this).data('task-id');
     putTaskInQueue(taskId, queueId);
   });
-  
+
   $('body').on('change', '#org-dropdown', function(e) {
     org = $(this).val();
     $.cookie(COOKIES.org, org);
     location.reload();
   });
-  
+
   $('.container').on('change', '.task-assignee', function(e) {
     var assignee = $(this).val();
     var taskId = $(this).data('task-id');
     $.ajax({
-      url: '/task/' + taskId  + '/update/' + 'assignee/' + assignee,
-      type: 'POST',
+      url: '/task/' + taskId  + '/assignee',
+      type: 'PUT',
+      data: {
+        value: assignee
+      },
       success: function() {
         STATE.taskmap[taskId].assignee = assignee;
       }
@@ -174,13 +181,16 @@ function setEventHandlers() {
      var taskId = $('.description-container').data('task-id');
      var description = $('.task-description').val();
      $.ajax({
-      url: '/task/' + taskId  + '/update/' + 'description/' + description,
-      type: 'POST',
+      url: '/task/' + taskId  + '/description',
+      type: 'PUT',
+      data: {
+        value: description
+      },
       success: function() {
         STATE.taskmap[taskId].description = description;
       }
     });
- 
+
   });
   $('#create-queue').click(function(){
     createQueue($('#queue-name').val());
@@ -196,8 +206,11 @@ function setEventHandlers() {
     var status = $(this).val();
     var taskId = $(this).data('task-id');
     $.ajax({
-      url: '/task/' + taskId  + '/update/' + 'status/' + status,
-      type: 'POST'
+      url: '/task/' + taskId  + '/status',
+      type: 'PUT',
+      data: {
+        value: status
+      }
     });
 
     STATE.taskmap[taskId].status = status;
@@ -224,7 +237,7 @@ function setEventHandlers() {
   $('#queue-list').sortable({
     stop: function(e, ui) {
       var queueIds = $(this).sortable('toArray', {attribute: 'data-queue-id'});
-      reorderList(queueIds, _.pluck(STATE.queues, 'id'), '/order/queue/');
+      reorderList(queueIds, _.pluck(STATE.queues, 'id'), '/order/queue');
       STATE.queues = _.map(queueIds, function(id) {
         return STATE.queuemap[id];
       });
@@ -246,7 +259,7 @@ function setEventHandlers() {
   $('#saved-filters').on('click', '.remove-filter', function(ev) {
     var filterId = $(this).data('filter-id');
     $.ajax({
-      url: '/filter/' + filterId + '/',
+      url: '/filter/' + filterId,
       type: 'DELETE'
     });
 
@@ -265,7 +278,10 @@ function setEventHandlers() {
   });
 
 
-  $('#logout').on('click', function() {
+  $('#logout').on('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+
     $.ajax({
       url: '/logout',
       type: 'POST'
@@ -275,8 +291,14 @@ function setEventHandlers() {
   });
 }
 
-function renameQueue() {
-  console.log('need to rename');
+function renameQueue(queueId, newName) {
+  $.ajax({
+    url: '/queue/' + queueId + '/name',
+    type: 'PUT',
+    data: {
+      value: newName
+    }
+  });
 }
 
 function saveFilter() {
@@ -285,10 +307,11 @@ function saveFilter() {
 
   if (name && rule) {
     $.ajax({
-      url: '/filter/' + name + '/',
+      url: '/filter/',
       type: 'POST',
       data: {
-        rule: rule
+        rule: rule,
+        name: name
       },
       success: function(filter) {
         filter.selected = true;
@@ -326,8 +349,11 @@ function reorderList(sortedList, prevList, url) {
 
 function createQueue(name) {
   $.ajax({
-    url: '/queue/' + name,
+    url: '/queue/',
     type: 'POST',
+    data: {
+      name: name
+    },
     success: function(queue) {
       addQueue(queue);
       renderView();
@@ -398,8 +424,11 @@ function putTaskInQueue(taskId, queueId) {
   renderView();
 
   $.ajax({
-    url: '/task/' + taskId  + '/update/' + 'queue/' + queueId,
-    type: 'POST'
+    url: '/task/' + taskId  + '/queue',
+    type: 'PUT',
+    data: {
+      value: queueId
+    }
   });
 }
 
@@ -513,7 +542,7 @@ function renderView() {
   $( ".create-form-container button[type='submit']" ).on('click',  function( event ) {
     var formData = $(this).parent('form').serialize();
     $.ajax({
-      url: '/task',
+      url: '/task/',
       type: 'POST',
       data: formData,
       success: function(data) {
@@ -534,10 +563,10 @@ function renderView() {
     var tags = val.val;
     var taskId = $(this).data('task-id');
     $.ajax({
-      url: '/task/' + taskId + '/tags/',
-      type: 'POST',
+      url: '/task/' + taskId + '/tags',
+      type: 'PUT',
       data: {
-        tags: JSON.stringify(tags)
+        value: JSON.stringify(tags)
       },
       success: function() {
         STATE.taskmap[taskId].tags = tags.join(',');
@@ -570,7 +599,7 @@ function renderView() {
         reorderList(tasks, STATE.queuemap[queueName].tasks, '/order/task/' + queueName);
         STATE.queuemap[queueName].tasks = tasks;
       } else {
-        reorderList(tasks, STATE.tasks, '/order/task/');
+        reorderList(tasks, STATE.tasks, '/order/task');
         STATE.tasks = tasks;
       }
     }

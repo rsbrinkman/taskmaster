@@ -4,7 +4,8 @@ from taskmaster.db.utils.base_models import CRUDModel
 class FilterModel(CRUDModel):
     KEY = 'filter>%s'
     ORG_FILTERS_KEY = 'org-filters>%s'
-    REQUIRED_FIELDS = ['name', 'org', 'rule']
+    REQUIRED_FIELDS = {'name', 'org', 'rule'}
+    UPDATABLE_FIELDS = {'name', 'rule'}
 
     def _post_create(self, db_pipe, filter_id, _filter):
         db_pipe.zadd(self.ORG_FILTERS_KEY % _filter['org'], default_score(), filter_id)
