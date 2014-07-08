@@ -2,6 +2,9 @@
 {% block js %}
   {{ super() }}
   <script src="static/js/admin.js"></script>
+  <script src="static/js/admin/search.js"></script>
+  <script src="static/js/admin/invite.js"></script>
+  <script src="static/js/admin/projects.js"></script>
 {% endblock %}
 
 
@@ -12,58 +15,28 @@
             <div class="message">{{messages|first}}</div>
         {% endif %}
     {% endwith %}
-    <label for="org-search">Search Projects</label>
-    <input type="text" name="org-search" id ="org-search">
-    <button class="btn" id="search">Search Projects</button>
-    <div class="search-results"></div>
-    
-    <h4>My Projects</h4>    
-    <p>
-    <ul class="my-org-list">
-    {% if user.orgs %}
-        {% for org in user.orgs %}
-            <li data-org-id="{{org.id}}">{{org.name}}</li>
-        {% endfor %}
-    {% else %}
-        <p class="no-org">Join a Project below!</p>
-    {% endif %}
-    
-    </ul></p>
-    <h4>Add User to Project</h4>
-    <label for="org">Project</label>
-    <input type="text" name="org" id ="org">
-    <label for="user">User</label>
-    <input type="text" name="user" id="user">
-    <button class="btn" id="add-user">Add</button>
-    <div class="user-org-results"></div>
-
-    <h4>Create an Project</h4>
-    <label for="org-name">Project</label>
-    <input type="text" name="org-name" id ="org-name">
-    <button class="btn" id="create-org">Create</button>
-    <div class="org-creation-results"></div>
-    <h4>My Information</h4>
-    <div class="row">
-      <div class="col-md-2">
-        <p><u>Email</u></p>
-        <p><div class="username">{{user.email}}</div></p>
-      </div>
-      <div class="col-md-2">
-        <p><u>Name</u></p>
-        <p><div class="name" contenteditable>{{user.name}}</div></p>
-        <div class="updates"></div>
+<div class="row">
+    <div class="col-md-2">
+          <ul class="left-nav list-unstyled">
+              <li class="left-nav-option active"><a href="#projects">My Projects</a></li>
+              <li class="left-nav-option" ><a href="#invite">Invite Friends</a></li>
+              <li class="left-nav-option" ><a href="#search">Find Projects</a></li>
+              <li class="left-nav-option" ><a href="#settings">Settings</a></li>
+          </ul>
     </div>
+    <div class="col-md-10 border-left">
+        <section class="hidden" id="search">
+        {% include '/admin/search.html' %}
+        </section>
+        <section class="hidden" id="projects">
+            {% include '/admin/projects.html' %}
+        </section>
+        <section class="hidden" id="invite">
+        {% include '/admin/invite.html' %}
+        </section>
+        <section class="hidden" id="settings">
+        {% include '/admin/settings.html' %}
+       </section>
     </div>
-    <div class="row">
-        <div class="col-md-2">
-            <select class="form-control org-list">
-                {% for org in user.orgs %}
-                    <option name="{{org.name}}" value="{{org.id}}">{{org.name}}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="col-md-2">
-            <button class="btn btn-success task-home" {% if not user.orgs %}disabled{% endif %}>Get Started</button>
-        </div>
 </div>
 {% endblock %}
