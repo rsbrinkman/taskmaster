@@ -5,12 +5,12 @@ class TaskModel(CRUDModel):
     KEY = 'task>%s'
     QUEUE_TASKS_KEY = 'queue-tasks2>%s'
     ORG_TASKS_KEY = 'org-tasks2>%s'
-
-    REQUIRED_FIELDS = ['name', 'org']
+    REQUIRED_FIELDS = {'name', 'org'}
     DEFAULTS = {
         'queue': '',
         'tags': '',
     }
+    UPDATABLE_FIELDS = {'name', 'description', 'status', 'assignee', 'queue'}
 
     def _post_create(self, db_pipe, task_id, task):
         self.add_to_org(task['org'], task_id, db_pipe=db_pipe)
@@ -39,9 +39,9 @@ class TaskModel(CRUDModel):
     def remove_from_queue(self, task_id, queue_id, db_pipe=db):
         db_pipe.zrem(self.QUEUE_TASKS_KEY % queue_id, task_id)
 
-    def update_order(self, org, updates, queue_name='', db_pipe=db):
-        if queue_name:
-            db_pipe.zadd(self.QUEUE_TASKS_KEY % queue_name, *updates)
+    def update_order(self, org, updates, queue_id=None, db_pipe=db):
+        if queue_id:
+            db_pipe.zadd(self.QUEUE_TASKS_KEY % queue_id, *updates)
         else:
             db_pipe.zadd(self.ORG_TASKS_KEY % org, *updates)
 

@@ -19,7 +19,7 @@
     if (!errorMessage) {
       $.ajax({
         type: 'POST',
-        url: '/user',
+        url: '/user/',
         data:{
           'email': email,
           'name': name,
@@ -68,8 +68,11 @@
     var name = $this.html();
 
     $.ajax({
-      type: 'POST',
-      url: '/user/' + $.cookie('user') +'/name/' + name,
+      type: 'PUT',
+      url: '/user/' + $.cookie('user') +'/name',
+      data: {
+        name: name
+      },
       success: function() {
         $('.updates').append('Updated!');  
       }
