@@ -16,7 +16,7 @@ class Tags(object):
         tags_to_add = updated_tags.difference(current_tags)
 
         def m(p):
-            task_model.update(task_id, 'tags', ','.join(updated_tags), db_pipe=p)
+            task_model.update(task_id, 'tags', ','.join(updated_tags), db_pipe=p, internal=True)
 
             for tag in tags_to_add:
                 p.zincrby(self.ORG_TAGS % task['org'], tag, amount=1)
