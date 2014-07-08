@@ -1,16 +1,3 @@
-  $('#create-org').click(function () {
-    var org = $('#org-name').val();
-    $.ajax({
-      type: 'POST',
-      url: '/org/' + org,
-      success: function(org) {
-        $('.org-creation-results').empty()
-        $('.org-creation-results').append(org.name + ' created!');
-        $('.my-org-list').append('<li data-org-id="' + org.id + '">' + org.name + '</li>');
-      }
-    });
-  });
-
   $('#sign-up-form').submit(function (e) {
     e.preventDefault();
 
@@ -76,12 +63,6 @@
     });
   });
 
-  $('#add-user').click(function () {
-    var email = $('#user').val();
-    var orgname = $('#org').val();
-    addUserToOrg(email, orgname);
-  });
-
   $('.name').blur(function() {
     var $this = $(this);
     var name = $this.html();
@@ -91,25 +72,6 @@
       url: '/user/' + $.cookie('user') +'/name/' + name,
       success: function() {
         $('.updates').append('Updated!');  
-      }
-    });
-  });
-  $('#search').click(function () {
-    var org = $('#org-search').val();
-    $.ajax({
-      type: 'POST',
-      url: '/orgs/' + org,
-      success: function(data) {
-        // display the results
-        if (!data) {
-            $('.search-results').empty()
-            $('.search-results').append('No Search results found');
-        }
-        else {
-            $('.search-results').empty()
-            $('.search-results').append(data.name + '<button data-org-id="' + data.id + '" data-org-name="' + data.name + '" class="btn btn-sm join-org">Join</button>');
-        }
-
       }
     });
   });
@@ -137,4 +99,24 @@
       }
     });
   };
-
+  
+  $('.left-nav > li > a').click(function(ev) {
+    ev.preventDefault();
+    var activeContent = $('.left-nav > li.active > a').attr('href');
+    console.log(activeContent);
+    //Whatever is currently showing, hide it
+    activeTab = $('.left-nav > li.active');
+    console.log(activeTab);
+    activeTab.removeClass('active');
+    
+    //Add active to nav
+    $(this).parents('li').addClass('active');
+    console.log($(this).parents('li').addClass('active'));
+    //hide content
+    $(activeContent).removeClass('active');
+    $(activeContent).addClass('hidden');
+    // show content
+    var targetContent = $(this).attr('href');
+    $(targetContent).removeClass('hidden');
+    $(targetContent).addClass('active');
+  });
