@@ -93,8 +93,6 @@ def _task_state(org_id=None):
 
     org_users = list(org_model.get_users(org_id))
     users = [user_model.get(user_id, include=['name', 'id', 'email']) for user_id in org_users]
-    print org_id
-    print org_model.get(org_id)
     return {
         'tasks': org_tasks,
         'queues': queues,
