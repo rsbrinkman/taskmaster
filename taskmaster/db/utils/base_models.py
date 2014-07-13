@@ -99,6 +99,7 @@ class CRUDModel(object):
             raise InvalidLookup(lookup)
 
         lookup_key = "%s-lookup-%s" % (lookup, self.KEY)
+
         return db.get(lookup_key % value)
 
     def update(self, _id, field, value, db_pipe=None, internal=False):

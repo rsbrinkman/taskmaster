@@ -2,8 +2,10 @@ import uuid
 from passlib.apps import custom_app_context
 from taskmaster.db.utils.base_models import CRUDModel, NotFound
 from taskmaster.db.models.org import OrgModel
+from taskmaster.db.utils.redis_conn import db
 
 org_model = OrgModel()
+crud_model = CRUDModel()
 
 class UserModel(CRUDModel):
     KEY = 'user>%s'
