@@ -5,8 +5,6 @@
       url: 'search/orgs/?term=' + org,
       success: function(data) {
         // display the results
-        
-        debugger;
         if (!data) {
             $('.search-results').empty()
             $('.search-results').append('No Search results found');
