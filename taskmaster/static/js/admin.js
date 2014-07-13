@@ -1,3 +1,4 @@
+  
   var TEMPLATES = {}
   $('.name').blur(function() {
     var $this = $(this);
@@ -34,8 +35,7 @@
     });
   };
   
-  $('.left-nav > li > a').click(function(ev) {
-    ev.preventDefault();
+  $('.left-nav > li > a').click(function() {
     var activeContent = $('.left-nav > li.active > a').attr('href');
     //Whatever is currently showing, hide it
     activeTab = $('.left-nav > li.active');

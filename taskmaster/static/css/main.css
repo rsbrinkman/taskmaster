@@ -269,4 +269,5 @@ table.drop-hover {
 }
 .admin-input {
     width: 200px;
+    display: inline-block;
 }

@@ -1,10 +1,12 @@
-  $('#search-button').click(function () {
+  $('#search-button').click(function (ev) {
     var org = $('#org-search').val();
     $.ajax({
       type: 'POST',
       url: 'search/orgs/?term=' + org,
       success: function(data) {
         // display the results
+        
+        debugger;
         if (!data) {
             $('.search-results').empty()
             $('.search-results').append('No Search results found');
