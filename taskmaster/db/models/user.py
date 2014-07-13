@@ -5,7 +5,6 @@ from taskmaster.db.models.org import OrgModel
 from taskmaster.db.utils.redis_conn import db
 
 org_model = OrgModel()
-crud_model = CRUDModel()
 
 class UserModel(CRUDModel):
     KEY = 'user>%s'

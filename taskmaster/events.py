@@ -42,7 +42,6 @@ def mediator(event, **kwargs):
             mail.send(msg)
     if event == 'invite':
         org_name = org_model.get(kwargs['org_id'])
-        print org_name
         org_name = org_name['name']
         msg = Message("You've Been Invited to Join Taskmaster!", sender=FROM_EMAIL,
                       recipients=[kwargs['email']], html=emails.INVITED % {
