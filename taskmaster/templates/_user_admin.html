@@ -1,9 +1,0 @@
-<div>here it is</div>
-<script data-template-name="user-admin" type="underscore">
-    <button class="btn" class="user-button">user</button>
-    <select id="org-dropdown" class="form-control">
-        <% _.each(STATE.orgs, function(org) { %>
-            <option <% if (STATE.org.id===org.id) { %>selected<% } %> name="<%= org.name %>" value="<%= org.id %>"><%= org.name %></option>
-        <% });  %>
-    </select>
-</script>
