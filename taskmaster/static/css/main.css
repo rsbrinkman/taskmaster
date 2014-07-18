@@ -204,8 +204,8 @@ table.drop-hover {
     cursor: pointer;
 }
 .edit-box {
-    height: 20px;
-    width: 75px;
+    height: 25px;
+    width: 90%;
     top: 4px;
     display: inline;
 }
@@ -260,6 +260,7 @@ table.drop-hover {
 }
 .logout-icon {
     top: 5px;
+    color: #535353;
 }
 .left-nav-option.active {
     background-color: lightgray;
@@ -270,4 +271,27 @@ table.drop-hover {
 .admin-input {
     width: 200px;
     display: inline-block;
+}
+.btn-primary {
+    background-color: #42CA42;
+    border-color: #2FB44F;
+}
+.btn-primary:hover, .btn-primary:active, .btn-primary:active, .btn-primary:focus  {
+    background-color: #39AF39;
+    border-color: #299744
+}
+.title, .title:hover, .title:active  {
+    color: rgba(75, 74, 74, 0.87);
+}
+.btn-info {
+    background-color: #CECECE;
+    border-color: #B8B8B8;
+}
+.btn-info:hover, .btn-info:active, .btn-info:active, .btn-info:focus {
+    background-color: #BBBBBB;
+    border-color: #AFAFAF;
+}
+.task-row {
+    background-color: #535353;
+    background: rgba(159, 172, 194, 0.18)
 }
