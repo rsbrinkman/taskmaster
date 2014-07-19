@@ -273,7 +273,7 @@ def update_task(_id, field):
 @app.route('/order/task', methods=['PUT'])
 @app.route('/order/task/<queue_id>', methods=['PUT'])
 @require_permission('edit_task')
-def update_task_order(queue_id):
+def update_task_order(queue_id=None):
     task_model.update_order(g.org, json.loads(request.form['updates']), queue_id=queue_id)
     return Response(status=200)
 
