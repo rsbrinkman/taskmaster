@@ -8,11 +8,9 @@
         <% });  %>
         <span class="on">on</span>
         <select id="org-dropdown" class="form-control">
-            <% if (STATE.org) { %>
             <% _.each(STATE.orgs, function(org) { %>
-                <option <% if (STATE.org.id===org.id) { %>selected<% } %> name="<%= org.name %>" value="<%= org.id %>"><%= org.name %></option>
+                <option <% if ( STATE.org && STATE.org.id===org.id) { %>selected<% } %> name="<%= org.name %>" value="<%= org.id %>"><%= org.name %></option>
             <% });  %>
-            <% } %>
         </select>
         <a id="logout" class="logout" href="javascript:void(0)"><span class="glyphicon glyphicon-export logout-icon" title="logout"></span></a>
     </form>
