@@ -22,8 +22,7 @@ select.input-sm {
 }
 
 .tag-column {
-    max-width: 250px;
-    min-width: 100px;
+    width: 200px;
 }
 
 .task-tags-display.no-tags {
@@ -301,7 +300,6 @@ table.drop-hover {
     background-color: #BBBBBB;
     border-color: #AFAFAF;
 }
-.task-row {
-    background-color: #535353;
-    background: rgba(159, 172, 194, 0.18)
+.select2-container, .select2-search-field, .select2-choices {
+    width: 200px;
 }
