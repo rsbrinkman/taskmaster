@@ -24,7 +24,10 @@
             <option name='<%= otherQueue.id %>' data-queue-id='<%= otherQueue.id %>' <% if (otherQueue.id===queue) { %>selected<% } %> value='<%= otherQueue.id %>'><%= otherQueue.name %></option>
         <% });  %>
         </select>
-    <td class="tag-column"><input type="hidden" data-task-id="<%= id %>" class="task-tags" value="<%= tags %>"></input></td>
+    <td class="tag-column">
+      <input type="hidden" data-task-id="<%= id %>" class="task-tags" value="<%= tags %>"></input>
+      <div class="task-tags-display <%= tagsClass %>"><%= tagsDisplay %></div>
+      </td>
     <td><span class="glyphicon glyphicon-remove del-task" data-task-id="<%= id %>"></button>
   </tr>
 </script>
