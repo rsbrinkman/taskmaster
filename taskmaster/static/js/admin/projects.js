@@ -19,7 +19,6 @@
 
   $('.task-home').click(function () {
     selectedOrg = $('.org-dropdown').val();
-    console.log('selectedOrg');
     $.cookie('org', selectedOrg);
     window.location.href = '/';
   });
