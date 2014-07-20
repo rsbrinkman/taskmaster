@@ -67,6 +67,9 @@ def _task_state(org_id=None):
     '''
     # Get the user's orgs
     orgs = list(org_model.get_for_user(g.user))
+    # I keep running into this edge case and its a horrible state to be in.
+    if not g.org and orgs:
+       org_id = orgs[0]['id']
 
     # Get set of assigned tasks
     org_tasks = list(task_model.get_for_org(org_id))
