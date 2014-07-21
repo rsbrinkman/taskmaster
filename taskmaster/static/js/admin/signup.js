@@ -1,3 +1,4 @@
+$(function() {
   $('#sign-up-form').submit(function (e) {
     e.preventDefault();
 
@@ -62,5 +63,4 @@
       }
     });
   });
-
-
+});

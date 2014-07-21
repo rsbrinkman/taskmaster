@@ -13,6 +13,7 @@ select.input-sm {
     box-shadow: 3px 1px 2px #888888;
     width: 100%;
     margin-bottom: 10px;
+    margin-top: 5px;
 }
 .border-left {
     border-left: 1px #888888 solid;
@@ -106,16 +107,22 @@ table.drop-hover {
 }
 
 .header-filter-container {
-    margin-top: 30px;
     margin-bottom: 10px;
+    margin-left: 10px;
+    margin: 10px 0px 0px 10px;
 }
 
 #saved-filters {
-    width: 350px;
     padding: 2px 0px 5px 0px;
+    width: 300px;
+    height: 80px;
+    overflow: scroll;
+}
+input.saved-filter-checkbox {
+    margin-right: 5px;
 }
 .filter-name {
-    margin-right: 5px;
+    margin-bottom: 2px;
 }
 .vertical-bar {
     padding-left: 10px;
@@ -130,9 +137,11 @@ table.drop-hover {
 }
 
 #save-filter-name {
-    width: 150px;
+    width: 220px;
 }
-
+#save-filter {
+    margin-left: -10px;
+}
 .create-form-header {
     position: relative;
 }
@@ -260,9 +269,36 @@ table.drop-hover {
 .on {
     padding: 10px 10px;
 }
+
+#project-admin {
+    margin-left: 5px;
+}
+
+#project-admin.selected,
+#project-tasks.selected {
+    background-color: #EEE;
+    border: solid 1px #AAA;
+    padding: 3px;
+    color: #2a6496;
+    cursor: default;
+}
+
+#project-button-divider {
+    display: inline;
+    border-right: solid 2px #BBB;
+    margin-right: 5px;
+}
+
+.user-button.selected {
+    color: #333;
+    background-color: #ddd;
+    border-color: #555;
+    cursor: default;
+}
+
 .logout {
     font-size:20px;
-    margin-left: 10px;
+    margin-left: 30px;
 }
 .user-button {
     background-color: rgba(236, 236, 236, 0.6);
@@ -302,4 +338,18 @@ table.drop-hover {
 }
 .select2-container, .select2-search-field, .select2-choices {
     width: 200px;
+}
+.lists {
+    min-height: 300px;
+}
+#clear-filter {
+    margin-left: -44px;
+}
+.filter-count {
+   margin-left: 10px;
+}
+.glyphicon-chevron-down, .glyphicon-chevron-up {
+    font-size: 20px;
+    top: 5px;
+    cursor: pointer;
 }

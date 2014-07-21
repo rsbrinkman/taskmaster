@@ -1,12 +1,6 @@
-var TEMPLATES = {}
 var styleRules;
-var COOKIES = {
-  view: 'view',
-  org: 'org'
-}
 
 $(function() {
-  loadTemplates()
 
   // Used for quick filtering, need to call everytime we add/remove tokens to a task
   FilterTasks.buildTokenSets(STATE.taskmap);
@@ -36,6 +30,8 @@ $(function() {
   loadCookies();
   renderView();
   setEventHandlers();
+
+  $('#project-tasks').addClass('selected');
 });
 
 function compileFilters() {
@@ -43,13 +39,6 @@ function compileFilters() {
     if (!filter.compiled) {
       filter.compiled = FilterTasks.compileFilter(filter.rule);
     }
-  });
-}
-
-function loadTemplates() {
-  _.each($('[type="underscore"]'), function(ele) {
-    var $ele = $(ele);
-    TEMPLATES[$ele.data('template-name')] = _.template($ele.html());
   });
 }
 
@@ -156,12 +145,6 @@ function setEventHandlers() {
     putTaskInQueue(taskId, queueId);
   });
 
-  $('body').on('change', '#org-dropdown', function(e) {
-    org = $(this).val();
-    $.cookie(COOKIES.org, org);
-    location.reload();
-  });
-
   $('.container').on('change', '.task-assignee', function(e) {
     var assignee = $(this).val();
     var taskId = $(this).data('task-id');
@@ -222,18 +205,6 @@ function setEventHandlers() {
     STATE.showingCreateTask = !STATE.showingCreateTask;
   });
 
-  $('#filter-tasks-go').click(function() {
-    STATE.searchString = $('#filter-tasks').val();
-    renderView();
-  });
-
-  $('#filter-tasks').keyup(function(ev) {
-    if (ev.which === 13) {
-      STATE.searchString = $('#filter-tasks').val();
-      renderView();
-    }
-  });
-
   $('#queue-list').sortable({
     stop: function(e, ui) {
       var queueIds = $(this).sortable('toArray', {attribute: 'data-queue-id'});
@@ -277,21 +248,8 @@ function setEventHandlers() {
     renderView();
   });
 
-
   $('body').on('click', function(e) {
     clearTagInputs();
-  });
-
-  $('#logout').on('click', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-
-    $.ajax({
-      url: '/logout',
-      type: 'POST'
-    });
-
-    window.location = "/signup";
   });
 }
 
@@ -326,7 +284,6 @@ function saveFilter() {
       success: function(filter) {
         filter.selected = true;
         STATE.filtermap[filter.id] = filter;
-
         $('#save-filter-name, #filter-tasks').val('');
         STATE.searchString = '';
         compileFilters();
@@ -446,13 +403,23 @@ function renderView() {
   /*
    * Render HTML from the state and put on the DOM
    */
-  $('#org-selector').html(TEMPLATES['org-selector'](STATE.orgs, STATE.org, STATE.user, STATE.users));
   var selectedQueues = _.filter(STATE.queues, function(queue) {
     return queue.selected;
   });
 
-  renderSavedFilters();
+  // Check if filter container is open
+  var filterContainer = $('.header-filter-container');
+  if (filterContainer.is(':visible')) {
+    var filterTaskHTML = TEMPLATES['filter']({visible: STATE.showingFilters}, STATE.filtermap);
+    $('#filter-view').html(filterTaskHTML);
+    renderSavedFilters();
 
+  } else {
+    var filterTaskHTML = TEMPLATES['filter']({visible: STATE.showingFilters});
+    $('#filter-view').html(filterTaskHTML);
+   
+  };
+  
   var taskViewHTML = '';
   if (selectedQueues.length) {
     _.each(selectedQueues, function(queue) {
@@ -549,7 +516,68 @@ function renderView() {
   /* 
    * Hook up any needed event handlers
    */
+  $('#filter-tasks').keyup(function(ev) {
+    if (ev.which === 13) {
+      STATE.searchString = $('#filter-tasks').val();
+      renderView();
+    }
+  });
 
+  $('#clear-filter').click(function() {
+    STATE.searchString = '';
+    renderView();
+  });
+  $('#save-filter').click(function(ev) {
+    ev.stopPropagation();
+    ev.preventDefault();
+    saveFilter();
+  });
+
+  $('#save-filter-name').keyup(function(ev) {
+    if (ev.which === 13) {
+      saveFilter();
+    }
+  });
+
+  $('#saved-filters').on('click', '.remove-filter', function(ev) {
+    var filterId = $(this).data('filter-id');
+    $.ajax({
+      url: '/filter/' + filterId,
+      type: 'DELETE'
+    });
+
+    delete STATE.filtermap[filterId];
+    renderView();
+  });
+
+  $('#saved-filters').on('change', 'input[type="checkbox"]', function(ev) {
+    var $this = $(this);
+
+    var selected = $this.prop('checked');
+    var filterId = $this.data('filter-id');
+
+    STATE.filtermap[filterId].selected = selected;
+    renderView();
+  });
+
+
+  $(".toggle-filters").on('click', function() {
+    var filterContainer = $('.header-filter-container');
+    if (filterContainer.is(':hidden')) {
+      filterContainer.removeClass('hidden');
+      STATE.showingFilters = !STATE.showingFilters;
+      filterContainer.slideDown(200, function() { 
+      $('.show-filters').addClass('hidden');
+      $('.hide-filters').removeClass('hidden');
+      });
+      renderSavedFilters();
+    } else {
+      filterContainer.slideUp(200);
+      $('.hide-filters').addClass('hidden');
+      $('.show-filters').removeClass('hidden');
+      STATE.showingFilters = !STATE.showingFilters;
+    }
+  });
   $( ".create-form-container button[type='submit']" ).on('click',  function( event ) {
     var formData = $(this).parent('form').serialize();
     $.ajax({
@@ -727,7 +755,6 @@ function renderSavedFilters() {
     filter.rule = filter.rule.replace(/"/g, '&quot;');
     return TEMPLATES['saved-filter'](filter);
   });
-
   $('#saved-filters').html(filterHTML.join(''));
 }
 
