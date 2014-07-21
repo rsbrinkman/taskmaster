@@ -20,10 +20,20 @@ select.input-sm {
 #s2id_groupSelect, .select2-input, .select2-container, .select2-search-field, .select2-choices {
     width: 100%;
 }
+
 .tag-column {
     max-width: 250px;
     min-width: 100px;
 }
+
+.task-tags-display.no-tags {
+    font-style: italic;
+}
+
+.tag-column.editing .task-tags-display {
+    display: none;
+}
+
 .queue-box {
     margin-bottom: 5px;
 }
