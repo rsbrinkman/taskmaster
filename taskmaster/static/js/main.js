@@ -1,9 +1,4 @@
 var styleRules;
-var COOKIES = {
-  view: 'view',
-  org: 'org',
-  user: 'user'
-}
 
 $(function() {
 
@@ -614,7 +609,6 @@ function renderView() {
 
   function createTask() {
     var formData = $('.create-form').serialize();
-    console.log(formData);
     $.ajax({
       url: '/task/',
       type: 'POST',
@@ -625,10 +619,6 @@ function renderView() {
     });
 
   }
-  $('.create-task-details').click(function() {
-    //$('.create-form-details').toggleClass('hidden');
-  });
-
   $('.task-tags-display').click(function(evt) {
     evt.stopPropagation();
     evt.preventDefault();

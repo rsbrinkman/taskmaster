@@ -273,23 +273,27 @@ input.saved-filter-checkbox {
     padding: 10px 10px;
 }
 
-#project-admin {
+#project-admin, #project-tasks {
     margin-left: 5px;
+    color: #535353;
+    font-size: 18px;
 }
-
+#project-admin > span.glyphicon, #project-tasks > span.glyphicon {
+    top: 4px;
+}
 #project-admin.selected,
 #project-tasks.selected {
     background-color: #EEE;
     border: solid 1px #AAA;
-    padding: 3px;
-    color: #2a6496;
+    border-radius: 2px;
+    padding: 2px 5px 6px 5px;
+    color: #535353;
     cursor: default;
 }
 
 #project-button-divider {
     display: inline;
     border-right: solid 2px #BBB;
-    margin-right: 5px;
 }
 
 .user-button.selected {
