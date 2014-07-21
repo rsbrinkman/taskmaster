@@ -49,10 +49,10 @@ $(function() {
     $(targetContent).removeClass('hidden');
     $(targetContent).addClass('active');
   });
+
   $('#settings').html(TEMPLATES['settings'](STATE.orgs, STATE.org, STATE.users, STATE.user));
   $('#invite').html(TEMPLATES['invite']());
   $('#search').html(TEMPLATES['search']());
   $('#projects').html(TEMPLATES['projects'](STATE.orgs));
-
   $('.user-button').addClass('selected');
 });
