@@ -2,7 +2,8 @@ var TEMPLATES = {}
 var styleRules;
 var COOKIES = {
   view: 'view',
-  org: 'org'
+  org: 'org',
+  user: 'user'
 }
 
 $(function() {
@@ -136,7 +137,12 @@ function setEventHandlers() {
       onEditQueue.call(this, e);
     }
   });
-
+  
+  $('.container').on('keyup', '.quick-task-name', function(e) {
+    if (e.which === 13) {
+      createTask();
+    }
+  });
   $('.container').on('blur', '.edit-name', onEditQueue);
 
   $('.container').on('click', '.queue-row', function(e) {
@@ -217,11 +223,30 @@ function setEventHandlers() {
     renderView();
   });
 
-  $('body').on('click', '.create-tasks', function() {
-    $('.create-form-container').toggleClass('hidden');
-    STATE.showingCreateTask = !STATE.showingCreateTask;
-  });
+  $('body').on('click', '.create-tasks-details', function() {
+    var taskDetailsContainer = $('.task-details');
+    if (taskDetailsContainer.is(':hidden')) {
+      taskDetailsContainer.slideDown(200, function() { 
+        $('.task-details').removeClass('hidden');
+        STATE.showingCreateTask = !STATE.showingCreateTask;
+        $('.show-task-details').addClass('hidden');
+        $('.hide-task-details').removeClass('hidden');
+        });
+      } else {
+      taskDetailsContainer.slideUp(200, function() { 
+        $('.hide-task-details').addClass('hidden');
+        $('.show-task-details').removeClass('hidden');
+        STATE.showingCreateTask = !STATE.showingCreateTask;
+      });
+      }
 
+  });
+  $('.create-task-close').click(function() {
+    $('.task-details').toggleClass('hidden');
+    STATE.showingCreateTask = !STATE.showingCreateTask;
+    $('.show-task-details').addClass('hidden');
+    $('.hide-task-details').removeClass('hidden');
+  });
   $('#queue-list').sortable({
     stop: function(e, ui) {
       var queueIds = $(this).sortable('toArray', {attribute: 'data-queue-id'});
@@ -403,7 +428,8 @@ function renderView() {
   var selectedQueues = _.filter(STATE.queues, function(queue) {
     return queue.selected;
   });
-
+  var createTaskHTML = TEMPLATES['create-task']({visible: STATE.showingCreateTask});
+  $('#quick-task-view').html(createTaskHTML);
   // Check if filter container is open
   var filterContainer = $('.header-filter-container');
   if (filterContainer.is(':visible')) {
@@ -430,8 +456,7 @@ function renderView() {
   });
   queueHTML = queueHTML.join('');
 
-  var createTaskHTML = TEMPLATES['create-task']({visible: STATE.showingCreateTask});
-  var allTaskHTML = createTaskHTML + taskViewHTML;
+  var allTaskHTML = taskViewHTML;
   $('#task-view').html(allTaskHTML);
 
 
@@ -576,7 +601,13 @@ function renderView() {
     }
   });
   $( ".create-form-container button[type='submit']" ).on('click',  function( event ) {
-    var formData = $(this).parent('form').serialize();
+    createTask();
+    return false;
+  });
+
+  function createTask() {
+    var formData = $('.create-form').serialize();
+    console.log(formData);
     $.ajax({
       url: '/task/',
       type: 'POST',
@@ -586,11 +617,9 @@ function renderView() {
       }
     });
 
-    return false;
-  });
-  $('.create-task-close').click(function() {
-    $('.create-form-container').toggleClass('hidden');
-    STATE.showingCreateTask = !STATE.showingCreateTask;
+  }
+  $('.create-task-details').click(function() {
+    //$('.create-form-details').toggleClass('hidden');
   });
 
   $('.task-tags-display').click(function(evt) {

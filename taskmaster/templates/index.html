@@ -26,6 +26,7 @@
 {% include '_create_task.html' %}
 {% include '_saved_filter.html' %}
 {% include '_filter.html' %}
+{% include '_quick_task.html' %}
 {% include '_org_selector.html' %}
 <div class="container">
   <div class="row">
@@ -36,7 +37,8 @@
          <input type="text" class="form-control input-sm queue-box" id="queue-name">
          <button class="btn btn-info btn-sm" id="create-queue">Create List</a>
     </div>
-    <div id="filter-view" class="col-md-10 border-left">test</div>
+    <div id="quick-task-view" class="col-md-10 border-left"></div>
+    <div id="filter-view" class="col-md-10 border-left"></div>
     <div id="task-view" class="col-md-10 border-left">
     </div>
   </div>

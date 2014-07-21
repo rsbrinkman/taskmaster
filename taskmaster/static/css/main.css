@@ -326,3 +326,12 @@ input.saved-filter-checkbox {
     top: 5px;
     cursor: pointer;
 }
+.quick-task-name {
+    width: 50%;
+}
+#quick-task-create {
+    margin-left: -20px;
+}
+.quick-task-container {
+    margin-bottom: 10px;
+}
