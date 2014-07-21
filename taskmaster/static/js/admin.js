@@ -34,10 +34,6 @@
       }
     });
   };
-    $('body').on('change', '#org-dropdown', function(e) {
-    org = $(this).val();
-    $.cookie('org', org);
-  });
   $('.left-nav > li > a').click(function() {
     var activeContent = $('.left-nav > li.active > a').attr('href');
     //Whatever is currently showing, hide it

@@ -441,7 +441,7 @@ function renderView() {
     var filterTaskHTML = TEMPLATES['filter']({visible: STATE.showingFilters});
     $('#filter-view').html(filterTaskHTML);
    
-  };;
+  };
   
   var taskViewHTML = '';
   if (selectedQueues.length) {
