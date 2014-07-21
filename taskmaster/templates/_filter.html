@@ -1,0 +1,30 @@
+<script data-template-name="filter" type="underscore">
+    
+    <div class="form-inline filter">
+        <input type="text" class="form-control" placeholder="filter w/ key:value" id="filter-tasks" value="<%= STATE.searchString %>">
+        <button class="btn btn-default" title="Clear current filter" id="clear-filter"><span class="glyphicon glyphicon-remove"></span></button></input>
+        <span class="filter-count">
+        <% var filterCount = 0 %>
+        <% _.each(STATE.filtermap, function(savedFilter) {  %>
+            <% if (savedFilter.selected) { %>
+                <% filterCount ++ %>
+            <% } %>
+        <% });  %>
+        <strong><%= filterCount %></strong> filters applied
+        </span>
+        <span class="glyphicon glyphicon-chevron-down toggle-filters show-filters"></span>
+        <span class="glyphicon glyphicon-chevron-up toggle-filters hidden hide-filters"></span>
+    </div>
+    <div class="header-filter-container <% if (!visible) { %> hidden <% } %>">
+        <div class="form-inline">
+            <div class="save-filter-container">
+                <input type="text" class="form-control filter"  placeholder="Save Current Filter As.." id="save-filter-name"></input>
+                <button class="btn btn-default" id="save-filter"><span class="glyphicon glyphicon-plus"</button>
+            </div>
+        </div>
+        <h4>Saved Filters</h4>
+        <ul id="saved-filters" class="list-unstyled">
+        </ul>
+    </div>
+
+</script>
