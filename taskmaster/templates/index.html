@@ -1,10 +1,7 @@
-{% extends "base.html" %}
+{% extends "logged_in.html" %}
 
 {% block js %}
   {{ super() }}
-  <script type="text/javascript">
-    var STATE = {{state|safe}};
-  </script>
   <script src="static/js/filter.js"></script>
   <script src="static/js/main.js"></script>
 {% endblock %}
@@ -19,6 +16,8 @@
 {% endblock %}
 
 {% block body %}
+{{ super() }}
+
 {% include '_queue_row.html' %}
 {% include '_task_row.html' %}
 {% include '_task_list.html' %}
