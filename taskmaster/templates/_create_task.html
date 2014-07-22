@@ -7,6 +7,7 @@
             <span class="glyphicon glyphicon-chevron-down create-tasks-details show-task-details"></span>
             <span class="glyphicon glyphicon-chevron-up create-tasks-details hide-task-details hidden"></span>
         </div>
+        <div class="task-message"></div>
         <div class="<% if (!visible) { %> hidden <% } %> task-details">
             <div class="form-group">
                 <label for="task-description">Task description</label>
@@ -23,7 +24,7 @@
                 <label for="task-assignee">Task Assignee</label>
                 <select class="form-control task-assignee" name="task-assignee">  
                     <% _.each(STATE.users, function(user) { %>
-                        <option name='task-assignee' data-queue-id='<%= user.id %>' value='<%= user.id %>'><%= user.name %></option>
+                        <option name='task-assignee' data-queue-id='<%= user.id %>' <% if (STATE.user.id===user.id){ %>selected<% } %> value='<%= user.id %>'><%= user.name %></option>
                     <% });  %>
                 </select>
             </div>

@@ -615,6 +615,13 @@ function renderView() {
       data: formData,
       success: function(data) {
         addTask(data);
+        $('.quick-task-name').focus();
+        $('.task-message').slideDown(function() {
+          $('.task-message').append('task created');
+          setTimeout(function() {
+            $('.task-message').slideUp();
+          }, 1000);
+        });
       }
     });
 
