@@ -620,7 +620,7 @@ function renderView() {
         addTask(data);
         $('.quick-task-name').focus();
         $('.task-message').slideDown(function() {
-          $('.task-message').append('task created');
+          $('.task-message').append('Task created!');
           setTimeout(function() {
             $('.task-message').slideUp();
           }, 1000);
