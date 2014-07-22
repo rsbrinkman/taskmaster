@@ -128,7 +128,10 @@ function setEventHandlers() {
   
   $('.container').on('keyup', '.quick-task-name', function(e) {
     if (e.which === 13) {
-      createTask();
+      if ($(this).val()!=this.value) {
+        createTask();
+      }
+      $(this).val(this.value);  
     }
   });
   $('.container').on('blur', '.edit-name', onEditQueue);
