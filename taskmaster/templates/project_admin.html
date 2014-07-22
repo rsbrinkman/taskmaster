@@ -1,0 +1,29 @@
+{% extends "logged_in.html" %}
+{% block js %}
+  {{ super() }}
+  <script src="static/js/project_admin.js"></script>
+{% endblock %}
+
+{% block body %}
+  {{ super() }}
+
+  <div class="container">
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="message">{{messages|first}}</div>
+        {% endif %}
+    {% endwith %}
+    <div class="row">
+        <div class="col-md-2">
+              <ul class="left-nav list-unstyled">
+                  <li class="left-nav-option active" ><a href="#settings">Settings</a></li>
+              </ul>
+        </div>
+        <div class="col-md-10 border-left">
+            <section id="settings">
+            {% include '/admin/_project_settings.html' %}
+           </section>
+        </div>
+    </div>
+  </div>
+{% endblock %}

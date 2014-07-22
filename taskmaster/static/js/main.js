@@ -1,8 +1,4 @@
 var styleRules;
-var COOKIES = {
-  view: 'view',
-  org: 'org'
-}
 
 $(function() {
 
@@ -34,6 +30,8 @@ $(function() {
   loadCookies();
   renderView();
   setEventHandlers();
+
+  $('#project-tasks').addClass('selected');
 });
 
 function compileFilters() {
@@ -145,12 +143,6 @@ function setEventHandlers() {
     var queueId = $(this).val();
     var taskId = $(this).data('task-id');
     putTaskInQueue(taskId, queueId);
-  });
-
-  $('body').on('change', '#org-dropdown', function(e) {
-    org = $(this).val();
-    $.cookie(COOKIES.org, org);
-    location.reload();
   });
 
   $('.container').on('change', '.task-assignee', function(e) {
@@ -414,7 +406,6 @@ function renderView() {
   /*
    * Render HTML from the state and put on the DOM
    */
-  $('#org-selector').html(TEMPLATES['org-selector'](STATE.orgs, STATE.org, STATE.user, STATE.users));
   var selectedQueues = _.filter(STATE.queues, function(queue) {
     return queue.selected;
   });

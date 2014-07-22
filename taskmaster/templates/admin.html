@@ -1,52 +1,44 @@
-{% extends "base.html" %}
+{% extends "logged_in.html" %}
 {% block js %}
   {{ super() }}
-  <script type="text/javascript">
-    var STATE = {{state|safe}};
-    </script>
   <script src="static/js/admin.js"></script>
   <script src="static/js/admin/search.js"></script>
   <script src="static/js/admin/invite.js"></script>
   <script src="static/js/admin/projects.js"></script>
 {% endblock %}
 
-{% block header_row %}
-    <div class="col-md-8">
-        <div id="org-selector"></div>
-    </div>
-{% endblock %}
-
 {% block body %}
+  {{ super() }}
 
-{% include '_org_selector.html' %}
-<div class="container">    
+  <div class="container">
     {% with messages = get_flashed_messages() %}
         {% if messages %}
             <div class="message">{{messages|first}}</div>
         {% endif %}
     {% endwith %}
-<div class="row">
-    <div class="col-md-2">
-          <ul class="left-nav list-unstyled">
-              <li class="left-nav-option active"><a href="#projects">My Projects</a></li>
-              <li class="left-nav-option" ><a href="#invite">Invite Friends</a></li>
-              <li class="left-nav-option" ><a href="#search">Find Projects</a></li>
-              <li class="left-nav-option" ><a href="#settings">Settings</a></li>
-          </ul>
+    <div class="row">
+        <div class="col-md-2">
+              <ul class="left-nav list-unstyled">
+                  <li class="left-nav-option active"><a href="#projects">My Projects</a></li>
+                  <li class="left-nav-option" ><a href="#invite">Invite Friends</a></li>
+                  <li class="left-nav-option" ><a href="#search">Find Projects</a></li>
+                  <li class="left-nav-option" ><a href="#settings">Settings</a></li>
+              </ul>
+        </div>
+        <div class="col-md-10 border-left">
+            <section class="hidden" id="search">
+            {% include '/admin/_search.html' %}
+            </section>
+            <section class="" id="projects">
+            {% include '/admin/_projects.html' %}
+            </section>
+            <section class="hidden" id="invite">
+            {% include '/admin/_invite.html' %}
+            </section>
+            <section class="hidden" id="settings">
+            {% include '/admin/_settings.html' %}
+           </section>
+        </div>
     </div>
-    <div class="col-md-10 border-left">
-        <section class="hidden" id="search">
-        {% include '/admin/_search.html' %}
-        </section>
-        <section class="" id="projects">
-        {% include '/admin/_projects.html' %}
-        </section>
-        <section class="hidden" id="invite">
-        {% include '/admin/_invite.html' %}
-        </section>
-        <section class="hidden" id="settings">
-        {% include '/admin/_settings.html' %}
-       </section>
-    </div>
-</div>
+  </div>
 {% endblock %}

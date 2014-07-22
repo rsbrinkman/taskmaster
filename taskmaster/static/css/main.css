@@ -251,9 +251,36 @@ table.drop-hover {
 .on {
     padding: 10px 10px;
 }
+
+#project-admin {
+    margin-left: 5px;
+}
+
+#project-admin.selected,
+#project-tasks.selected {
+    background-color: #EEE;
+    border: solid 1px #AAA;
+    padding: 3px;
+    color: #2a6496;
+    cursor: default;
+}
+
+#project-button-divider {
+    display: inline;
+    border-right: solid 2px #BBB;
+    margin-right: 5px;
+}
+
+.user-button.selected {
+    color: #333;
+    background-color: #ddd;
+    border-color: #555;
+    cursor: default;
+}
+
 .logout {
     font-size:20px;
-    margin-left: 10px;
+    margin-left: 30px;
 }
 .user-button {
     background-color: rgba(236, 236, 236, 0.6);
