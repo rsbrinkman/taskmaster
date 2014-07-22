@@ -1,3 +1,4 @@
+$(function() {
   $('#create-org').click(function () {
     var org = $('#org-name').val();
     $.ajax({
@@ -23,4 +24,4 @@
     $.cookie('org', selectedOrg);
     window.location.href = '/';
   });
-
+});

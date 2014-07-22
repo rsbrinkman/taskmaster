@@ -1,4 +1,3 @@
-var TEMPLATES = {}
 var styleRules;
 var COOKIES = {
   view: 'view',
@@ -6,7 +5,6 @@ var COOKIES = {
 }
 
 $(function() {
-  loadTemplates()
 
   // Used for quick filtering, need to call everytime we add/remove tokens to a task
   FilterTasks.buildTokenSets(STATE.taskmap);
@@ -43,13 +41,6 @@ function compileFilters() {
     if (!filter.compiled) {
       filter.compiled = FilterTasks.compileFilter(filter.rule);
     }
-  });
-}
-
-function loadTemplates() {
-  _.each($('[type="underscore"]'), function(ele) {
-    var $ele = $(ele);
-    TEMPLATES[$ele.data('template-name')] = _.template($ele.html());
   });
 }
 
@@ -275,19 +266,6 @@ function setEventHandlers() {
 
     STATE.filtermap[filterId].selected = selected;
     renderView();
-  });
-
-
-  $('#logout').on('click', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-
-    $.ajax({
-      url: '/logout',
-      type: 'POST'
-    });
-
-    window.location = "/signup";
   });
 }
 
