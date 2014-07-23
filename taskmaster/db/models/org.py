@@ -10,7 +10,6 @@ class OrgModel(CRUDModel):
     KEY = 'org>%s'
     USERS_KEY = 'org-users>%s'
     USER_ORGS_KEY = 'user>orgs>%s'
-    ROLE_KEY = 'user-role>%s>%s'
     REQUIRED_FIELDS = {'name'}
     UPDATABLE_FIELDS = {'name', 'level'}
     REVERSE_LOOKUPS = {'name'}

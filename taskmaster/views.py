@@ -126,7 +126,7 @@ def admin():
     return render_template('admin.html', state=json.dumps(_task_state(g.org)))
 
 @app.route('/project-admin')
-@logged_in
+@require_permission(PermissionTags.VIEW)
 def project_admin():
     return render_template('project_admin.html', state=json.dumps(_task_state(g.org)))
 
@@ -245,7 +245,7 @@ def search_org():
     org_id = org_model.id_from('name', request.args.get('term'))
     org = org_model.get(org_id)
 
-    if org['level'] == ProjectLevels.PRIVATE:
+    if not permission_model.permitted(g.user, org_id, PermissionTags.VIEW):
         org = {}
 
     return Response(json.dumps(org), content_type='application/json')

@@ -5,27 +5,27 @@ from taskmaster.db.models.org import OrgModel
 user_model = UserModel()
 org_model = OrgModel()
 
-default_permissions = {
+DEFAULT_PERMISSIONS = {
     ProjectLevels.PUBLIC: {
         UserRoles.OWNER: ('allow', '*'),
         UserRoles.ADMIN: ('allow', '*'),
         UserRoles.EDITOR: ('deny', {PermissionTags.EDIT_ORG}),
         UserRoles.VIEWER: ('deny', {PermissionTags.EDIT_ORG}),
-        UserRoles.NONE: ('deny', {PermissionTags.EDIT_ORG}),
+        UserRoles.ANYONE: ('deny', {PermissionTags.EDIT_ORG}),
     },
     ProjectLevels.READONLY: {
         UserRoles.OWNER: ('allow', '*'),
         UserRoles.ADMIN: ('allow', '*'),
         UserRoles.EDITOR: ('deny', {PermissionTags.EDIT_ORG}),
         UserRoles.VIEWER: ('allow', {PermissionTags.VIEW}),
-        UserRoles.NONE: ('deny', '*'),
+        UserRoles.ANYONE: ('allow', {PermissionTags.VIEW}),
     },
     ProjectLevels.PRIVATE: {
         UserRoles.OWNER: ('allow', '*'),
         UserRoles.ADMIN: ('allow', '*'),
         UserRoles.EDITOR: ('deny', {PermissionTags.EDIT_ORG}),
         UserRoles.VIEWER: ('allow', {PermissionTags.VIEW}),
-        UserRoles.NONE: ('deny', '*'),
+        UserRoles.ANYONE: ('deny', '*'),
     },
 }
 
@@ -51,14 +51,16 @@ class PermissionModel(object):
         elif role == UserRoles.EDITOR:
             return other_role != UserRoles.OWNER and other_role != UserRoles.ADMIN
         elif role == UserRoles.VIEWER:
-            return other_role == UserRoles.VIEWER
+            return other_role == UserRoles.VIEWER or other_role == UserRoles.ANYONE
+        elif role == UserRoles.ANYONE:
+            return other_role == UserRoles.ANYONE
 
     def permitted(self, user_id, org_id, tag):
         org = org_model.get(org_id)
         role = self.get_role(user_id, org_id)
         if not role:
-            role = UserRoles.NONE
-        return self._evaluate(org['level'], role, tag, default_permissions)
+            role = UserRoles.ANYONE
+        return self._evaluate(org['level'], role, tag, DEFAULT_PERMISSIONS)
 
     def _evaluate(self, project_level, user_role, tag, rule_set):
         permission_type, permitted_tags = rule_set[project_level][user_role]
@@ -80,7 +82,7 @@ class UserRoles(object):
     ADMIN = 'admin'
     EDITOR = 'editor'
     VIEWER = 'viewer'
-    NONE = ''
+    ANYONE = ''
 
 # pylint: disable-msg=R0903
 class ProjectLevels(object):
