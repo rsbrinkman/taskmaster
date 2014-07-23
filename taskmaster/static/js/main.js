@@ -263,7 +263,6 @@ function setEventHandlers() {
   $('body').on('click', function(e) {
     clearTagInputs();
   });
-
 }
 
 function clearTagInputs() {

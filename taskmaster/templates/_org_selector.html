@@ -7,8 +7,9 @@
           <% if (!STATE.org) { %>
             <option value="" disabled selected>Choose Project</option>
           <% } %>
+
           <% _.each(STATE.orgs, function(org) { %>
-              <option <% if ( STATE.org && STATE.org.id===org.id) { %>selected<% } %> name="<%= org.name %>" value="<%= org.id %>"><%= org.name %></option>
+              <option <% if (STATE.org && STATE.org.id===org.id) { %>selected<% } %> name="<%= org.name %>" value="<%= org.id %>"><%= org.name %></option>
           <% });  %>
         </select>
 
