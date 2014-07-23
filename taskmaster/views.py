@@ -93,8 +93,7 @@ def _task_state(org_id=None):
     filtermap = {filter_id: filter_model.get(filter_id) for filter_id in filter_model.get_for_org(org_id)}
 
     org_users = list(org_model.get_users(org_id))
-    users = [user_model.get(user_id, include=['name', 'id']) for user_id in org_users]
-
+    users = [user_model.get(user_id, include=['name', 'id', 'email']) for user_id in org_users]
     return {
         'tasks': org_tasks,
         'queues': queues,
@@ -125,7 +124,7 @@ def index():
 @logged_in
 def admin():
     user = user_model.get(g.user)
-    return render_template('admin.html', user=user)
+    return render_template('admin.html', state=json.dumps(_task_state(g.org)))
 
 @app.route('/signup')
 def signup():
@@ -236,7 +235,7 @@ def add_user_to_org(orgname, username):
     org = org_model.get(org_id)
     return Response(json.dumps(org), status=200, content_type='application/json')
 
-@app.route('/search/orgs/')
+@app.route('/search/orgs/', methods=['POST'])
 @logged_in
 def search_org():
     org_id = org_model.id_from('name', request.args.get('term'))
@@ -283,7 +282,7 @@ def update_task(_id, field):
 @app.route('/order/task', methods=['PUT'])
 @app.route('/order/task/<queue_id>', methods=['PUT'])
 @require_permission(PermissionTags.EDIT_TASK)
-def update_task_order(queue_id):
+def update_task_order(queue_id=None):
     task_model.update_order(g.org, json.loads(request.form['updates']), queue_id=queue_id)
     return Response(status=200)
 

@@ -1,0 +1,23 @@
+<script data-template-name="settings" type="underscore">
+<h4>My Information</h4>
+<div class="row">
+  <div class="col-md-2">
+    <p><u>Email</u></p>
+    <% _.each(STATE.users, function(user) { %>
+        <% if (STATE.user == user.id) { %>
+            <p><div class="username"><%= user.email %></div></p>
+        <% } %>
+    <% });  %>
+  </div>
+  <div class="col-md-2">
+    <p><u>Name</u></p>
+    <% _.each(STATE.users, function(user) { %>
+        <% if (STATE.user == user.id) { %>
+            <p><div class="name" contenteditable><%= user.name %></div></p>
+        <% } %>
+    <% });  %>
+
+    <div class="updates"></div>
+  </div>
+</div>
+</script>

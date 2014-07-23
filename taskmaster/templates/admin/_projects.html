@@ -1,0 +1,24 @@
+<script data-template-name="projects" type="underscore">
+<h4>My Projects</h4>    
+<p>
+<ul class="my-org-list">
+<% if (STATE.orgs) { %>
+    <% _.each(STATE.orgs, function(org) { %>
+        <li data-org-id="<%= org.id %>"><%= org.name %></li>
+    <% });  %>
+<% } else { %>
+    <p class="no-org">Join a Project below!</p>
+<% } %>
+</ul></p>
+<h4>Create an Project</h4>
+<label for="org-name">Project</label>
+    <input type="text" class="form-control admin-input" name="org-name" id="org-name">
+    <button class="btn" id="create-org">Create</button>
+<div class="org-creation-results"></div>
+<div class="row">
+    <div class="col-md-2">
+        <button class="btn btn-success task-home" <% if (!STATE.orgs) { %> disabled<% } %>>Get Started</button>
+    </div>
+
+</div>
+</script>

@@ -278,6 +278,10 @@ function setEventHandlers() {
   });
 
 
+  $('body').on('click', function(e) {
+    clearTagInputs();
+  });
+
   $('#logout').on('click', function(e) {
     e.preventDefault();
     e.stopPropagation();
@@ -289,6 +293,12 @@ function setEventHandlers() {
 
     window.location = "/signup";
   });
+}
+
+function clearTagInputs() {
+  // Remove any existing select2 plugins
+  $('.select2-container').select2('destroy');
+  $('.tag-column.editing').removeClass('editing');
 }
 
 function renameQueue(queueId, newName) {
@@ -436,7 +446,7 @@ function renderView() {
   /*
    * Render HTML from the state and put on the DOM
    */
-  $('#org-selector').html(TEMPLATES['org-selector'](STATE.orgs, STATE.org));
+  $('#org-selector').html(TEMPLATES['org-selector'](STATE.orgs, STATE.org, STATE.user, STATE.users));
   var selectedQueues = _.filter(STATE.queues, function(queue) {
     return queue.selected;
   });
@@ -522,11 +532,12 @@ function renderView() {
   $('.tasks-table tbody tr').click(function(ev) {
     //Stop the details section from opening when selecting stuff
     if ($(ev.target).is('select')) {
-      return false
+      return false;
     }
     if ($(ev.target).hasClass('edit-task-name')) {
-      return true
+      return true;
     }
+
     var tasksTable = $(ev.target).parents('.tasks-table').dataTable();
     if (tasksTable.fnIsOpen(this)) {
       tasksTable.fnClose( this );
@@ -556,25 +567,42 @@ function renderView() {
     $('.create-form-container').toggleClass('hidden');
     STATE.showingCreateTask = !STATE.showingCreateTask;
   });
-  $('.task-tags').select2({
-    placeholder: "Add a tag",
-    tags: STATE.tags
-  }).change(function(val) {
-    var tags = val.val;
-    var taskId = $(this).data('task-id');
-    $.ajax({
-      url: '/task/' + taskId + '/tags',
-      type: 'PUT',
-      data: {
-        value: JSON.stringify(tags)
-      },
-      success: function() {
-        STATE.taskmap[taskId].tags = tags.join(',');
-        newTags = _.difference(tags, STATE.tags);
-        STATE.tags = STATE.tags.concat(newTags);
-        FilterTasks.buildTokenSets(STATE.taskmap);
-      }
+
+  $('.task-tags-display').click(function(evt) {
+    evt.stopPropagation();
+    evt.preventDefault();
+
+    var $this = $(this);
+
+    clearTagInputs();
+
+    var $parent = $this.parent('.tag-column');
+    $parent.addClass('editing');
+    $this.siblings('.task-tags').select2({
+      placeholder: "Add a tag",
+      tags: STATE.tags
+    }).change(function(val) {
+      var tags = val.val;
+      var taskId = $(this).data('task-id');
+      $.ajax({
+        url: '/task/' + taskId + '/tags',
+        type: 'PUT',
+        data: {
+          value: JSON.stringify(tags)
+        },
+        success: function() {
+          STATE.taskmap[taskId].tags = tags.join(',');
+          newTags = _.difference(tags, STATE.tags);
+          STATE.tags = STATE.tags.concat(newTags);
+          FilterTasks.buildTokenSets(STATE.taskmap);
+
+          $this.text(tags);
+        }
+      });
     });
+
+    $parent.find('.select2-search-field input').focus();
+
   });
   $('#task-view tbody').sortable({
     items: '.task-row',
@@ -662,8 +690,18 @@ function renderQueueTasks(queue) {
       });
 
       if (matched) {
+        var tagsDisplay = task.tags.split(',').join(', '),
+            tagsClass = '';
+
+        if(tagsDisplay.length === 0) {
+          tagsDisplay = 'add tags...';
+          tagsClass = 'no-tags';
+        }
+
         var context = $.extend({
-          cssClass: ''
+          cssClass: '',
+          tagsDisplay: tagsDisplay,
+          tagsClass: tagsClass
         }, task);
 
         _.each(styleRules, function(styleRule) {
