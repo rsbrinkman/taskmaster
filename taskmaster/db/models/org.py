@@ -27,7 +27,7 @@ class OrgModel(CRUDModel):
         permission_model.set_role(user_id, org_id, role)
 
     def get_users(self, org_id):
-        db.smembers(self.USERS_KEY % org_id)
+        return db.smembers(self.USERS_KEY % org_id)
 
     def has_user(self, org_id, user_id):
         return db.sismember(self.USERS_KEY % org_id, user_id)

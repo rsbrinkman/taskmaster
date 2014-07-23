@@ -68,44 +68,48 @@ def _task_state(org_id=None):
     '''
     # Get the user's orgs
     orgs = list(org_model.get_for_user(g.user))
-
-    # Get set of assigned tasks
-    org_tasks = list(task_model.get_for_org(org_id))
-
-
-    # Iterate over assigned tasks and build tasks object
-    taskmap = {}
-    for task in org_tasks:
-        retrieved_task = task_model.get(task)
-        if retrieved_task:
-            tags = ','.join(sorted(retrieved_task['tags'].split(',')))
-            retrieved_task['tags'] = tags
-            taskmap[retrieved_task['id']] = retrieved_task
-        else:
-            task_model.remove_from_org(org_id, task)
-
-    queues = queue_model.get_for_org(org_id)
-
-    org_tags = set(tags_model.get_for_org(org_id))
     user_tags = set(tags_model.get_for_user(g.user))
-    tags = list(org_tags.union(user_tags))
 
-    filtermap = {filter_id: filter_model.get(filter_id) for filter_id in filter_model.get_for_org(org_id)}
-
-    org_users = list(org_model.get_users(org_id))
-    users = [user_model.get(user_id, include=['name', 'id', 'email']) for user_id in org_users]
-    return {
-        'tasks': org_tasks,
-        'queues': queues,
-        'tags': tags,
-        'taskmap': taskmap,
-        'users': users,
-        'preferences': style_rules.get(org_id),
-        'filtermap': filtermap,
-        'user' : user_model.get(g.user),
+    state = {
         'orgs': orgs,
-        'org': org_model.get(org_id)
+        'user' : user_model.get(g.user),
+        'user_tags': list(user_tags),
     }
+
+    if org_id:
+        # Get set of assigned tasks
+        org_tasks = list(task_model.get_for_org(org_id))
+
+        # Iterate over assigned tasks and build tasks object
+        taskmap = {}
+        for task in org_tasks:
+            retrieved_task = task_model.get(task)
+            if retrieved_task:
+                tags = ','.join(sorted(retrieved_task['tags'].split(',')))
+                retrieved_task['tags'] = tags
+                taskmap[retrieved_task['id']] = retrieved_task
+            else:
+                task_model.remove_from_org(org_id, task)
+
+        queues = queue_model.get_for_org(org_id)
+        org_tags = set(tags_model.get_for_org(org_id))
+        filtermap = {filter_id: filter_model.get(filter_id) for filter_id in filter_model.get_for_org(org_id)}
+        org_users = list(org_model.get_users(org_id))
+        users = [user_model.get(user_id, include=['name', 'id', 'email']) for user_id in org_users]
+        tags = list(org_tags.union(user_tags))
+
+        state.update({
+            'tasks': org_tasks,
+            'queues': queues,
+            'tags': tags,
+            'taskmap': taskmap,
+            'users': users,
+            'preferences': style_rules.get(org_id),
+            'filtermap': filtermap,
+            'org': org_model.get(org_id)
+        })
+
+    return state
 
 @app.route('/test_db/')
 def test_db():

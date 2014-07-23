@@ -1,9 +1,27 @@
 from taskmaster.db.utils.redis_conn import db
-from taskmaster.db.models.user import UserModel
-from taskmaster.db.models.org import OrgModel
 
-user_model = UserModel()
-org_model = OrgModel()
+# pylint: disable-msg=R0903
+class PermissionTags(object):
+    VIEW = 'view'
+    EDIT_USER = 'edit_user'
+    EDIT_TASK = 'edit_task'
+    EDIT_QUEUE = 'edit_queue'
+    EDIT_FILTER = 'edit_filter'
+    EDIT_ORG = 'edit_org'
+
+# pylint: disable-msg=R0903
+class UserRoles(object):
+    OWNER = 'owner'
+    ADMIN = 'admin'
+    EDITOR = 'editor'
+    VIEWER = 'viewer'
+    ANYONE = ''
+
+# pylint: disable-msg=R0903
+class ProjectLevels(object):
+    PUBLIC = 'public'
+    READONLY = 'readonly'
+    PRIVATE = 'private'
 
 DEFAULT_PERMISSIONS = {
     ProjectLevels.PUBLIC: {
@@ -56,6 +74,8 @@ class PermissionModel(object):
             return other_role == UserRoles.ANYONE
 
     def permitted(self, user_id, org_id, tag):
+        from taskmaster.db.models.org import OrgModel
+        org_model = OrgModel()
         org = org_model.get(org_id)
         role = self.get_role(user_id, org_id)
         if not role:
@@ -66,26 +86,3 @@ class PermissionModel(object):
         permission_type, permitted_tags = rule_set[project_level][user_role]
         tag_matched = (permitted_tags == '*' or tag in permitted_tags)
         return tag_matched if permission_type == 'allow' else not tag_matched
-
-# pylint: disable-msg=R0903
-class PermissionTags(object):
-    VIEW = 'view'
-    EDIT_USER = 'edit_user'
-    EDIT_TASK = 'edit_task'
-    EDIT_QUEUE = 'edit_queue'
-    EDIT_FILTER = 'edit_filter'
-    EDIT_ORG = 'edit_org'
-
-# pylint: disable-msg=R0903
-class UserRoles(object):
-    OWNER = 'owner'
-    ADMIN = 'admin'
-    EDITOR = 'editor'
-    VIEWER = 'viewer'
-    ANYONE = ''
-
-# pylint: disable-msg=R0903
-class ProjectLevels(object):
-    PUBLIC = 'public'
-    READONLY = 'readonly'
-    PRIVATE = 'private'
