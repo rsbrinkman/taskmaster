@@ -4,6 +4,7 @@ MarkupSafe==0.18
 Werkzeug==0.9.4
 argparse==1.1
 itsdangerous==0.23
+mock==1.0.1
 redis==2.8.0
 wsgiref==0.1.2
 flask-login==0.2.9

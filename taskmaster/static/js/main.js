@@ -1,12 +1,6 @@
-var TEMPLATES = {}
 var styleRules;
-var COOKIES = {
-  view: 'view',
-  org: 'org'
-}
 
 $(function() {
-  loadTemplates()
 
   // Used for quick filtering, need to call everytime we add/remove tokens to a task
   FilterTasks.buildTokenSets(STATE.taskmap);
@@ -36,6 +30,8 @@ $(function() {
   loadCookies();
   renderView();
   setEventHandlers();
+
+  $('#project-tasks').addClass('selected');
 });
 
 function compileFilters() {
@@ -43,13 +39,6 @@ function compileFilters() {
     if (!filter.compiled) {
       filter.compiled = FilterTasks.compileFilter(filter.rule);
     }
-  });
-}
-
-function loadTemplates() {
-  _.each($('[type="underscore"]'), function(ele) {
-    var $ele = $(ele);
-    TEMPLATES[$ele.data('template-name')] = _.template($ele.html());
   });
 }
 
@@ -154,12 +143,6 @@ function setEventHandlers() {
     var queueId = $(this).val();
     var taskId = $(this).data('task-id');
     putTaskInQueue(taskId, queueId);
-  });
-
-  $('body').on('change', '#org-dropdown', function(e) {
-    org = $(this).val();
-    $.cookie(COOKIES.org, org);
-    location.reload();
   });
 
   $('.container').on('change', '.task-assignee', function(e) {
@@ -277,22 +260,10 @@ function setEventHandlers() {
     renderView();
   });
 
-
   $('body').on('click', function(e) {
     clearTagInputs();
   });
 
-  $('#logout').on('click', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-
-    $.ajax({
-      url: '/logout',
-      type: 'POST'
-    });
-
-    window.location = "/signup";
-  });
 }
 
 function clearTagInputs() {
@@ -446,7 +417,6 @@ function renderView() {
   /*
    * Render HTML from the state and put on the DOM
    */
-  $('#org-selector').html(TEMPLATES['org-selector'](STATE.orgs, STATE.org, STATE.user, STATE.users));
   var selectedQueues = _.filter(STATE.queues, function(queue) {
     return queue.selected;
   });

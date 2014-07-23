@@ -1,5 +1,4 @@
-  
-  var TEMPLATES = {}
+$(function() {
   $('.name').blur(function() {
     var $this = $(this);
     var name = $this.html();
@@ -34,33 +33,11 @@
       }
     });
   };
-  
-  $('.left-nav > li > a').click(function() {
-    var activeContent = $('.left-nav > li.active > a').attr('href');
-    //Whatever is currently showing, hide it
-    activeTab = $('.left-nav > li.active');
-    activeTab.removeClass('active');
-    
-    //Add active to nav
-    $(this).parents('li').addClass('active');
-    //hide content
-    $(activeContent).removeClass('active');
-    $(activeContent).addClass('hidden');
-    // show content
-    var targetContent = $(this).attr('href');
-    $(targetContent).removeClass('hidden');
-    $(targetContent).addClass('active');
-  });
 
-  function loadTemplates() {
-    _.each($('[type="underscore"]'), function(ele) {
-      var $ele = $(ele);
-      TEMPLATES[$ele.data('template-name')] = _.template($ele.html());
-    });
-  }
-  loadTemplates();
-  $('#org-selector').html(TEMPLATES['org-selector'](STATE.orgs, STATE.org, STATE.users, STATE.user));
   $('#settings').html(TEMPLATES['settings'](STATE.orgs, STATE.org, STATE.users, STATE.user));
   $('#invite').html(TEMPLATES['invite']());
   $('#search').html(TEMPLATES['search']());
   $('#projects').html(TEMPLATES['projects'](STATE.orgs));
+
+  $('.user-button').addClass('selected');
+});

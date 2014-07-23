@@ -102,7 +102,7 @@ def _task_state(org_id=None):
         'users': users,
         'preferences': style_rules.get(org_id),
         'filtermap': filtermap,
-        'user' : g.user,
+        'user' : user_model.get(g.user),
         'orgs': orgs,
         'org': org_model.get(org_id)
     }
@@ -123,8 +123,12 @@ def index():
 @app.route('/admin')
 @logged_in
 def admin():
-    user = user_model.get(g.user)
     return render_template('admin.html', state=json.dumps(_task_state(g.org)))
+
+@app.route('/project-admin')
+@logged_in
+def project_admin():
+    return render_template('project_admin.html', state=json.dumps(_task_state(g.org)))
 
 @app.route('/signup')
 def signup():

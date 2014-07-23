@@ -1,3 +1,4 @@
+$(function() {
   $('#search-button').click(function (ev) {
     var org = $('#org-search').val();
     $.ajax({
@@ -16,4 +17,4 @@
       }
     });
   });
-
+});

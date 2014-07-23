@@ -1,18 +1,22 @@
 <script data-template-name="org-selector" type="underscore">
     <div class="admin-panel">
     <form class="form-inline">    
-        <% _.each(STATE.users, function(user) { %>
-            <% if (STATE.user == user.id) { %>
-                <a href="/admin" class="btn btn-default btn-sm user-button" role="button"><%= user.name %></a>
-            <% } %>
-        <% });  %>
+        <a href="/admin" class="btn btn-default btn-sm user-button" role="button"><%= STATE.user.name %></a>
         <span class="on">on</span>
         <select id="org-dropdown" class="form-control">
-            <% _.each(STATE.orgs, function(org) { %>
-                <option <% if ( STATE.org && STATE.org.id===org.id) { %>selected<% } %> name="<%= org.name %>" value="<%= org.id %>"><%= org.name %></option>
-            <% });  %>
+          <% if (!STATE.org) { %>
+            <option value="" disabled selected>Choose Project</option>
+          <% } %>
+          <% _.each(STATE.orgs, function(org) { %>
+              <option <% if ( STATE.org && STATE.org.id===org.id) { %>selected<% } %> name="<%= org.name %>" value="<%= org.id %>"><%= org.name %></option>
+          <% });  %>
         </select>
-        <a id="logout" class="logout" href="javascript:void(0)"><span class="glyphicon glyphicon-export logout-icon" title="logout"></span></a>
+
+        <a id="project-admin" href="javascript:void(0)"><span class="glyphicon glyphicon-cog" title="Project Settings"></span></a>
+        <div id="project-button-divider"></div>
+        <a id="project-tasks" href="javascript:void(0)"><span class="glyphicon glyphicon-list" title="Project Tasks"></span></a>
+
+        <a id="logout" class="logout" href="javascript:void(0)"><span class="glyphicon glyphicon-export logout-icon" title="Logout"></span></a>
     </form>
     </div>
 
