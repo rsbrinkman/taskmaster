@@ -3,7 +3,8 @@ import urllib
 from taskmaster import app, settings, events
 from taskmaster.db import (
     task_model, org_model, user_model, queue_model, style_rules, tags_model, filter_model,
-    test_redis_db, FieldConflict, NotFound, UpdateNotPermitted, InsufficientPermission)
+    permission_model, test_redis_db, PermissionTags, ProjectLevels, FieldConflict, NotFound,
+    UpdateNotPermitted, InsufficientPermission)
 from flask import render_template, request, Response, g, redirect, url_for, flash
 from datetime import datetime
 from functools import wraps
@@ -20,21 +21,19 @@ def logged_in(f):
         if g.user and g.token and user_model.verify_token(g.user, g.token):
             return f(*args, **kwargs)
         else:
-            flash('Please login and select a project')
             return redirect(url_for('signup'))
 
     return decorated_function
 
-def require_permission(tag):
+def require_permission(tag, not_permitted_redirect=None):
     def require_permission_decorator(f):
         @wraps(f)
         @logged_in
         def decorated_function(*args, **kwargs):
-            if g.org and org_model.has_permission(g.org, g.user, tag):
+            if g.org and permission_model.permitted(g.user, g.org, tag):
                 return f(*args, **kwargs)
-            elif not g.org:
-                flash('Please select a project')
-                return redirect(url_for('admin'))
+            elif not_permitted_redirect:
+                return redirect(url_for(not_permitted_redirect))
             else:
                 raise InsufficientPermission()
 
@@ -67,44 +66,48 @@ def _task_state(org_id=None):
     '''
     # Get the user's orgs
     orgs = list(org_model.get_for_user(g.user))
-
-    # Get set of assigned tasks
-    org_tasks = list(task_model.get_for_org(org_id))
-
-
-    # Iterate over assigned tasks and build tasks object
-    taskmap = {}
-    for task in org_tasks:
-        retrieved_task = task_model.get(task)
-        if retrieved_task:
-            tags = ','.join(sorted(retrieved_task['tags'].split(',')))
-            retrieved_task['tags'] = tags
-            taskmap[retrieved_task['id']] = retrieved_task
-        else:
-            task_model.remove_from_org(org_id, task)
-
-    queues = queue_model.get_for_org(org_id)
-
-    org_tags = set(tags_model.get_for_org(org_id))
     user_tags = set(tags_model.get_for_user(g.user))
-    tags = list(org_tags.union(user_tags))
 
-    filtermap = {filter_id: filter_model.get(filter_id) for filter_id in filter_model.get_for_org(org_id)}
-
-    org_users = list(org_model.get_users(org_id))
-    users = [user_model.get(user_id, include=['name', 'id', 'email']) for user_id in org_users]
-    return {
-        'tasks': org_tasks,
-        'queues': queues,
-        'tags': tags,
-        'taskmap': taskmap,
-        'users': users,
-        'preferences': style_rules.get(org_id),
-        'filtermap': filtermap,
-        'user' : user_model.get(g.user),
+    state = {
         'orgs': orgs,
-        'org': org_model.get(org_id)
+        'user' : user_model.get(g.user),
+        'user_tags': list(user_tags),
     }
+
+    if org_id:
+        # Get set of assigned tasks
+        org_tasks = list(task_model.get_for_org(org_id))
+
+        # Iterate over assigned tasks and build tasks object
+        taskmap = {}
+        for task in org_tasks:
+            retrieved_task = task_model.get(task)
+            if retrieved_task:
+                tags = ','.join(sorted(retrieved_task['tags'].split(',')))
+                retrieved_task['tags'] = tags
+                taskmap[retrieved_task['id']] = retrieved_task
+            else:
+                task_model.remove_from_org(org_id, task)
+
+        queues = queue_model.get_for_org(org_id)
+        org_tags = set(tags_model.get_for_org(org_id))
+        filtermap = {filter_id: filter_model.get(filter_id) for filter_id in filter_model.get_for_org(org_id)}
+        org_users = list(org_model.get_users(org_id))
+        users = [user_model.get(user_id, include=['name', 'id', 'email']) for user_id in org_users]
+        tags = list(org_tags.union(user_tags))
+
+        state.update({
+            'tasks': org_tasks,
+            'queues': queues,
+            'tags': tags,
+            'taskmap': taskmap,
+            'users': users,
+            'preferences': style_rules.get(org_id),
+            'filtermap': filtermap,
+            'org': org_model.get(org_id)
+        })
+
+    return state
 
 @app.route('/test_db/')
 def test_db():
@@ -115,7 +118,7 @@ def test_db():
 #
 
 @app.route('/')
-@require_permission('view')
+@require_permission(PermissionTags.VIEW,  not_permitted_redirect='admin')
 def index():
     return render_template('index.html', state=json.dumps(_task_state(g.org)))
 
@@ -125,7 +128,7 @@ def admin():
     return render_template('admin.html', state=json.dumps(_task_state(g.org)))
 
 @app.route('/project-admin')
-@logged_in
+@require_permission(PermissionTags.VIEW)
 def project_admin():
     return render_template('project_admin.html', state=json.dumps(_task_state(g.org)))
 
@@ -171,7 +174,7 @@ def update_user(_id, field):
     return Response(status=200)
 
 @app.route('/user/<_id>', methods=['DELETE'])
-@require_permission('edit_task')
+@require_permission(PermissionTags.EDIT_TASK)
 def delete_user(_id):
     if g.user != _id:
         raise InsufficientPermission()
@@ -210,11 +213,20 @@ def create_org():
     })
     return Response(json.dumps(org), status=201, content_type='application/json')
 
-@app.route('/org/<orgname>/user/<username>', methods=['POST'])
+@app.route('/org/<_id>/<field>', methods=['PUT'])
+@require_permission(PermissionTags.EDIT_ORG)
+def update_org(_id, field):
+    org_model.update(_id, field, request.form['value'])
+    return Response(status=200)
+
+@app.route('/org/<orgname>/user/<username>/', methods=['POST'])
 @logged_in
 def add_user_to_org(orgname, username):
     org_id = org_model.id_from('name', orgname)
-    if not org_model.has_permission(org_id, g.user, 'add_user'):
+    role = 'editor'
+
+    if not (permission_model.permitted(g.user, org_id, PermissionTags.EDIT_USER) and
+            permission_model.role_gte(g.user, org_id, role)):
         raise InsufficientPermission()
 
     user_id = user_model.id_from('email', username)
@@ -233,10 +245,9 @@ def add_user_to_org(orgname, username):
 @logged_in
 def search_org():
     org_id = org_model.id_from('name', request.args.get('term'))
+    org = org_model.get(org_id)
 
-    if org_model.has_permission(org_id, g.user, 'search'):
-        org = org_model.get(org_id)
-    else:
+    if not permission_model.permitted(g.user, org_id, PermissionTags.VIEW):
         org = {}
 
     return Response(json.dumps(org), content_type='application/json')
@@ -246,7 +257,7 @@ def search_org():
 #
 
 @app.route('/task/', methods=['POST'])
-@require_permission('edit_task')
+@require_permission(PermissionTags.EDIT_TASK)
 def create_task():
     task = task_model.create({
         'name': request.form['task-name'],
@@ -260,7 +271,7 @@ def create_task():
     return Response(json.dumps(task), status=201, content_type='application/json')
 
 @app.route('/task/<_id>/<field>', methods=['PUT'])
-@require_permission('edit_task')
+@require_permission(PermissionTags.EDIT_TASK)
 def update_task(_id, field):
     if field == 'tags':
         tags_model.set(_id, g.user, json.loads(request.form['value']))
@@ -276,13 +287,13 @@ def update_task(_id, field):
 
 @app.route('/order/task', methods=['PUT'])
 @app.route('/order/task/<queue_id>', methods=['PUT'])
-@require_permission('edit_task')
+@require_permission(PermissionTags.EDIT_TASK)
 def update_task_order(queue_id=None):
     task_model.update_order(g.org, json.loads(request.form['updates']), queue_id=queue_id)
     return Response(status=200)
 
 @app.route('/task/<_id>', methods=['DELETE'])
-@require_permission('edit_task')
+@require_permission(PermissionTags.EDIT_TASK)
 def delete_task(_id):
     task_model.delete(_id)
     return Response(status=204)
@@ -292,7 +303,7 @@ def delete_task(_id):
 #
 
 @app.route('/queue/', methods=['POST'])
-@require_permission('edit_queue')
+@require_permission(PermissionTags.EDIT_QUEUE)
 def create_queue():
     queue = queue_model.create({
         'name': request.form['name'],
@@ -301,19 +312,19 @@ def create_queue():
     return Response(json.dumps(queue), status=201, content_type='application/json')
 
 @app.route('/queue/<_id>/<field>', methods=['PUT'])
-@require_permission('edit_queue')
+@require_permission(PermissionTags.EDIT_QUEUE)
 def update_queue(_id, field):
     queue_model.update(_id, field, request.form['value'])
     return Response(status=200)
 
 @app.route('/order/queue', methods=['PUT'])
-@require_permission('edit_queue')
+@require_permission(PermissionTags.EDIT_QUEUE)
 def update_queue_order():
     queue_model.update_order(g.org, json.loads(request.form['updates']))
     return Response(status=200)
 
 @app.route('/queue/<_id>', methods=['DELETE'])
-@require_permission('edit_queue')
+@require_permission(PermissionTags.EDIT_QUEUE)
 def delete_queue(_id):
     queue_model.delete(_id)
     return Response(status=204)
@@ -323,7 +334,7 @@ def delete_queue(_id):
 #
 
 @app.route('/filter/', methods=['POST'])
-@require_permission('edit_filter')
+@require_permission(PermissionTags.EDIT_FILTER)
 def create_filter():
     obj = filter_model.create({
         'name': request.form['name'],
@@ -334,7 +345,7 @@ def create_filter():
     return Response(json.dumps(obj), status=201, content_type='application/json')
 
 @app.route('/filter/<_id>', methods=['DELETE'])
-@require_permission('edit_filter')
+@require_permission(PermissionTags.EDIT_FILTER)
 def delete_filter(_id):
     filter_model.delete(_id)
     return Response(status=204)
