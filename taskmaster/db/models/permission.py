@@ -80,7 +80,11 @@ class PermissionModel(object):
         role = self.get_role(user_id, org_id)
         if not role:
             role = UserRoles.ANYONE
-        return self._evaluate(org['level'], role, tag, DEFAULT_PERMISSIONS)
+
+        if org:
+            return self._evaluate(org['level'], role, tag, DEFAULT_PERMISSIONS)
+        else:
+            return False
 
     def _evaluate(self, project_level, user_role, tag, rule_set):
         permission_type, permitted_tags = rule_set[project_level][user_role]
