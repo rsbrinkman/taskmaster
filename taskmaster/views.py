@@ -26,16 +26,15 @@ def logged_in(f):
 
     return decorated_function
 
-def require_permission(tag):
+def require_permission(tag, not_permitted_redirect=None):
     def require_permission_decorator(f):
         @wraps(f)
         @logged_in
         def decorated_function(*args, **kwargs):
             if g.org and permission_model.permitted(g.user, g.org, tag):
                 return f(*args, **kwargs)
-            elif not g.org:
-                flash('Please select a project')
-                return redirect(url_for('admin'))
+            elif not_permitted_redirect:
+                return redirect(url_for(not_permitted_redirect))
             else:
                 raise InsufficientPermission()
 
@@ -120,7 +119,7 @@ def test_db():
 #
 
 @app.route('/')
-@require_permission(PermissionTags.VIEW)
+@require_permission(PermissionTags.VIEW,  not_permitted_redirect='admin')
 def index():
     return render_template('index.html', state=json.dumps(_task_state(g.org)))
 
