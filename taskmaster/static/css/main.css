@@ -150,6 +150,9 @@ input.saved-filter-checkbox {
 #save-filter {
     margin-left: -10px;
 }
+.create-form {
+    margin-bottom: 10px;
+}
 .create-form-header {
     position: relative;
 }
@@ -269,29 +272,36 @@ input.saved-filter-checkbox {
     display: none;
 }
 .admin-panel {
-    padding: 10px 0;
+    border: 1px solid lightgray;
+    border-radius: 2px;
+    padding: 10px 15px 10px 15px;
+    margin-bottom: 5px;
 }
 .on {
     padding: 10px 10px;
 }
 
-#project-tasks {
+#project-admin, #project-tasks {
     margin-left: 5px;
+    color: #535353;
+    font-size: 18px;
 }
-
+#project-admin > span.glyphicon, #project-tasks > span.glyphicon {
+    top: 4px;
+}
 #project-admin.selected,
 #project-tasks.selected {
     background-color: #EEE;
     border: solid 1px #AAA;
-    padding: 3px;
-    color: #2a6496;
+    border-radius: 2px;
+    padding: 2px 5px 6px 5px;
+    color: #535353;
     cursor: default;
 }
 
 #project-button-divider {
     display: inline;
     border-right: solid 2px #BBB;
-    margin-right: 5px;
 }
 
 .user-button.selected {
@@ -345,10 +355,10 @@ input.saved-filter-checkbox {
     width: 200px;
 }
 .lists {
-    min-height: 300px;
+    min-height: 500px;
 }
 #clear-filter {
-    margin-left: -44px;
+    margin-left: -43px;
 }
 .filter-count {
    margin-left: 10px;
@@ -357,4 +367,13 @@ input.saved-filter-checkbox {
     font-size: 20px;
     top: 5px;
     cursor: pointer;
+}
+.quick-task-name {
+    width: 50%;
+}
+#quick-task-create {
+    margin-left: -20px;
+}
+.quick-task-container {
+    margin-bottom: 10px;
 }

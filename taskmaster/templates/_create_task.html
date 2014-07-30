@@ -1,46 +1,47 @@
 <script data-template-name="create-task" type="underscore">
-<div class="create-form-container <% if (!visible) { %> hidden <% } %>">
-
-    <div class="create-form-header">
-      <h3>Create a task</h3>
-      <span class="glyphicon glyphicon-remove create-task-close"></span>
-    </div>
-    <form role="form" name="create" method="POST">
-        <div class="form-group">
-            <label for="task-name">Task Name</label>
-            <input type="text" class="form-control" name="task-name" />
+<div class="create-form-container">
+    <form role="form" name="create" class="create-form" method="POST">
+        <div class="form-inline quick-task-container">
+            <input type="text" class="form-control quick-task-name" name="task-name" placeholder="Enter a task name" />
+            <button type="submit" class="btn btn-primary" id="quick-task-create"><span class="glyphicon glyphicon-plus"></span></button>
+            <span class="glyphicon glyphicon-chevron-down create-tasks-details show-task-details"></span>
+            <span class="glyphicon glyphicon-chevron-up create-tasks-details hide-task-details hidden"></span>
         </div>
-        <div class="form-group">
-            <label for="task-description">Task description</label>
-            <textarea class="form-control" rows="3" cols="5" name="task-description"></textarea>
-        </div>
-        <div class="form-group">
-            <label for="task-status">Task Status</label>
-            <select class="form-control" name="task-status">
-                <option name="not-started">Not Started</option>
-                <option name="in-progress">In Progress</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="task-assignee">Task Assignee</label>
-            <select class="form-control task-assignee" name="task-assignee">  
-                <% _.each(STATE.users, function(user) { %>
-                    <option name='task-assignee' data-queue-id='<%= user.id %>' value='<%= user.id %>'><%= user.name %></option>
-                <% });  %>
-            </select>
-        </div>
-        <div class="form-group">    
-            <label for="new-task-queue">List</label>
-            <select class="form-control new-task-queues" name="task-queue">
-                <option name='no-queue'></option>
-                <% _.each(STATE.queues, function(queue) { %>
-                    <option name='<%= queue.name %>' data-queue-id='<%= queue.id %>' value='<%= queue.id %>'><%= queue.name %></option>
-                <% });  %>
-            </select>
-        </div>
-            <button type="submit" class="btn btn-default">Save</button>
-            <button type="submit" class="btn btn-default create-task-close">Save & Close</button>
-        </form>
+        <div class="task-message"></div>
+        <div class="<% if (!visible) { %> hidden <% } %> task-details">
+            <div class="form-group">
+                <label for="task-description">Task description</label>
+                <textarea class="form-control" rows="3" cols="5" name="task-description"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="task-status">Task Status</label>
+                <select class="form-control" name="task-status">
+                    <option name="not-started">Not Started</option>
+                    <option name="in-progress">In Progress</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="task-assignee">Task Assignee</label>
+                <select class="form-control task-assignee" name="task-assignee">  
+                    <% _.each(STATE.users, function(user) { %>
+                        <% if (user.id) { %>
+                            <option name='task-assignee' data-queue-id='<%= user.id %>' <% if (STATE.user.id===user.id){ %>selected<% } %> value='<%= user.id %>'><%= user.name %></option>
+                        <% } %>
+                    <% });  %>
+                </select>
+            </div>
+            <div class="form-group">    
+                <label for="new-task-queue">Queue</label>
+                <select class="form-control new-task-queues" name="task-queue">
+                    <option name='no-queue'></option>
+                    <% _.each(STATE.queues, function(queue) { %>
+                        <option name='<%= queue.name %>' data-queue-id='<%= queue.id %>' value='<%= queue.id %>'><%= queue.name %></option>
+                    <% });  %>
+                </select>
+            </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+                <button type="submit" class="btn btn-info create-task-close">Save & Close</button>
+            </form>
     </div>
 </div>
 </div>
