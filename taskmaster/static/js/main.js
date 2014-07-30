@@ -126,14 +126,6 @@ function setEventHandlers() {
     }
   });
   
-  $('.container').on('keyup', '.quick-task-name', function(e) {
-    if (e.which === 13) {
-      if ($(this).val()!=this.value) {
-        createTask();
-      }
-      $(this).val(this.value);  
-    }
-  });
   $('.container').on('blur', '.edit-name', onEditQueue);
 
   $('.container').on('click', '.queue-row', function(e) {
@@ -608,6 +600,7 @@ function renderView() {
   $( ".create-form-container button[type='submit']" ).on('click',  function( event ) {
     createTask();
     return false;
+    
   });
 
   function createTask() {
@@ -618,9 +611,9 @@ function renderView() {
       data: formData,
       success: function(data) {
         addTask(data);
-        $('.quick-task-name').focus();
         $('.task-message').slideDown(function() {
           $('.task-message').append('Task created!');
+          $('.quick-task-name').focus();
           setTimeout(function() {
             $('.task-message').slideUp();
           }, 1000);

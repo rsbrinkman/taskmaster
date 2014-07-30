@@ -24,7 +24,9 @@
                 <label for="task-assignee">Task Assignee</label>
                 <select class="form-control task-assignee" name="task-assignee">  
                     <% _.each(STATE.users, function(user) { %>
-                        <option name='task-assignee' data-queue-id='<%= user.id %>' <% if (STATE.user.id===user.id){ %>selected<% } %> value='<%= user.id %>'><%= user.name %></option>
+                        <% if (user.id) { %>
+                            <option name='task-assignee' data-queue-id='<%= user.id %>' <% if (STATE.user.id===user.id){ %>selected<% } %> value='<%= user.id %>'><%= user.name %></option>
+                        <% } %>
                     <% });  %>
                 </select>
             </div>
