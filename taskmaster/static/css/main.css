@@ -1,23 +1,31 @@
 body {
     padding: 0px 5px 0px 5px;
 }
+
 table {
     font-size: 11px;
 }
+
 select.input-sm {
     height:28px !important;
     line-height: 20px;
 }
+
 .underline {
     border-bottom: 1px solid black;
     box-shadow: 3px 1px 2px #888888;
     width: 100%;
     margin-bottom: 10px;
-    margin-top: 5px;
 }
+
+#header-row h1 {
+    margin-top: 10px;
+}
+
 .border-left {
     border-left: 1px #888888 solid;
 }
+
 #s2id_groupSelect, .select2-input, .select2-container, .select2-search-field, .select2-choices {
     width: 100%;
 }
@@ -158,8 +166,8 @@ input.saved-filter-checkbox {
 }
 #org-selector {
     float: right;
-    margin-right: 15px;
-    margin-top: 10px;
+    margin-right: 10px;
+    margin-top: 5px;
     min-width: 80px;
     text-align: center;
 }
@@ -261,16 +269,13 @@ input.saved-filter-checkbox {
     display: none;
 }
 .admin-panel {
-    border: 1px solid lightgray;
-    border-radius: 2px;
-    margin-top: 15px;
-    padding: 10px 15px 10px 15px;
+    padding: 10px 0;
 }
 .on {
     padding: 10px 10px;
 }
 
-#project-admin {
+#project-tasks {
     margin-left: 5px;
 }
 

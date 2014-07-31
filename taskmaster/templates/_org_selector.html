@@ -1,6 +1,6 @@
 <script data-template-name="org-selector" type="underscore">
     <div class="admin-panel">
-    <form class="form-inline">    
+    <form class="form-inline">
         <a href="/admin" class="btn btn-default btn-sm user-button" role="button"><%= STATE.user.name %></a>
         <span class="on">on</span>
         <select id="org-dropdown" class="form-control">
@@ -13,9 +13,9 @@
           <% });  %>
         </select>
 
-        <a id="project-admin" href="javascript:void(0)"><span class="glyphicon glyphicon-cog" title="Project Settings"></span></a>
-        <div id="project-button-divider"></div>
         <a id="project-tasks" href="javascript:void(0)"><span class="glyphicon glyphicon-list" title="Project Tasks"></span></a>
+        <div id="project-button-divider"></div>
+        <a id="project-admin" href="javascript:void(0)"><span class="glyphicon glyphicon-cog" title="Project Settings"></span></a>
 
         <a id="logout" class="logout" href="javascript:void(0)"><span class="glyphicon glyphicon-export logout-icon" title="Logout"></span></a>
     </form>
