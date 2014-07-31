@@ -21,7 +21,6 @@ def logged_in(f):
         if g.user and g.token and user_model.verify_token(g.user, g.token):
             return f(*args, **kwargs)
         else:
-            flash('Please login and select a project')
             return redirect(url_for('signup'))
 
     return decorated_function
