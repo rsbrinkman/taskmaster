@@ -30,10 +30,12 @@
   <div class="row">
     <div class="col-md-2 lists">
       <h5><u>Lists</u></h5>
+        <div class="form-inline input-container">
+            <input type="text" class="form-control input-sm queue-box" id="queue-name">
+            <button class="btn btn-primary btn-sm" id="create-queue"><span class="glyphicon glyphicon-plus"></span></button>
+        </div>
         <ul class="list-unstyled" id="queue-list">
         </ul>
-         <input type="text" class="form-control input-sm queue-box" id="queue-name">
-         <button class="btn btn-info btn-sm" id="create-queue">Create List</a>
     </div>
     <div id="quick-task-view" class="col-md-10 border-left"></div>
     <div id="filter-view" class="col-md-10 border-left"></div>
