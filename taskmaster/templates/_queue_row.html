@@ -1,9 +1,11 @@
 <script data-template-name="queue-row" type="underscore">
 <li data-queue-id="<%= id %>" class="queue-row <% if (selected) { %>selected<% } %>">
-    <span class="view-queue edit-queue glyphicon <% if (selected) { %>glyphicon-minus<% } else { %>glyphicon-plus<% } %>" id="<%= id %>-queue-drop"></span>
-    <span class="display-name rename-queue"><%= name %></span>
-    <input class="edit-name form-control input-sm" />
-    <span>(<%= tasks.length %>)</span>
+    <span class="overflow-list">
+        <span class="view-queue edit-queue glyphicon <% if (selected) { %>glyphicon-minus<% } else { %>glyphicon-plus<% } %>" id="<%= id %>-queue-drop"></span>
+        <span class="display-name rename-queue"><%= name %></span>
+        <input class="edit-name form-control input-sm" />
+        <span>(<%= tasks.length %>)</span>
+    </span>
     <span class="delete-queue"><span class="glyphicon glyphicon-remove"></span></span>
     <span class="delete-queue"><span class="glyphicon glyphicon-check"></span></span>
 </li>

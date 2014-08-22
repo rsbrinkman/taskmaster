@@ -404,3 +404,8 @@ input.saved-filter-checkbox {
     font-size: 30px;
     text-align: center;
 }
+.overflow-list {
+    overflow-x: hidden;
+    width: 80%;
+    display: inline-block;
+}
