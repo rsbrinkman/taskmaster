@@ -1,6 +1,22 @@
 <script data-template-name="task-list" type="underscore">
   <% if (queue) { %>
-    <h1><%= queue.name %></h1>
+    <div class="row queue-header-container">
+        <div class="col-md-4">
+            <span class="toggle-queue" data-queue-id="<%= queue.id %>">
+                <span class="glyphicon glyphicon-minus remove-queue"</span>
+            </span> 
+        </div>
+        <div class="col-md-4 queue-header">
+            <span><%= queue.name %></span>
+        </div>
+        <div class="col-md-4">
+            <span class="queue-actions">
+                <span class="glyphicon glyphicon-remove delete-queue"></span>
+                <span class="glyphicon glyphicon-check delete-queue"></span>
+            </span>
+        </div>
+    </div>
+    <hr>
   <% } %>
   <table data-queue-name="<% if (queue) { %><%= queue.id %><% } %>" class="table table-striped tasks-table">
     <thead>

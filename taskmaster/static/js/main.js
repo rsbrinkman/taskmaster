@@ -130,15 +130,17 @@ function setEventHandlers() {
 
   $('.container').on('click', '.queue-row', function(e) {
     if($(e.target).hasClass('view-queue')) {
-      var $this = $(this);
-      var id = $this.data('queue-id');
-
-      STATE.queuemap[id].selected = !STATE.queuemap[id].selected;
-
-      renderView();
+      toggleQueue($(this));
     }
   });
-
+  function toggleQueue(queue) {
+      var id = queue.data('queue-id');
+      STATE.queuemap[id].selected = !STATE.queuemap[id].selected;
+      renderView();
+  }
+  $('.container').on('click', '.toggle-queue', function(e) {
+    toggleQueue($(this));
+  });
   $('.container').on('change', '.task-queues', function(e) {
     var queueId = $(this).val();
     var taskId = $(this).data('task-id');

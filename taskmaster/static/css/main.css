@@ -43,9 +43,12 @@ select.input-sm {
 }
 
 .queue-box {
-    margin-bottom: 5px;
+    width: 95%;
 }
 
+#create-queue {
+    margin-left: -22%;
+}
 .queue-row {
     cursor: pointer;
     white-space: nowrap;
@@ -57,7 +60,8 @@ select.input-sm {
 
 .queue-row .edit-name {
     display: none;
-    width: 130px;
+    width: 50%;
+    height: 20px;
 }
 
 .queue-row.editing .edit-name {
@@ -67,6 +71,9 @@ select.input-sm {
 .edit-queue {
     top: 2px;
     margin-right: 7px;
+    border: 1px solid black;
+    padding: 0px 15px 1px 1px;
+    border-radius: 2px
 }
 
 .task-row {
@@ -374,6 +381,31 @@ input.saved-filter-checkbox {
 #quick-task-create {
     margin-left: -20px;
 }
-.quick-task-container {
+.input-container {
     margin-bottom: 10px;
+}
+.delete-queue {
+    float:right;
+    margin-left: 2px;
+    cursor: pointer;
+}
+.remove-queue {
+    top: 6px;
+    border: 1px solid black;
+    border-radius: 2px;
+    padding-right: 2px;
+    padding-bottom: 2px;
+    cursor: pointer;
+}
+.toggle-queue, .queue-actions {
+    font-size: 30px;
+}
+.queue-header {
+    font-size: 30px;
+    text-align: center;
+}
+.overflow-list {
+    overflow-x: hidden;
+    width: 80%;
+    display: inline-block;
 }
