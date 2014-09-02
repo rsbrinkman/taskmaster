@@ -45,3 +45,7 @@ INVITED = """
     </ul>
     </p>
 """
+
+KICK = """
+    <p>You have been removed from <strong>%(project)s</strong></p>
+"""

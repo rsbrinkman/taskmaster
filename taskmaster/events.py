@@ -43,3 +43,10 @@ def mediator(event, **kwargs):
                       recipients=[kwargs['email']], html=templates.INVITED % {
                         'base_url': BASE_URL, 'project': org_name, 'email': kwargs['email']})
         mail.send(msg)
+    if event == 'kick':
+        org_name = org_model.get(kwargs['org_id'])
+        org_name = org_name['name']
+        user = user_model.get(kwargs['user_id'])
+        msg = Message("Removed from Taskmaster project", sender=FROM_EMAIL,
+                      recipients=[user['email']], html=templates.KICK % {
+                        'base_url': BASE_URL, 'project': org_name, 'email': user['email']})

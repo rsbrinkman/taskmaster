@@ -1,0 +1,9 @@
+.editable-display:hover {
+    cursor: pointer;
+    background-color: #DDD;
+}
+
+select.editable,
+.editable option {
+    text-transform: capitalize;
+}

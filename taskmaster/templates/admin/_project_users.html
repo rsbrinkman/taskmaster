@@ -1,0 +1,96 @@
+<script data-template-name="users" type="underscore">
+
+<div class="users-table-container">
+  <% if (STATE.users.length > 1) { %>
+    <div class="panel panel-default">
+      <div class="panel-heading">Users</div>
+
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Role</th>
+            <% if (STATE.user.permissions.edit_user) { %>
+              <th>Kick</th>
+            <% } %>
+          </tr>
+        </thead>
+
+        <tbody>
+          <% _.each(STATE.users, function(user) { %>
+            <% if (user.id !== STATE.user.id) { %>
+              <tr data-user-id="<%= user.id %>">
+                <td class="user-name-container"><%= user.name %></td>
+                <td class="user-role-container capitalize"><%= user.role %></td>
+
+                <% if ('edit_user' in STATE.user.permissions) { %>
+                  <td>
+                    <% if (STATE.user.lte_roles.indexOf(user.role) >= 0) { %>
+                      <span title="Kick user" class="kick-user glyphicon glyphicon-remove"></span>
+                    <% } %>
+                  </td>
+                <% } %>
+              </tr>
+            <% } %>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  <% } else { %>
+    There are no other users currently on this project.
+  <% } %>
+</div>
+
+<div class="invites-table-container">
+  <% if (STATE.pending_invites.length > 0) { %>
+    <div class="panel panel-default">
+      <div class="panel-heading">Pending Invites</div>
+
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Role</th>
+            <% if (STATE.user.permissions.edit_user) { %>
+              <th>Cancel</th>
+            <% } %>
+          </tr>
+        </thead>
+
+        <tbody>
+          <% _.each(STATE.pending_invites, function(invite) { %>
+            <tr>
+              <td class="pending-email"><%= invite.email %></td>
+              <td class="pending-role capitalize"><%= invite.role %></td>
+              <% if (STATE.user.permissions.edit_user) { %>
+                <td>
+                <% if (STATE.user.lte_roles.indexOf(invite.role) >= 0) { %>
+                <span title="Cancel invite" class="cancel-invite glyphicon glyphicon-remove"></span>
+                <% } %>
+                </td>
+              <% } %>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  <% } else { %>
+    There currently no pending invites for this project.
+  <% } %>
+</div>
+
+<% if (STATE.user.permissions.edit_user) { %>
+<div class="invite-user-container">
+  <form class="invite-user">
+    <input class="form-control invite-user-email" required type="email" placeholder="Enter e-mail address..."/>
+    <select class="form-control invite-user-role capitalize">
+      <% _.each(STATE.user.lte_roles, function(role) { %>
+        <option><%= role %></option>
+      <% }); %>
+    </select>
+    <button type="submit" class="btn btn-primary">Invite</button>
+  </form>
+</div>
+<% } %>
+
+</script>

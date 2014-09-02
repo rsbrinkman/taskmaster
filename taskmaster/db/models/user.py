@@ -58,8 +58,26 @@ class UserModel(CRUDModel):
         user = self.get(user_id)
         return provided_token and user and user['token'] == provided_token
 
-    def add_to_waiting_list(self, username, org_id):
-        db.sadd('waiting_list>%s' % username, org_id)
+    def add_to_waiting_list(self, username, org_id, role):
+        db.sadd('waiting_list_email>%s' % username, '%s_%s' % (org_id, role))
+        db.sadd('waiting_list_org>%s' % org_id, '%s_%s' % (username, role))
 
-    def get_waiting_list(self, email):
-        return db.smembers('waiting_list>%s' % email)
+    def get_waiting_list_for_email(self, email):
+        return db.smembers('waiting_list_email>%s' % email)
+
+    def get_waiting_list_for_org(self, org_id):
+        return db.smembers('waiting_list_org>%s' % org_id)
+
+    def remove_from_waiting_list(self, email, org_id):
+        removes = []
+
+        for entry in self.get_waiting_list_for_org(org_id):
+            if entry.startswith(email):
+                removes.append(('waiting_list_org>%s' % org_id, entry))
+
+        for entry in self.get_waiting_list_for_email(email):
+            if entry.startswith(org_id):
+                removes.append(('waiting_list_email>%s' % email, entry))
+
+        for r in removes:
+            db.srem(r[0], r[1])

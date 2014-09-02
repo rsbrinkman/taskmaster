@@ -2,6 +2,7 @@
 {% block js %}
   {{ super() }}
   <script src="static/js/project_admin.js"></script>
+  <script src="static/js/admin/project_users.js"></script>
 {% endblock %}
 
 {% block body %}
@@ -16,11 +17,15 @@
     <div class="row">
         <div class="col-md-2">
               <ul class="left-nav list-unstyled">
-                  <li class="left-nav-option active" ><a href="#settings">Settings</a></li>
+                  <li class="left-nav-option active" ><a href="#users">Users</a></li>
+                  <li class="left-nav-option" ><a href="#settings">Settings</a></li>
               </ul>
         </div>
         <div class="col-md-10 border-left">
-            <section id="settings">
+           <section id="users">
+            {% include '/admin/_project_users.html' %}
+           </section>
+           <section id="settings" class="hidden">
             {% include '/admin/_project_settings.html' %}
            </section>
         </div>

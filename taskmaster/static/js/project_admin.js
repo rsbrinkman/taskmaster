@@ -1,4 +1,7 @@
 $(function() {
-  $('#settings').html(TEMPLATES['settings'](STATE.orgs, STATE.org, STATE.users, STATE.user));
+  _.each(['users', 'settings'], function(id) {
+    $('#' + id).html(TEMPLATES[id]({STATE: STATE}));
+  });
+
   $("#project-admin").addClass('selected');
 });
