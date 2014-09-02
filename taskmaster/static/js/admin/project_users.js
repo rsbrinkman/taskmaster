@@ -1,5 +1,5 @@
 $(function() {
-  $('.user-role-container').clickToEdit({
+  $('.user-role-container.permitted').clickToEdit({
     inputType: 'select',
     choices: STATE.user.lte_roles,
     success: function($editable) {

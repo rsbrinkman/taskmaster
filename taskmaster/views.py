@@ -103,8 +103,7 @@ def _task_state(org_id=None):
             user_data = user_model.get(user_id, include=['name', 'id'])
             other_role = permission_model.get_role(user_id, org_id)
             user_data.update({
-                'role': other_role,
-                'user_role_gte': permission_model.evaluate_role_gte(state['user']['role'], other_role),
+                'role': other_role
             })
             users.append(user_data)
 

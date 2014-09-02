@@ -21,9 +21,11 @@
             <% if (user.id !== STATE.user.id) { %>
               <tr data-user-id="<%= user.id %>">
                 <td class="user-name-container"><%= user.name %></td>
-                <td class="user-role-container capitalize"><%= user.role %></td>
+                <td class="user-role-container capitalize
+                    <% if (STATE.user.lte_roles.indexOf(user.role) >= 0) { %>permitted<% } %>
+                "><%= user.role %></td>
 
-                <% if ('edit_user' in STATE.user.permissions) { %>
+                <% if (STATE.user.permissions.edit_user) { %>
                   <td>
                     <% if (STATE.user.lte_roles.indexOf(user.role) >= 0) { %>
                       <span title="Kick user" class="kick-user glyphicon glyphicon-remove"></span>
