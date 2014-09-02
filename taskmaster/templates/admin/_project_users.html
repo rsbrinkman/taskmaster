@@ -66,9 +66,7 @@
               <td class="pending-role capitalize"><%= invite.role %></td>
               <% if (STATE.user.permissions.edit_user) { %>
                 <td>
-                <% if (STATE.user.lte_roles.indexOf(invite.role) >= 0) { %>
                 <span title="Cancel invite" class="cancel-invite glyphicon glyphicon-remove"></span>
-                <% } %>
                 </td>
               <% } %>
             </tr>
