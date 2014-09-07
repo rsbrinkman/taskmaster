@@ -22,14 +22,18 @@ class OrgModel(CRUDModel):
         del org['owner']
 
     def add_user(self, org_id, user_id, role=UserRoles.EDITOR, db_pipe=db):
-        db_pipe.sadd(self.USERS_KEY % org_id, user_id)
-        db_pipe.sadd(self.USER_ORGS_KEY % user_id, org_id)
-        permission_model.set_role(user_id, org_id, role)
+        if self.get(org_id):
+            db_pipe.sadd(self.USERS_KEY % org_id, user_id)
+            db_pipe.sadd(self.USER_ORGS_KEY % user_id, org_id)
+            permission_model.set_role(user_id, org_id, role)
 
     def remove_user(self, org_id, user_id, db_pipe=db):
         db_pipe.srem(self.USERS_KEY % org_id, user_id)
         db_pipe.srem(self.USER_ORGS_KEY % user_id, org_id)
         permission_model.revoke(user_id, org_id, db_pipe=db)
+
+        if len(self.get_users(org_id)) == 0:
+            self.delete(org_id, db_pipe=db_pipe)
 
     def get_users(self, org_id):
         return db.smembers(self.USERS_KEY % org_id)
@@ -39,4 +43,14 @@ class OrgModel(CRUDModel):
 
     def get_for_user(self, user_id):
         org_ids = db.smembers(self.USER_ORGS_KEY % user_id)
-        return [self.get(org_id) for org_id in org_ids]
+        valid_orgs = []
+        for org_id in org_ids:
+            org = self.get(org_id)
+            if org:
+                valid_orgs.append(org)
+            else:
+                db.srem(self.USER_ORGS_KEY % user_id, org_id)
+        return valid_orgs
+
+    def _post_delete(self, db_pipe, _id, obj):
+        db.delete(self.USERS_KEY % _id)

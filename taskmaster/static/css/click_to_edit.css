@@ -1,6 +1,7 @@
 .editable-display:hover {
     cursor: pointer;
     background-color: #DDD;
+    display: inline-block;
 }
 
 select.editable,
