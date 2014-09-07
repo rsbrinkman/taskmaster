@@ -26,6 +26,11 @@ class OrgModel(CRUDModel):
         db_pipe.sadd(self.USER_ORGS_KEY % user_id, org_id)
         permission_model.set_role(user_id, org_id, role)
 
+    def remove_user(self, org_id, user_id, db_pipe=db):
+        db_pipe.srem(self.USERS_KEY % org_id, user_id)
+        db_pipe.srem(self.USER_ORGS_KEY % user_id, org_id)
+        permission_model.revoke(user_id, org_id, db_pipe=db)
+
     def get_users(self, org_id):
         return db.smembers(self.USERS_KEY % org_id)
 

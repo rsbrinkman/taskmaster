@@ -17,6 +17,8 @@ class UserRoles(object):
     VIEWER = 'viewer'
     ANYONE = ''
 
+    ordered_roles = [OWNER, ADMIN, EDITOR, VIEWER]
+
 # pylint: disable-msg=R0903
 class ProjectLevels(object):
     PUBLIC = 'public'
@@ -61,7 +63,9 @@ class PermissionModel(object):
 
     def role_gte(self, user_id, org_id, other_role):
         role = self.get_role(user_id, org_id)
+        return self.evaluate_role_gte(role, other_role)
 
+    def evaluate_role_gte(self, role, other_role):
         if role == UserRoles.OWNER:
             return True
         elif role == UserRoles.ADMIN:
@@ -72,6 +76,14 @@ class PermissionModel(object):
             return other_role == UserRoles.VIEWER or other_role == UserRoles.ANYONE
         elif role == UserRoles.ANYONE:
             return other_role == UserRoles.ANYONE
+
+    def all_tags(self, user_id, org_id):
+        tags = [getattr(PermissionTags, a) for a in dir(PermissionTags) if not a.startswith('__')]
+        return {tag: self.permitted(user_id, org_id, tag) for tag in tags}
+
+    def all_lte_roles(self, user_id, org_id):
+        user_role = self.get_role(user_id, org_id)
+        return [r for r in UserRoles.ordered_roles if self.evaluate_role_gte(user_role, r)]
 
     def permitted(self, user_id, org_id, tag):
         from taskmaster.db.models.org import OrgModel

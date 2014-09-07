@@ -92,8 +92,21 @@ def _task_state(org_id=None):
         queues = queue_model.get_for_org(org_id)
         org_tags = set(tags_model.get_for_org(org_id))
         filtermap = {filter_id: filter_model.get(filter_id) for filter_id in filter_model.get_for_org(org_id)}
+
+        state['user']['role'] = permission_model.get_role(g.user, org_id)
+        state['user']['permissions'] = permission_model.all_tags(g.user, org_id)
+        state['user']['lte_roles'] = permission_model.all_lte_roles(g.user, org_id)
+
         org_users = list(org_model.get_users(org_id))
-        users = [user_model.get(user_id, include=['name', 'id', 'email']) for user_id in org_users]
+        users = []
+        for user_id in org_users:
+            user_data = user_model.get(user_id, include=['name', 'id'])
+            other_role = permission_model.get_role(user_id, org_id)
+            user_data.update({
+                'role': other_role
+            })
+            users.append(user_data)
+
         tags = list(org_tags.union(user_tags))
 
         state.update({
@@ -130,7 +143,18 @@ def admin():
 @app.route('/project-admin')
 @require_permission(PermissionTags.VIEW)
 def project_admin():
-    return render_template('project_admin.html', state=json.dumps(_task_state(g.org)))
+    state = _task_state(g.org)
+    state['pending_invites'] = []
+
+    for invite in user_model.get_waiting_list_for_org(g.org):
+        email, role = invite.split('_')
+
+        state['pending_invites'].append({
+            'email': email,
+            'role': role
+        })
+
+    return render_template('project_admin.html', state=json.dumps(state))
 
 @app.route('/signup')
 def signup():
@@ -155,10 +179,13 @@ def create_user():
             org_model.add_user(org_id, user['id'])
 
     # Add user to waiting list orgs
-    waiting_list = user_model.get_waiting_list(user['email'])
+    waiting_list = user_model.get_waiting_list_for_email(user['email'])
     if waiting_list:
-        for org_id in waiting_list:
-            org_model.add_user(org_id, user['id'])
+        added_orgs = []
+        for entry in waiting_list:
+            org_id, role = entry.split('_')
+            org_model.add_user(org_id, user['id'], role=role)
+            user_model.remove_from_waiting_list(user['email'], org_id)
     else:
         events.mediator('signed_up', email=user['email'], name=user['name'])
 
@@ -217,13 +244,24 @@ def create_org():
 @require_permission(PermissionTags.EDIT_ORG)
 def update_org(_id, field):
     org_model.update(_id, field, request.form['value'])
-    return Response(status=200)
+    return Response(status=204)
 
-@app.route('/org/<orgname>/user/<username>/', methods=['POST'])
+@app.route('/org/<org_id>/user/<user_id>/role/<new_role>/', methods=['PUT'])
 @logged_in
-def add_user_to_org(orgname, username):
-    org_id = org_model.id_from('name', orgname)
-    role = 'editor'
+def update_role(org_id, user_id, new_role):
+    current_role = permission_model.get_role(user_id, org_id)
+    if not (permission_model.permitted(g.user, org_id, PermissionTags.EDIT_USER) and
+            permission_model.role_gte(g.user, org_id, current_role) and
+            permission_model.role_gte(g.user, org_id, new_role)):
+        raise InsufficientPermission()
+
+    permission_model.set_role(user_id, org_id, new_role)
+    return Response(status=204)
+
+@app.route('/org/<org_id>/user/<username>/', methods=['POST'])
+@logged_in
+def add_user_to_org(org_id, username):
+    role = request.form['role']
 
     if not (permission_model.permitted(g.user, org_id, PermissionTags.EDIT_USER) and
             permission_model.role_gte(g.user, org_id, role)):
@@ -231,15 +269,32 @@ def add_user_to_org(orgname, username):
 
     user_id = user_model.id_from('email', username)
     if user_id:
-        org_model.add_user(org_id, user_id)
+        org_model.add_user(org_id, user_id, role=role)
         events.mediator('added_to_project', email=username, project=org_id)
     else:
         # Add user to waiting list
-        user_model.add_to_waiting_list(username, org_id)
+        user_model.add_to_waiting_list(username, org_id, role)
         events.mediator('invite', email=username, org_id=org_id)
 
     org = org_model.get(org_id)
     return Response(json.dumps(org), status=200, content_type='application/json')
+
+@app.route('/org/<org_id>/user/<user_id>/', methods=['DELETE'])
+@logged_in
+def kick_user(org_id, user_id):
+    if not permission_model.permitted(g.user, org_id, PermissionTags.EDIT_USER):
+        raise InsufficientPermission()
+
+    if org_model.has_user(org_id, user_id):
+        role = permission_model.get_role(user_id, org_id)
+        if not permission_model.role_gte(g.user, org_id, role):
+            raise InsufficientPermission()
+        org_model.remove_user(org_id, user_id)
+        events.mediator('kick', user_id=user_id, org_id=org_id)
+    else:
+        user_model.remove_from_waiting_list(user_id, org_id)
+
+    return Response(status=204)
 
 @app.route('/search/orgs/', methods=['POST'])
 @logged_in
