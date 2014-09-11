@@ -1,8 +1,8 @@
 define([
-  'models/current_project_users',
-  'models/current_user',
-  'models/current_project'
-], function(CurrentProjectUsers, CurrentUser, CurrentProject) {
+  'models/project_users',
+  'models/user',
+  'models/project'
+], function(ProjectUsers, User, Project) {
 
   // TODO eventually should grab this data piecemeal from
   // the server instead of rendering everything
@@ -11,13 +11,13 @@ define([
   };
 
   AppState.prototype.populate = function () {
-    this.currentUser = new CurrentUser();
+    this.currentUser = new User();
     this.currentUser.fetch();
 
-    this.currentProject = new CurrentProject();
+    this.currentProject = new Project();
     this.currentProject.fetch();
 
-    this.currentProjectUsers = new CurrentProjectUsers();
+    this.currentProjectUsers = new ProjectUsers();
     this.currentProjectUsers.fetch();
   };
 
