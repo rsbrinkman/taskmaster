@@ -14,14 +14,23 @@ define([
       'click .kick-user': 'kickUser'
     },
 
+    initialize: function(options) {
+      this.appState = options.appState;
+      this.currentUser = this.appState.currentUser;
+      this.currentProject = this.appState.currentProject;
+      this.currentProjectUsers = this.appState.currentProjectUsers;
+    },
+
     render: function() {
       this.$el.html(this.template({
-        STATE: STATE
+        projectUsers: this.currentProjectUsers.toJSON(),
+        currentProject: this.currentProject.toJSON(),
+        currentUser: this.currentUser.toJSON()
       }));
 
       this.$('.user-role-container.permitted').clickToEdit({
         inputType: 'select',
-        choices: STATE.user.lte_roles,
+        choices: this.currentUser.get('lteRoles'),
         success: function($editable) {
           var userId = $editable.parents('tr').data('user-id'),
               role = $editable.val();
@@ -36,7 +45,7 @@ define([
     updateRole: function(userId, role) {
       $.ajax({
         type: 'PUT',
-        url: '/org/' + STATE.org.id + '/user/' + userId + '/role/' + role + '/',
+        url: '/org/' + this.currentProject.get('id') + '/user/' + userId + '/role/' + role + '/',
         success: function() {
           window.location.reload();
         }
@@ -52,7 +61,7 @@ define([
 
       $.ajax({
         type: 'POST',
-        url: '/org/' + STATE.org.id + '/user/' + email + '/',
+        url: '/org/' + this.currentProject.get('id') + '/user/' + email + '/',
         data: {
           role: role
         },
@@ -75,7 +84,7 @@ define([
     deleteUser: function(username) {
       $.ajax({
         type: 'DELETE',
-        url: '/org/' + STATE.org.id + '/user/' + username + '/',
+        url: '/org/' + this.currentProject.get('id') + '/user/' + username + '/',
         success: function() {
           window.location.reload();
         }
