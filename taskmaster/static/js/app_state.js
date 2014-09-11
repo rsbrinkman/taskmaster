@@ -4,8 +4,6 @@ define([
   'models/project'
 ], function(ProjectUsers, User, Project) {
 
-  // TODO eventually should grab this data piecemeal from
-  // the server instead of rendering everything
   var AppState = function() {
 
   };
