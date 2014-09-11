@@ -14,33 +14,35 @@ define([
       'click .kick-user': 'kickUser'
     },
 
+    initialize: function(options) {
+      this.appState = options.appState;
+      this.currentUser = this.appState.currentUser;
+      this.currentProject = this.appState.currentProject;
+      this.currentProjectUsers = this.appState.currentProjectUsers;
+
+      this.listenTo(this.currentProject, 'change:pendingInvites', this.render);
+      this.listenTo(this.currentProjectUsers, 'add remove', this.render);
+    },
+
     render: function() {
       this.$el.html(this.template({
-        STATE: STATE
+        projectUsers: this.currentProjectUsers.toJSON(),
+        currentProject: this.currentProject.toJSON(),
+        currentUser: this.currentUser.toJSON()
       }));
 
       this.$('.user-role-container.permitted').clickToEdit({
         inputType: 'select',
-        choices: STATE.user.lte_roles,
+        choices: this.currentUser.get('lteRoles'),
         success: function($editable) {
           var userId = $editable.parents('tr').data('user-id'),
               role = $editable.val();
 
-          this.updateRole(userId, role);
+          this.currentProjectUsers.updateRole(userId, role);
         }.bind(this)
       });
 
       return this;
-    },
-
-    updateRole: function(userId, role) {
-      $.ajax({
-        type: 'PUT',
-        url: '/org/' + STATE.org.id + '/user/' + userId + '/role/' + role + '/',
-        success: function() {
-          window.location.reload();
-        }
-      });
     },
 
     inviteUser: function(event) {
@@ -50,37 +52,19 @@ define([
       var email = $('.invite-user-email').val(),
           role = $('.invite-user-role').val();
 
-      $.ajax({
-        type: 'POST',
-        url: '/org/' + STATE.org.id + '/user/' + email + '/',
-        data: {
-          role: role
-        },
-        success: function() {
-          window.location.reload();
-        }
-      });
+      this.currentProject.inviteUser(email, role);
     },
 
     cancelInvite: function(event) {
       var email = $(event.target).parents('tr').find('.pending-email').text();
-      this.deleteUser(email);
+      this.currentProject.cancelInvite(email);
     },
 
     kickUser: function(event) {
       var userId = $(event.target).parents('tr').data('user-id');
-      this.deleteUser(userId);
-    },
-
-    deleteUser: function(username) {
-      $.ajax({
-        type: 'DELETE',
-        url: '/org/' + STATE.org.id + '/user/' + username + '/',
-        success: function() {
-          window.location.reload();
-        }
-      });
+      this.currentProjectUsers.kick(userId);
     }
+
   });
 
   return ProjectUsersView;

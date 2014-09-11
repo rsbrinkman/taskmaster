@@ -19,14 +19,18 @@ require.config({
 
 });
 
-require(['admin/project_users'], function(ProjectUsersView) {
+require(['views/project_users', 'app_state'], function(ProjectUsersView, AppState) {
+  var appState = new AppState();
+  appState.populate();
+
   $(function() {
     _.each(['settings'], function(id) {
       $('#' + id).html(TEMPLATES[id]({STATE: STATE}));
     });
 
     var projectUsers = new ProjectUsersView({
-      el: '#users'
+      el: '#users',
+      appState: appState
     }).render();
 
     $("#project-admin").addClass('selected');
