@@ -69,4 +69,5 @@ $(function() {
     }
   });
 
+  $('a[href="' + window.location.hash + '"]').click();
 });

@@ -81,6 +81,9 @@ class PermissionModel(object):
         tags = [getattr(PermissionTags, a) for a in dir(PermissionTags) if not a.startswith('__')]
         return {tag: self.permitted(user_id, org_id, tag) for tag in tags}
 
+    def all_levels(self):
+        return [getattr(ProjectLevels, a) for a in dir(ProjectLevels) if not a.startswith('__')]
+
     def all_lte_roles(self, user_id, org_id):
         user_role = self.get_role(user_id, org_id)
         return [r for r in UserRoles.ordered_roles if self.evaluate_role_gte(user_role, r)]

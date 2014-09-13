@@ -144,6 +144,7 @@ def admin():
 @require_permission(PermissionTags.VIEW)
 def project_admin():
     state = _task_state(g.org)
+    state['all_levels'] = permission_model.all_levels()
     state['pending_invites'] = []
 
     for invite in user_model.get_waiting_list_for_org(g.org):
@@ -282,7 +283,9 @@ def add_user_to_org(org_id, username):
 @app.route('/org/<org_id>/user/<user_id>/', methods=['DELETE'])
 @logged_in
 def kick_user(org_id, user_id):
-    if not permission_model.permitted(g.user, org_id, PermissionTags.EDIT_USER):
+    leaving = user_id == g.user
+
+    if not(leaving or permission_model.permitted(g.user, org_id, PermissionTags.EDIT_USER)):
         raise InsufficientPermission()
 
     if org_model.has_user(org_id, user_id):
@@ -290,10 +293,18 @@ def kick_user(org_id, user_id):
         if not permission_model.role_gte(g.user, org_id, role):
             raise InsufficientPermission()
         org_model.remove_user(org_id, user_id)
-        events.mediator('kick', user_id=user_id, org_id=org_id)
+
+        if not leaving:
+            events.mediator('kick', user_id=user_id, org_id=org_id)
     else:
         user_model.remove_from_waiting_list(user_id, org_id)
 
+    return Response(status=204)
+
+@app.route('/org/<_id>', methods=['DELETE'])
+@require_permission(PermissionTags.EDIT_ORG)
+def delete_org(_id):
+    org_model.delete(_id)
     return Response(status=204)
 
 @app.route('/search/orgs/', methods=['POST'])
