@@ -1,7 +1,5 @@
-<script data-template-name="users" type="underscore">
-
 <div class="users-table-container">
-  <% if (STATE.users.length > 0) { %>
+  <% if (projectUsers.length > 0) { %>
     <div class="panel panel-default">
       <div class="panel-heading">Users</div>
 
@@ -10,25 +8,25 @@
           <tr>
             <th>Name</th>
             <th>Role</th>
-            <% if (STATE.user.permissions.edit_user) { %>
+            <% if (currentUser.permissions.edit_user) { %>
               <th>Kick</th>
             <% } %>
           </tr>
         </thead>
 
         <tbody>
-          <% _.each(STATE.users, function(user) { %>
-              <tr data-user-id="<%= user.id %>">
-                <td class="user-name-container"><%= user.name %></td>
+          <% _.each(projectUsers, function(projectUser) { %>
+              <tr data-user-id="<%= projectUser.id %>">
+                <td class="user-name-container"><%= projectUser.name %></td>
                 <td class="user-role-container capitalize
-                    <% if (user.id !== STATE.user.id &&
-                      STATE.user.lte_roles.indexOf(user.role) >= 0) { %>permitted<% } %>
-                "><%= user.role %></td>
+                    <% if (currentUser.id !== projectUser.id &&
+                      currentUser.lteRoles.indexOf(projectUser.role) >= 0) { %>permitted<% } %>
+                "><%= projectUser.role %></td>
 
-                <% if (STATE.user.permissions.edit_user) { %>
+                <% if (currentUser.permissions.edit_user) { %>
                   <td>
-                    <% if (user.id !== STATE.user.id &&
-                          STATE.user.lte_roles.indexOf(user.role) >= 0) { %>
+                    <% if (currentUser.id !== projectUser.id &&
+                          currentUser.lteRoles.indexOf(projectUser.role) >= 0) { %>
                       <span title="Kick user" class="kick-user glyphicon glyphicon-remove"></span>
                     <% } %>
                   </td>
@@ -44,7 +42,7 @@
 </div>
 
 <div class="invites-table-container">
-  <% if (STATE.pending_invites.length > 0) { %>
+  <% if (currentProject.pendingInvites.length > 0) { %>
     <div class="panel panel-default">
       <div class="panel-heading">Pending Invites</div>
 
@@ -53,18 +51,18 @@
           <tr>
             <th>Name</th>
             <th>Role</th>
-            <% if (STATE.user.permissions.edit_user) { %>
+            <% if (currentUser.permissions.edit_user) { %>
               <th>Cancel</th>
             <% } %>
           </tr>
         </thead>
 
         <tbody>
-          <% _.each(STATE.pending_invites, function(invite) { %>
+          <% _.each(currentProject.pendingInvites, function(invite) { %>
             <tr>
               <td class="pending-email"><%= invite.email %></td>
               <td class="pending-role capitalize"><%= invite.role %></td>
-              <% if (STATE.user.permissions.edit_user) { %>
+              <% if (currentUser.permissions.edit_user) { %>
                 <td>
                 <span title="Cancel invite" class="cancel-invite glyphicon glyphicon-remove"></span>
                 </td>
@@ -79,12 +77,12 @@
   <% } %>
 </div>
 
-<% if (STATE.user.permissions.edit_user) { %>
+<% if (currentUser.permissions.edit_user) { %>
 <div class="invite-user-container">
   <form class="invite-user">
     <input class="form-control invite-user-email" required type="email" placeholder="Enter e-mail address..."/>
     <select class="form-control invite-user-role capitalize">
-      <% _.each(STATE.user.lte_roles, function(role) { %>
+      <% _.each(currentUser.lteRoles, function(role) { %>
         <option><%= role %></option>
       <% }); %>
     </select>
@@ -92,5 +90,3 @@
   </form>
 </div>
 <% } %>
-
-</script>
