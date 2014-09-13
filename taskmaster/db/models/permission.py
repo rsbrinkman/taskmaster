@@ -43,7 +43,8 @@ DEFAULT_PERMISSIONS = {
     ProjectLevels.PRIVATE: {
         UserRoles.OWNER: ('allow', '*'),
         UserRoles.ADMIN: ('allow', '*'),
-        UserRoles.EDITOR: ('deny', {PermissionTags.EDIT_ORG}),
+        #UserRoles.EDITOR: ('deny', {PermissionTags.EDIT_ORG}),
+        UserRoles.EDITOR: ('allow', '*'),
         UserRoles.VIEWER: ('allow', {PermissionTags.VIEW}),
         UserRoles.ANYONE: ('deny', '*'),
     },

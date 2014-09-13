@@ -1,37 +1,36 @@
-<script data-template-name="settings" type="underscore">
-  <% if (STATE.user.permissions.edit_org) { %>
-    <div class="project-settings-name permitted" ><%= STATE.org.name %></div>
-  <% } else { %>
-    <h3 class="project-settings-name" ><%= STATE.org.name %></h3>
-  <% } %>
-  <br><br>
+<% if (currentUser.permissions.edit_org) { %>
+  <div class="project-settings-name permitted" ><%= currentProject.name %></div>
+<% } else { %>
+  <h3 class="project-settings-name" ><%= currentProject.name %></h3>
+<% } %>
+<br><br>
 
-  <div style="display:inline-block;">Permission level</div>
+<div style="display:inline-block;">Permission level</div>
 
-  <% if (STATE.user.permissions.edit_org) { %>
-    <div style="display:inline-block;" class="project-settings-level capitalize permitted"><%= STATE.org.level %></div>
-  <% } else { %>
-    <strong class="project-settings-level capitalize"><%= STATE.org.level %></strong>
-  <% } %>
-  <div style="display:inline-block;">
-  <% if(STATE.org.level === "private") { %>
-  Private permission level means
-  <% } else if(STATE.org.level === "readonly") { %>
-  Protected permission level means
-  <% } else if(STATE.org.level === "public") { %>
-  Public permission level means
-  <% } %>
-  </div>
+<% if (currentUser.permissions.edit_org) { %>
+  <div style="display:inline-block;" class="project-settings-level capitalize permitted"><%= currentProject.level %></div>
+<% } else { %>
+  <strong class="project-settings-level capitalize"><%= currentProject.level %></strong>
+<% } %>
+<div style="display:inline-block;">
+<% if(currentProject.level === "private") { %>
+Only invited users can view and edit this project
+<% } else if(currentProject.level === "readonly") { %>
+Users can view this project and request to join
+<% } else if(currentProject.level === "public") { %>
+Any user can view or edit this project
+<% } %>
+</div>
 
-  <br><br>
+<br><br>
 
-  <p>You are an <strong class="project-settings-user-role capitalize"><%= STATE.user.role %></strong> on this project <button class="project-settings-leave btn btn-danger" data-toggle="modal" data-target="#project-leave-modal">Leave</button></p>
+<p>You are an <strong class="project-settings-user-role capitalize"><%= currentUser.role %></strong> on this project <button class="project-settings-leave btn btn-danger" data-toggle="modal" data-target="#project-leave-modal">Leave</button></p>
 
-  <br><br>
+<br><br>
 
-  <% if (STATE.user.permissions.edit_org) { %>
-    <button class="project-settings-delete btn btn-danger" data-toggle="modal" data-target="#project-delete-modal">Delete Project</button>
-  <% } %>
+<% if (currentUser.permissions.edit_org) { %>
+  <button class="project-settings-delete btn btn-danger" data-toggle="modal" data-target="#project-delete-modal">Delete Project</button>
+<% } %>
 
 <!-- Leave Modal -->
 <div class="modal" id="project-leave-modal" tabindex="-1" role="dialog" aria-hidden="true">
@@ -66,6 +65,3 @@
     </div>
   </div>
 </div>
-
-
-</script>

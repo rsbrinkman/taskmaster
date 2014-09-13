@@ -1,8 +1,9 @@
 define([
   'models/project_users',
   'models/user',
-  'models/project'
-], function(ProjectUsers, User, Project) {
+  'models/project',
+  'models/common'
+], function(ProjectUsers, User, Project, Common) {
 
   var AppState = function() {
 
@@ -17,6 +18,9 @@ define([
 
     this.currentProjectUsers = new ProjectUsers();
     this.currentProjectUsers.fetch();
+
+    this.common = new Common();
+    this.common.fetch();
   };
 
   return AppState;

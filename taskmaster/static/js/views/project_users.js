@@ -2,7 +2,7 @@ define([
   'jquery',
   'underscore',
   'backbone',
-  'text!templates/_project_users.html',
+  'text!templates/project_users.html',
   'click_to_edit'
 ], function($, _, Backbone, ProjectUsersTemplate) {
 

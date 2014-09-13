@@ -9,6 +9,8 @@ define([
     fetch: function() {
       this.set({
         id: STATE.org.id,
+        name: STATE.org.name,
+        level: STATE.org.level,
         pendingInvites: STATE.pending_invites
       });
     },
@@ -43,6 +45,19 @@ define([
           });
 
           this.set('pendingInvites', invites);
+        }.bind(this)
+      });
+    },
+
+    update: function(attr, value) {
+      $.ajax({
+        type: 'PUT',
+        url: '/org/' + this.get('id') + '/' + attr,
+        data: {
+          value: value
+        },
+        success: function() {
+          this.set(attr, value)
         }.bind(this)
       });
     }
