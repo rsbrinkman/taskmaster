@@ -65,14 +65,14 @@ def _task_state(org_id=None):
     }
     '''
     # Get the user's orgs
-    orgs = list(org_model.get_for_user(g.user))
     user_tags = set(tags_model.get_for_user(g.user))
 
     state = {
-        'orgs': orgs,
         'user' : user_model.get(g.user),
         'user_tags': list(user_tags),
     }
+
+    state['orgs'] = state['user']['orgs']
 
     if org_id:
         # Get set of assigned tasks

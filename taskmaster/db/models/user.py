@@ -2,9 +2,11 @@ import uuid
 from passlib.apps import custom_app_context
 from taskmaster.db.utils.base_models import CRUDModel, NotFound
 from taskmaster.db.models.org import OrgModel
+from taskmaster.db.models.permission import PermissionModel
 from taskmaster.db.utils.redis_conn import db
 
 org_model = OrgModel()
+permission_model = PermissionModel()
 
 class UserModel(CRUDModel):
     KEY = 'user>%s'
@@ -22,8 +24,13 @@ class UserModel(CRUDModel):
         user['token'] = self._generate_token(user_id, db_pipe=db_pipe)
 
     def _post_get(self, user_id):
+        orgs = list(org_model.get_for_user(user_id))
+
+        for org in orgs:
+            org['role'] = permission_model.get_role(user_id, org['id'])
+
         return {
-            'orgs': list(org_model.get_for_user(user_id))
+            'orgs': orgs
         }
 
     def _generate_token(self, user_id, db_pipe=None):

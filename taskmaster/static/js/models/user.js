@@ -11,6 +11,7 @@ define([
         role: STATE.user.role,
         permissions: STATE.user.permissions,
         lteRoles: STATE.user.lte_roles,
+        projects: STATE.orgs
       });
     }
   });

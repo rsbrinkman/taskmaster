@@ -1,10 +1,7 @@
 {% extends "logged_in.html" %}
 {% block js %}
   {{ super() }}
-  <script src="static/js/admin.js"></script>
-  <script src="static/js/admin/search.js"></script>
-  <script src="static/js/admin/invite.js"></script>
-  <script src="static/js/admin/projects.js"></script>
+  <script data-main="static/js/user_admin.js" src="static/js/require.js"></script>
 {% endblock %}
 
 {% block body %}
@@ -20,23 +17,16 @@
         <div class="col-md-2">
               <ul class="left-nav list-unstyled">
                   <li class="left-nav-option active"><a href="#projects">My Projects</a></li>
-                  <li class="left-nav-option" ><a href="#invite">Invite Friends</a></li>
                   <li class="left-nav-option" ><a href="#search">Find Projects</a></li>
                   <li class="left-nav-option" ><a href="#settings">Settings</a></li>
               </ul>
         </div>
         <div class="col-md-10 border-left">
-            <section class="hidden" id="search">
-            {% include '/admin/_search.html' %}
-            </section>
             <section class="" id="projects">
-            {% include '/admin/_projects.html' %}
             </section>
-            <section class="hidden" id="invite">
-            {% include '/admin/_invite.html' %}
+            <section class="hidden" id="search">
             </section>
             <section class="hidden" id="settings">
-            {% include '/admin/_settings.html' %}
            </section>
         </div>
     </div>

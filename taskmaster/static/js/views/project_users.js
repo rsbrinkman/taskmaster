@@ -49,8 +49,8 @@ define([
       event.stopPropagation();
       event.preventDefault();
 
-      var email = $('.invite-user-email').val(),
-          role = $('.invite-user-role').val();
+      var email = this.$('.invite-user-email').val(),
+          role = this.$('.invite-user-role').val();
 
       this.currentProject.inviteUser(email, role);
     },

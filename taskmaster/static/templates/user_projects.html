@@ -1,0 +1,20 @@
+<h4>My Projects</h4>
+
+<% if (currentUser.projects.length) { %>
+<table class="table">
+    <% _.each(currentUser.projects, function(project) { %>
+      <tr data-project-id="<%= project.id %>">
+        <td><%= project.name %></td>
+        <td class="capitalize"><%= project.role %></td>
+        <td><span class="go-settings">Settings</span><span class="go-tasks">Tasks</span></td>
+      </tr>
+    <% });  %>
+</table>
+<% } %>
+
+<form id="create-project">
+  <input class="form-control" id="create-project-name" required type="text" placeholder="Enter a project name..."/>
+  <button type="submit" class="btn btn-primary">Create</button>
+</form>
+
+<button id="find-more">Find More</button>
