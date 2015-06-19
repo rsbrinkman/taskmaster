@@ -47,7 +47,7 @@ $(function() {
 function addUserToOrg(email, orgname) {
   $.ajax({
     type: 'POST',
-    url: '/org/' + orgname + '/user/' + email,
+    url: '/org/' + orgname + '/user/' + email + '/',
     success: function(org) {
       $('.user-org-results').empty()
       $('.user-org-results').append(email + ' added to ' + org.name + ' successfully!');
