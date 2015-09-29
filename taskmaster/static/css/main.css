@@ -435,3 +435,11 @@ input.saved-filter-checkbox {
 .invite-user {
     margin-left: 10px;
 }
+
+.project-settings-level, .project-settings-user-role {
+    margin: 0 20px;
+}
+
+.project-settings-leave {
+    margin-left: 10px;
+}

@@ -3,6 +3,7 @@ $.fn.clickToEdit = function(options) {
     validate: function() { return true; },
     success: function() {},
     inputType: 'text',
+    displayElement: 'div',
     cancelOnBlur: true,
     choices: []
   }, options);
@@ -24,7 +25,8 @@ $.fn.clickToEdit = function(options) {
   return this.each(function() {
     var $this = $(this),
         text = $this.text(),
-        $display = $('<div class="editable-display">' + text + '</div>'),
+        $display = $('<' + options.displayElement + ' class="editable-display">' +
+                     text + '</' + options.displayElement + '>'),
         $editable;
 
     if(options.inputType === 'select') {
@@ -35,6 +37,7 @@ $.fn.clickToEdit = function(options) {
       });
     } else {
       $editable = $('<input type="' + options.inputType  + '">');
+      $editable.addClass('form-control');
     }
 
     $editable.addClass('editable').hide();
