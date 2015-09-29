@@ -1,8 +1,8 @@
 {% extends "logged_in.html" %}
 {% block js %}
   {{ super() }}
-  <script src="static/js/project_admin.js"></script>
-  <script src="static/js/admin/project_users.js"></script>
+  <script src="static/js/admin/project_settings.js"></script>
+  <script data-main="static/js/project_admin.js" src="static/js/require.js"></script>
 {% endblock %}
 
 {% block body %}
@@ -23,7 +23,6 @@
         </div>
         <div class="col-md-10 border-left">
            <section id="users">
-            {% include '/admin/_project_users.html' %}
            </section>
            <section id="settings" class="hidden">
             {% include '/admin/_project_settings.html' %}
